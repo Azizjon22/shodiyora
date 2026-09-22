@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf9f5;
+  --foreground: #23201b;
+  --card: #ffffff;
+  --card-foreground: #23201b;
+  --border: #e8e3d8;
+  --input: #e8e3d8;
+  --muted: #f0ede3;
+  --muted-foreground: #85796d;
+  --primary: #c15f3c;
+  --primary-foreground: #fdf8f5;
+  --accent: #a9822e;
+  --accent-foreground: #2a2110;
+  --destructive: #b3432f;
+  --destructive-foreground: #fdf5f2;
+  --success: #4b7a54;
+  --success-foreground: #f0f7f1;
+  --ring: #c15f3c;
+  --radius: 0.875rem;
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --background: #1e1b17;
+    --foreground: #f1ede4;
+    --card: #272320;
+    --card-foreground: #f1ede4;
+    --border: #3b362e;
+    --input: #3b362e;
+    --muted: #2a2622;
+    --muted-foreground: #a89e90;
+    --primary: #e08659;
+    --primary-foreground: #201209;
+    --accent: #cba357;
+    --accent-foreground: #241c0c;
+    --destructive: #e2705c;
+    --destructive-foreground: #200e0a;
+    --success: #6fae79;
+    --success-foreground: #0c1710;
+    --ring: #e08659;
+  }
+}
+
+:root[data-theme="dark"] {
+  --background: #1e1b17;
+  --foreground: #f1ede4;
+  --card: #272320;
+  --card-foreground: #f1ede4;
+  --border: #3b362e;
+  --input: #3b362e;
+  --muted: #2a2622;
+  --muted-foreground: #a89e90;
+  --primary: #e08659;
+  --primary-foreground: #201209;
+  --accent: #cba357;
+  --accent-foreground: #241c0c;
+  --destructive: #e2705c;
+  --destructive-foreground: #200e0a;
+  --success: #6fae79;
+  --success-foreground: #0c1710;
+  --ring: #e08659;
+}
+
+/* Warm dark showcase scope for the public menu presentation pages —
+   always renders in this palette regardless of the visitor's light/dark
+   preference, since it's a storefront, not a themable dashboard. */
+.showcase-dark {
+  --background: #1a1512;
+  --foreground: #f5ece2;
+  --card: #221b16;
+  --card-foreground: #f5ece2;
+  --border: #3c2f23;
+  --input: #3c2f23;
+  --muted: #2a2119;
+  --muted-foreground: #b8a992;
+  --primary: #e8985e;
+  --primary-foreground: #1a1108;
+  --accent: #e3bd7e;
+  --accent-foreground: #241c0c;
+  --destructive: #e2705c;
+  --destructive-foreground: #200e0a;
+  --success: #6fae79;
+  --success-foreground: #0c1710;
+  --ring: #e8985e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-sm: calc(var(--radius) - 0.375rem);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+* {
+  border-color: var(--border);
+}

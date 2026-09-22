@@ -1,0 +1,222 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { AssignWorkerDto } from './dto/assign-worker.dto';
+import { FindEventsQuery } from './dto/find-events.query';
+
+const eventInclude = {
+  menu: true,
+  assignments: {
+    include: {
+      worker: {
+        select: {
+          id: true,
+          fullName: true,
+          phone: true,
+          photoUrl: true,
+          position: true,
+          status: true,
+        },
+      },
+      assignedBy: { select: { id: true, fullName: true } },
+    },
+  },
+  payments: { orderBy: { paymentDate: 'desc' as const } },
+  expenses: { orderBy: { createdAt: 'desc' as const } },
+};
+
+const eventDetailInclude = {
+  ...eventInclude,
+  shoppingLists: {
+    include: {
+      items: true,
+      createdByWorker: { select: { id: true, fullName: true } },
+    },
+    orderBy: { createdAt: 'desc' as const },
+  },
+};
+
+@Injectable()
+export class EventsService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(dto: CreateEventDto, createdById: string) {
+    const menu = await this.prisma.menu.findUnique({
+      where: { id: dto.menuId },
+    });
+    if (!menu) throw new BadRequestException('Menyu topilmadi');
+
+    const totalPrice = menu.pricePerPerson.mul(dto.guestCount);
+
+    const event = await this.prisma.event.create({
+      data: {
+        clientName: dto.clientName,
+        clientPhone: dto.clientPhone,
+        eventDate: new Date(dto.eventDate),
+        tableCapacity: dto.tableCapacity,
+        guestCount: dto.guestCount,
+        menuId: dto.menuId,
+        totalPrice,
+        notes: dto.notes,
+        createdById,
+      },
+      include: eventDetailInclude,
+    });
+    return this.withBalance(event);
+  }
+
+  upcomingForPicker() {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    return this.prisma.event.findMany({
+      where: { eventDate: { gte: startOfToday }, status: { not: 'CANCELLED' } },
+      select: { id: true, clientName: true, eventDate: true },
+      orderBy: { eventDate: 'asc' },
+      take: 30,
+    });
+  }
+
+  async findAll(query: FindEventsQuery) {
+    const where: Prisma.EventWhereInput = {
+      status: query.status,
+      eventDate: {
+        gte: query.from ? new Date(query.from) : undefined,
+        lte: query.to ? new Date(query.to) : undefined,
+      },
+    };
+    const events = await this.prisma.event.findMany({
+      where,
+      include: eventInclude,
+      orderBy: { eventDate: 'asc' },
+    });
+    return events.map((e) => this.withBalance(e));
+  }
+
+  async findOne(id: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { id },
+      include: eventDetailInclude,
+    });
+    if (!event) throw new NotFoundException("To'y buyurtmasi topilmadi");
+    return this.withBalance(event);
+  }
+
+  async update(id: string, dto: UpdateEventDto) {
+    const existing = await this.ensureExists(id);
+    let totalPrice = existing.totalPrice;
+
+    const menuId = dto.menuId ?? existing.menuId;
+    const guestCount = dto.guestCount ?? existing.guestCount;
+    if (dto.menuId || dto.guestCount) {
+      const menu = await this.prisma.menu.findUnique({ where: { id: menuId } });
+      if (!menu) throw new BadRequestException('Menyu topilmadi');
+      totalPrice = menu.pricePerPerson.mul(guestCount);
+    }
+
+    const event = await this.prisma.event.update({
+      where: { id },
+      data: {
+        clientName: dto.clientName,
+        clientPhone: dto.clientPhone,
+        eventDate: dto.eventDate ? new Date(dto.eventDate) : undefined,
+        tableCapacity: dto.tableCapacity,
+        guestCount: dto.guestCount,
+        menuId: dto.menuId,
+        notes: dto.notes,
+        totalPrice,
+      },
+      include: eventDetailInclude,
+    });
+    return this.withBalance(event);
+  }
+
+  async updateStatus(id: string, status: string) {
+    await this.ensureExists(id);
+    const event = await this.prisma.event.update({
+      where: { id },
+      data: { status: status as never },
+      include: eventDetailInclude,
+    });
+    return this.withBalance(event);
+  }
+
+  async remove(id: string) {
+    await this.ensureExists(id);
+    await this.prisma.event.delete({ where: { id } });
+    return { success: true };
+  }
+
+  async assignWorker(
+    eventId: string,
+    dto: AssignWorkerDto,
+    assignedById: string,
+  ) {
+    await this.ensureExists(eventId);
+    const worker = await this.prisma.worker.findUnique({
+      where: { id: dto.workerId },
+    });
+    if (!worker) throw new BadRequestException('Ishchi topilmadi');
+    if (worker.status !== 'APPROVED') {
+      throw new BadRequestException('Ishchi hali tasdiqlanmagan');
+    }
+
+    const already = await this.prisma.eventWorkerAssignment.findUnique({
+      where: { eventId_workerId: { eventId, workerId: dto.workerId } },
+    });
+    if (already)
+      throw new ConflictException(
+        "Bu ishchi allaqachon shu to'yga belgilangan",
+      );
+
+    await this.prisma.eventWorkerAssignment.create({
+      data: {
+        eventId,
+        workerId: dto.workerId,
+        assignedById,
+        roleAtEvent: dto.roleAtEvent,
+      },
+    });
+    return this.findOne(eventId);
+  }
+
+  async unassignWorker(eventId: string, workerId: string) {
+    await this.ensureExists(eventId);
+    await this.prisma.eventWorkerAssignment.delete({
+      where: { eventId_workerId: { eventId, workerId } },
+    });
+    return this.findOne(eventId);
+  }
+
+  private async ensureExists(id: string) {
+    const event = await this.prisma.event.findUnique({ where: { id } });
+    if (!event) throw new NotFoundException("To'y buyurtmasi topilmadi");
+    return event;
+  }
+
+  private withBalance<
+    T extends {
+      totalPrice: Prisma.Decimal;
+      payments?: { amount: Prisma.Decimal }[];
+      expenses?: { amount: Prisma.Decimal }[];
+    },
+  >(event: T) {
+    const paid = (event.payments ?? []).reduce(
+      (sum, p) => sum.add(p.amount),
+      new Prisma.Decimal(0),
+    );
+    const totalExpenses = (event.expenses ?? []).reduce(
+      (sum, e) => sum.add(e.amount),
+      new Prisma.Decimal(0),
+    );
+    const balance = event.totalPrice.sub(paid);
+    const netProfit = paid.sub(totalExpenses);
+    return { ...event, paidAmount: paid, balance, totalExpenses, netProfit };
+  }
+}

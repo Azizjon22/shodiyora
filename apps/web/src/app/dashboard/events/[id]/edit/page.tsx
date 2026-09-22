@@ -1,0 +1,29 @@
+import { apiFetch } from "@/lib/api";
+import type { EventDetail, Menu } from "@/lib/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EditEventForm } from "@/components/events/edit-event-form";
+
+export default async function EditEventPage({ params }: PageProps<"/dashboard/events/[id]/edit">) {
+  const { id } = await params;
+  const [event, menus] = await Promise.all([
+    apiFetch<EventDetail>(`/events/${id}`),
+    apiFetch<Menu[]>("/menus"),
+  ]);
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">To&apos;yni tahrirlash</h1>
+        <p className="text-sm text-muted-foreground">{event.clientName} — mehmonlar soni, sana yoki menyuni yangilang</p>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Buyurtma tafsilotlari</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EditEventForm event={event} menus={menus} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

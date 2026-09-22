@@ -1,0 +1,11 @@
+import { IsIn } from 'class-validator';
+
+export class PresignDto {
+  @IsIn(['image/jpeg', 'image/png', 'image/webp', 'video/mp4'])
+  contentType!: string;
+}
+
+export class StaffPresignDto extends PresignDto {
+  @IsIn(['menus', 'inventory', 'workers'])
+  folder!: 'menus' | 'inventory' | 'workers';
+}

@@ -1,0 +1,15 @@
+{
+  "name": "shodiyora",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @shodiyora/api start:dev",
+    "dev:web": "pnpm --filter @shodiyora/web dev",
+    "build": "pnpm --filter @shodiyora/shared build && pnpm --filter @shodiyora/api build && pnpm --filter @shodiyora/web build",
+    "prisma:generate": "pnpm --filter @shodiyora/api prisma:generate",
+    "prisma:migrate": "pnpm --filter @shodiyora/api prisma:migrate",
+    "prisma:seed": "pnpm --filter @shodiyora/api prisma:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  }
+}
