@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import { UZ_MONTHS } from "@/lib/utils";
 
 const WEEKDAYS_UZ = ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan", "Yak"];
@@ -63,6 +63,9 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
       const list = map.get(key) ?? [];
       list.push(event);
       map.set(key, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
     }
     return map;
   }, [events]);
@@ -151,15 +154,16 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
                     <Link
                       key={event.id}
                       href={`/dashboard/events/${event.id}`}
-                      className="truncate rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/25"
+                      className="flex items-baseline gap-1 truncate rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/25"
                     >
-                      {event.clientName}
+                      <span className="shrink-0 font-semibold">{formatTime(event.eventDate)}</span>
+                      <span className="truncate">{event.clientName}</span>
                     </Link>
                   ))}
                 {inMonth && dayEvents.length > 2 && (
                   <span className="text-[10px] text-muted-foreground">+{dayEvents.length - 2} ta</span>
                 )}
-                {inMonth && !isBooked && (
+                {inMonth && (
                   <Link
                     href={`/dashboard/events/new?date=${key}`}
                     className="mt-auto flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"

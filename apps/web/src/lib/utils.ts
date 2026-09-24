@@ -34,5 +34,10 @@ export function formatDateTime(value: string | Date, locale: Locale = "uz") {
   return `${formatDate(date, locale)}, ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
+export function formatTime(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
 /** @deprecated Use formatDate with locale */
 export const UZ_MONTHS = getDictionary("uz").months;
