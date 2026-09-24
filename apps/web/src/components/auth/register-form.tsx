@@ -3,14 +3,16 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { WORKER_POSITIONS, WORKER_POSITION_LABELS_UZ, workerRegisterSchema } from "@shodiyora/shared";
+import { WORKER_POSITIONS, workerRegisterSchema } from "@shodiyora/shared";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageDropzone } from "@/components/uploads/image-dropzone";
+import { useT } from "@/components/i18n/locale-provider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 export function RegisterForm() {
+  const t = useT();
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -133,14 +135,14 @@ export function RegisterForm() {
         >
           {WORKER_POSITIONS.map((p) => (
             <option key={p} value={p}>
-              {WORKER_POSITION_LABELS_UZ[p]}
+              {t(`workerPositions.${p}`)}
             </option>
           ))}
         </Select>
       </div>
       {needsPin && (
         <div>
-          <Label htmlFor="pin">PIN kod (4 raqam) — tizimga kirish uchun</Label>
+          <Label htmlFor="pin">{t("auth.pin")}</Label>
           <Input
             id="pin"
             inputMode="numeric"
@@ -167,12 +169,12 @@ export function RegisterForm() {
       />
       <FieldError>{error}</FieldError>
       <Button type="submit" className="w-full" disabled={submitting}>
-        {submitting ? "Yuborilmoqda..." : "Ro'yxatdan o'tish"}
+        {submitting ? t("common.loading") : t("auth.register")}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        Hisobingiz bormi?{" "}
+        {t("auth.hasAccount")}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Kirish
+          {t("auth.login")}
         </Link>
       </p>
     </form>

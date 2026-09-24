@@ -5,15 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatSom } from "@/lib/utils";
 import { CreateMenuForm } from "@/components/menus/create-menu-form";
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 export default async function MenusPage() {
-  const menus = await apiFetch<Menu[]>("/menus");
+  const [menus, locale] = await Promise.all([apiFetch<Menu[]>("/menus"), getLocale()]);
+  const t = (key: string) => translate(getDictionary(locale), key);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Menyular</h1>
-        <p className="text-sm text-muted-foreground">To&apos;y menyu paketlari: taomlar, media va narxlar</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{t("menus.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("presentation.heroSubtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -33,7 +36,7 @@ export default async function MenusPage() {
                   <p className="font-semibold">{menu.name}</p>
                   {menu.isVip && <Badge variant="accent">VIP</Badge>}
                 </div>
-                <p className="text-sm text-primary">{formatSom(menu.pricePerPerson)} / kishi</p>
+                <p className="text-sm text-primary">{formatSom(menu.pricePerPerson, locale)} / kishi</p>
                 <p className="text-xs text-muted-foreground">{menu.dishes.length} ta taom</p>
               </CardContent>
             </Card>

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createMenuAction, type FormActionState } from "@/lib/actions/menus.actions";
 import { Input, Label, Textarea, FieldError } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 const initialState: FormActionState = undefined;
@@ -24,10 +25,7 @@ export function CreateMenuForm() {
         <Label htmlFor="description">Tavsif</Label>
         <Textarea id="description" name="description" rows={2} />
       </div>
-      <label className="flex items-center gap-2 text-sm sm:col-span-2">
-        <input type="checkbox" name="isVip" className="h-4 w-4 rounded border-input" />
-        VIP menyu
-      </label>
+      <Checkbox id="isVip" name="isVip" label="VIP menyu" className="sm:col-span-2" />
       <FieldError>{state?.error}</FieldError>
       <SubmitButton pendingText="Yaratilmoqda..." className="sm:col-span-2 sm:w-fit">
         Menyu qo&apos;shish

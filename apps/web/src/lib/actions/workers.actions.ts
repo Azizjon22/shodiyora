@@ -5,7 +5,7 @@ import { workerRegisterSchema } from "@shodiyora/shared";
 import { apiFetch } from "@/lib/api";
 import { extractErrorMessage } from "@/lib/errors";
 
-export type FormActionState = { error?: string } | undefined;
+export type FormActionState = { error?: string; success?: boolean } | undefined;
 
 export async function createWorkerByStaffAction(
   _prev: FormActionState,
@@ -29,7 +29,7 @@ export async function createWorkerByStaffAction(
     return { error: extractErrorMessage(err, "Ishchini qo'shib bo'lmadi") };
   }
   revalidatePath("/dashboard/workers");
-  return undefined;
+  return { success: true };
 }
 
 export async function approveWorkerAction(workerId: string) {

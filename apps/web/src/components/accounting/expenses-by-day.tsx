@@ -1,19 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { EVENT_EXPENSE_CATEGORY_LABELS_UZ } from "@shodiyora/shared";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import type { DailyReportDay } from "@/lib/types";
-import { formatDate, formatSom } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { formatDate, formatSom, cn } from "@/lib/utils";
+import { useLocale } from "@/components/i18n/locale-provider";
 
 type Period = "all" | "year" | "month";
-
-const PERIOD_OPTIONS: [Period, string][] = [
-  ["all", "Barchasi"],
-  ["year", "Bu yil"],
-  ["month", "Bu oy"],
-];
 
 function parseDayLocal(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -21,7 +14,14 @@ function parseDayLocal(dateStr: string) {
 }
 
 export function ExpensesByDay({ days }: { days: DailyReportDay[] }) {
+  const { t, locale } = useLocale();
   const [period, setPeriod] = useState<Period>("all");
+
+  const periodOptions: [Period, string][] = [
+    ["all", t("common.all")],
+    ["year", t("common.thisYear")],
+    ["month", t("common.thisMonth")],
+  ];
 
   const filtered = useMemo(() => {
     const now = new Date();
@@ -39,8 +39,8 @@ export function ExpensesByDay({ days }: { days: DailyReportDay[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 text-xs font-medium w-fit">
-        {PERIOD_OPTIONS.map(([value, label]) => (
+      <div className="flex w-fit gap-1 rounded-lg border border-border bg-muted p-1 text-xs font-medium">
+        {periodOptions.map(([value, label]) => (
           <button
             key={value}
             type="button"
@@ -56,26 +56,27 @@ export function ExpensesByDay({ days }: { days: DailyReportDay[] }) {
       </div>
 
       <div className="space-y-2">
-        {filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground">Bu davrda to&apos;y bo&apos;lmagan.</p>
-        )}
+        {filtered.length === 0 && <p className="text-sm text-muted-foreground">{t("common.noData")}</p>}
         {filtered.map((day) => (
           <CollapsibleCard
             key={day.date}
-            title={formatDate(parseDayLocal(day.date)) + (day.eventCount > 1 ? ` · ${day.eventCount} ta to'y` : "")}
-            meta={<span className="text-sm font-semibold text-destructive">{formatSom(day.totalExpenses)}</span>}
+            title={
+              formatDate(parseDayLocal(day.date), locale) +
+              (day.eventCount > 1 ? ` · ${t("accounting.eventsCount", { count: day.eventCount })}` : "")
+            }
+            meta={<span className="text-sm font-semibold text-destructive">{formatSom(day.totalExpenses, locale)}</span>}
           >
             <div className="space-y-2">
               {day.expensesByCategory.length === 0 && (
-                <p className="text-sm text-muted-foreground">Bu kunga xarajat kiritilmagan.</p>
+                <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
               )}
               {day.expensesByCategory.map((item) => (
                 <div
                   key={item.category}
-                  className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-xl border border-border px-3 py-2 text-sm"
                 >
-                  <span>{EVENT_EXPENSE_CATEGORY_LABELS_UZ[item.category]}</span>
-                  <span className="font-medium text-destructive">{formatSom(item.amount)}</span>
+                  <span>{t(`expenseCategories.${item.category}`)}</span>
+                  <span className="font-medium text-destructive">{formatSom(item.amount, locale)}</span>
                 </div>
               ))}
             </div>

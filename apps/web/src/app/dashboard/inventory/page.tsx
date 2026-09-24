@@ -6,9 +6,12 @@ import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { InventoryBrowser } from "@/components/inventory/inventory-browser";
 import { CreateItemForm } from "@/components/inventory/create-item-form";
 import { isLowStock } from "@/components/inventory/item-row";
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 export default async function InventoryPage() {
-  const items = await apiFetch<InventoryItem[]>("/inventory");
+  const [items, locale] = await Promise.all([apiFetch<InventoryItem[]>("/inventory"), getLocale()]);
+  const t = (key: string) => translate(getDictionary(locale), key);
 
   const dishwareItems = items.filter((item) => item.category === "DISHWARE");
   const productItems = items.filter((item) => item.category === "PRODUCT");
@@ -16,10 +19,10 @@ export default async function InventoryPage() {
   const lowStockCount = items.filter(isLowStock).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Ombor</h1>
-        <p className="text-sm text-muted-foreground">Idish-tovoqlar va mahsulotlar zaxirasi</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{t("inventory.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("nav.inventory")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

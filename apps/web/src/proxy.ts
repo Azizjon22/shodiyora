@@ -32,9 +32,15 @@ export default async function proxy(req: NextRequest) {
 
   const isDashboard = pathname.startsWith("/dashboard");
   const isWorkerArea = pathname.startsWith("/worker");
-  // /menyular is the in-person presentation view staff show clients on a hall
+  // /showcase is the in-person presentation view staff show clients on a hall
   // tablet/computer — it is NOT public and must require a staff session.
-  const isMenuShowcase = pathname.startsWith("/menyular");
+  const isMenuShowcase = pathname.startsWith("/showcase") || pathname.startsWith("/menyular");
+
+  // Keep old /menyular bookmarks working.
+  if (pathname === "/menyular" || pathname.startsWith("/menyular/")) {
+    const dest = pathname.replace(/^\/menyular/, "/showcase");
+    return NextResponse.redirect(new URL(dest, req.url));
+  }
 
   const cookie = req.cookies.get(SESSION_COOKIE)?.value;
   let session = cookie ? await decryptSession(cookie) : null;

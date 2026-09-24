@@ -1,9 +1,8 @@
 import { apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import type { EventDetail, WorkerSummary } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreateWorkerForm } from "@/components/workers/create-worker-form";
 import { WorkersByPosition } from "@/components/workers/workers-by-position";
+import { WorkersPageHeader } from "@/components/workers/workers-page-header";
 
 export default async function WorkersPage() {
   const startOfToday = new Date();
@@ -27,22 +26,9 @@ export default async function WorkersPage() {
   }));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Ishchilar</h1>
-        <p className="text-sm text-muted-foreground">Ro&apos;yxatdan o&apos;tgan afitsant va oshpazlar</p>
-      </div>
-
+    <div className="space-y-6 animate-fade-up">
+      <WorkersPageHeader />
       <WorkersByPosition workers={workers} role={role} events={staffingEvents} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Yangi ishchi qo&apos;shish</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CreateWorkerForm />
-        </CardContent>
-      </Card>
     </div>
   );
 }
