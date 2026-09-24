@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Portal } from "@/components/ui/portal";
 
 export function VideoThumbnail({
   url,
@@ -45,26 +46,28 @@ export function VideoThumbnail({
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <button
-            type="button"
+        <Portal>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
             onClick={() => setOpen(false)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-            aria-label="Yopish"
           >
-            <X className="h-5 w-5" />
-          </button>
-          <video
-            src={url}
-            controls
-            autoPlay
-            className="max-h-[85vh] w-full max-w-4xl rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+              aria-label="Yopish"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <video
+              src={url}
+              controls
+              autoPlay
+              className="max-h-[85vh] w-full max-w-4xl rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </Portal>
       )}
     </>
   );
