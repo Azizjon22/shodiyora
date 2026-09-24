@@ -41,16 +41,18 @@ export default async function StaffPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           {staff.map((s) => (
-            <div key={s.id} className="flex items-center gap-3 rounded-xl border border-border p-3">
-              <div className="flex-1">
+            <div key={s.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-[140px] flex-1">
                 <p className="text-sm font-medium">{s.fullName}</p>
                 <p className="text-xs text-muted-foreground">{s.phone}</p>
               </div>
-              <Badge variant="primary">{t(`roles.${s.role}`)}</Badge>
-              <Badge variant={s.isActive ? "success" : "destructive"}>
-                {s.isActive ? t("staffExtra.active") : t("staffExtra.inactive")}
-              </Badge>
-              <StaffActions staffId={s.id} isActive={s.isActive} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="primary">{t(`roles.${s.role}`)}</Badge>
+                <Badge variant={s.isActive ? "success" : "destructive"}>
+                  {s.isActive ? t("staffExtra.active") : t("staffExtra.inactive")}
+                </Badge>
+                <StaffActions staffId={s.id} isActive={s.isActive} />
+              </div>
             </div>
           ))}
         </CardContent>

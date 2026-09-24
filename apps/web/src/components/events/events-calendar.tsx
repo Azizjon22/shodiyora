@@ -69,8 +69,8 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <div className="flex items-center gap-2">
+      <CardHeader className="flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-center gap-2 sm:justify-start">
           <Button
             type="button"
             variant="outline"
@@ -93,7 +93,7 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 text-xs font-medium">
+        <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-muted p-1 text-xs font-medium">
           {(
             [
               ["all", "Barchasi"],
@@ -106,7 +106,7 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
               type="button"
               onClick={() => setFilter(value)}
               className={cn(
-                "rounded-md px-2.5 py-1.5 transition-colors",
+                "shrink-0 rounded-md px-2.5 py-1.5 transition-colors",
                 filter === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
               )}
             >

@@ -32,9 +32,9 @@ export function StatCard({
     >
       <CardContent className="relative flex items-center justify-between gap-4 p-4 sm:p-5">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--surface-glow),transparent_55%)]" />
-        <div className="relative">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+        <div className="relative min-w-0">
+          <p className="truncate text-sm text-muted-foreground">{label}</p>
+          <p className="mt-1 break-words text-2xl font-semibold tracking-tight">{value}</p>
         </div>
         {icon && (
           <div
