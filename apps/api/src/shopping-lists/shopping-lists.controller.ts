@@ -79,7 +79,7 @@ export class ShoppingListsController {
     @Body() dto: UpdateShoppingListStatusDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.lists.updateStatus(id, dto.status, user.sub);
+    return this.lists.updateStatus(id, dto.status, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
@@ -91,6 +91,6 @@ export class ShoppingListsController {
     @Body() dto: MarkPurchasedDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.lists.markItemPurchased(id, itemId, dto, user.sub);
+    return this.lists.markItemPurchased(id, itemId, dto, user.sub, user.fullName);
   }
 }

@@ -6,12 +6,22 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreateStaffUserDto } from './dto/create-staff-user.dto';
 import { UpdateStaffUserDto } from './dto/update-staff-user.dto';
 
+const ROLE_LABEL_UZ: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  ADMIN: 'Admin',
+  ZAVZAL: 'Zavzal',
+};
+
 @Injectable()
 export class StaffUsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditLog: AuditLogService,
+  ) {}
 
   findAll() {
     return this.prisma.staffUser.findMany({
@@ -21,13 +31,14 @@ export class StaffUsersService {
         phone: true,
         role: true,
         isActive: true,
+        mustChangePassword: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async create(dto: CreateStaffUserDto) {
+  async create(dto: CreateStaffUserDto, actorId: string, actorName: string) {
     const existing = await this.prisma.staffUser.findUnique({
       where: { phone: dto.phone },
     });
@@ -43,13 +54,29 @@ export class StaffUsersService {
         phone: dto.phone,
         passwordHash,
         role: dto.role,
+        mustChangePassword: true,
       },
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'CREATE',
+      entityType: 'STAFF_USER',
+      entityId: staff.id,
+      description: `"${staff.fullName}" (${ROLE_LABEL_UZ[staff.role] ?? staff.role}) xodimini qo'shdi`,
+    });
+
     const { passwordHash: _omit, ...safe } = staff;
     return safe;
   }
 
-  async update(id: string, dto: UpdateStaffUserDto) {
+  async update(
+    id: string,
+    dto: UpdateStaffUserDto,
+    actorId: string,
+    actorName: string,
+  ) {
     const existing = await this.ensureExists(id);
     const demotingOrDeactivatingSuperAdmin =
       existing.role === 'SUPER_ADMIN' &&
@@ -73,13 +100,38 @@ export class StaffUsersService {
         role: dto.role,
         isActive: dto.isActive,
         passwordHash,
+        mustChangePassword: dto.password ? true : undefined,
       },
     });
+
+    const changes: string[] = [];
+    if (dto.role && dto.role !== existing.role) {
+      changes.push(
+        `rol: ${ROLE_LABEL_UZ[existing.role] ?? existing.role} → ${ROLE_LABEL_UZ[dto.role] ?? dto.role}`,
+      );
+    }
+    if (dto.isActive !== undefined && dto.isActive !== existing.isActive) {
+      changes.push(dto.isActive ? 'faollashtirdi' : 'faolsizlantirdi');
+    }
+    if (dto.password) changes.push('parolni yangiladi');
+    if (dto.fullName && dto.fullName !== existing.fullName) {
+      changes.push(`ism: "${existing.fullName}" → "${dto.fullName}"`);
+    }
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UPDATE',
+      entityType: 'STAFF_USER',
+      entityId: id,
+      description: `"${existing.fullName}" xodimini tahrirladi${changes.length ? ` (${changes.join(', ')})` : ''}`,
+    });
+
     const { passwordHash: _omit, ...safe } = staff;
     return safe;
   }
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string, actorName: string) {
     const existing = await this.ensureExists(id);
     if (
       existing.role === 'SUPER_ADMIN' &&
@@ -90,6 +142,16 @@ export class StaffUsersService {
       );
     }
     await this.prisma.staffUser.delete({ where: { id } });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'DELETE',
+      entityType: 'STAFF_USER',
+      entityId: id,
+      description: `"${existing.fullName}" xodimini butunlay o'chirdi`,
+    });
+
     return { success: true };
   }
 

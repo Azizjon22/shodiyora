@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { STAFF_ROLES, STAFF_ROLE_LABELS_UZ } from "@shodiyora/shared";
 import { createStaffAction, type FormActionState } from "@/lib/actions/staff.actions";
-import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { Input, PasswordInput, Label, Select, FieldError } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 const initialState: FormActionState = undefined;
@@ -23,7 +23,7 @@ export function CreateStaffForm() {
       </div>
       <div>
         <Label htmlFor="password">Parol</Label>
-        <Input id="password" name="password" type="password" required minLength={6} />
+        <PasswordInput id="password" name="password" required minLength={6} />
       </div>
       <div>
         <Label htmlFor="role">Rol</Label>

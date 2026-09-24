@@ -35,7 +35,7 @@ export class WorkersController {
   @Roles('SUPER_ADMIN', 'ADMIN', 'ZAVZAL')
   @Post()
   create(@Body() dto: RegisterWorkerDto, @CurrentUser() user: AuthPayload) {
-    return this.workers.createByStaff(dto, user.sub);
+    return this.workers.createByStaff(dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
@@ -56,27 +56,31 @@ export class WorkersController {
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id/approve')
   approve(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
-    return this.workers.approve(id, user.sub);
+    return this.workers.approve(id, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id/reject')
   reject(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
-    return this.workers.reject(id, user.sub);
+    return this.workers.reject(id, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateWorkerDto) {
-    return this.workers.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateWorkerDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.workers.update(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.workers.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.workers.remove(id, user.sub, user.fullName);
   }
 }

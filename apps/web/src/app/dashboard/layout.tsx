@@ -12,6 +12,9 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
   if (!session || session.user.kind !== "STAFF") {
     redirect("/login");
   }
+  if (session.user.mustChangePassword) {
+    redirect("/change-password");
+  }
 
   const overview = await apiFetch<OverviewNotifications>("/dashboard/overview").catch(
     (): OverviewNotifications => ({}),

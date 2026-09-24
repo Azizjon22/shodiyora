@@ -44,3 +44,22 @@ export async function deleteStaffAction(staffId: string) {
   await apiFetch(`/staff-users/${staffId}`, { method: "DELETE" });
   revalidatePath("/dashboard/staff");
 }
+
+export async function resetStaffPasswordAction(
+  staffId: string,
+  newPassword: string,
+): Promise<{ error?: string }> {
+  if (newPassword.length < 6) {
+    return { error: "Parol kamida 6 belgidan iborat bo'lishi kerak" };
+  }
+  try {
+    await apiFetch(`/staff-users/${staffId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ password: newPassword }),
+    });
+  } catch (err) {
+    return { error: extractErrorMessage(err, "Parolni tiklab bo'lmadi") };
+  }
+  revalidatePath("/dashboard/staff");
+  return {};
+}

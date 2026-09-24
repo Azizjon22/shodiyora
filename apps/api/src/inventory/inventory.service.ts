@@ -6,13 +6,17 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
 import { UpdateInventoryItemDto } from './dto/update-inventory-item.dto';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditLog: AuditLogService,
+  ) {}
 
   findAll() {
     return this.prisma.inventoryItem.findMany({ orderBy: { name: 'asc' } });
@@ -24,13 +28,17 @@ export class InventoryService {
     return item;
   }
 
-  async create(dto: CreateInventoryItemDto) {
+  async create(
+    dto: CreateInventoryItemDto,
+    actorId: string,
+    actorName: string,
+  ) {
     const existing = await this.prisma.inventoryItem.findUnique({
       where: { name: dto.name },
     });
     if (existing)
       throw new ConflictException('Bu nomdagi mahsulot allaqachon mavjud');
-    return this.prisma.inventoryItem.create({
+    const item = await this.prisma.inventoryItem.create({
       data: {
         name: dto.name,
         category: dto.category,
@@ -41,6 +49,17 @@ export class InventoryService {
         minThreshold: dto.minThreshold,
       },
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'CREATE',
+      entityType: 'INVENTORY_ITEM',
+      entityId: item.id,
+      description: `Omborga "${item.name}" mahsulotini qo'shdi`,
+    });
+
+    return item;
   }
 
   /**
@@ -61,21 +80,51 @@ export class InventoryService {
     });
   }
 
-  async update(id: string, dto: UpdateInventoryItemDto) {
-    await this.findOne(id);
-    return this.prisma.inventoryItem.update({ where: { id }, data: dto });
+  async update(
+    id: string,
+    dto: UpdateInventoryItemDto,
+    actorId: string,
+    actorName: string,
+  ) {
+    const existing = await this.findOne(id);
+    const item = await this.prisma.inventoryItem.update({
+      where: { id },
+      data: dto,
+    });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UPDATE',
+      entityType: 'INVENTORY_ITEM',
+      entityId: id,
+      description: `"${existing.name}" ombor mahsulotini tahrirladi`,
+    });
+
+    return item;
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, actorId: string, actorName: string) {
+    const existing = await this.findOne(id);
     await this.prisma.inventoryItem.delete({ where: { id } });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'DELETE',
+      entityType: 'INVENTORY_ITEM',
+      entityId: id,
+      description: `"${existing.name}" mahsulotini ombordan butunlay o'chirdi`,
+    });
+
     return { success: true };
   }
 
   async addTransaction(
     itemId: string,
     dto: CreateTransactionDto,
-    createdById: string,
+    actorId: string,
+    actorName: string,
   ) {
     const item = await this.findOne(itemId);
     const delta = dto.type === 'IN' ? dto.quantity : -dto.quantity;
@@ -95,10 +144,20 @@ export class InventoryService {
           type: dto.type,
           quantity: new Prisma.Decimal(dto.quantity),
           note: dto.note,
-          createdById,
+          createdById: actorId,
         },
       }),
     ]);
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UPDATE',
+      entityType: 'INVENTORY_ITEM',
+      entityId: itemId,
+      description: `"${item.name}" uchun ${dto.type === 'IN' ? 'kirim' : 'chiqim'}: ${dto.quantity} dona`,
+    });
+
     return transaction;
   }
 

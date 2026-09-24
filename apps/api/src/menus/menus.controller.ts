@@ -11,6 +11,8 @@ import {
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AuthPayload } from '../common/types/auth-payload';
 import { MenusService } from './menus.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
@@ -36,49 +38,69 @@ export class MenusController {
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post()
-  create(@Body() dto: CreateMenuDto) {
-    return this.menus.create(dto);
+  create(@Body() dto: CreateMenuDto, @CurrentUser() user: AuthPayload) {
+    return this.menus.create(dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateMenuDto) {
-    return this.menus.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateMenuDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.menus.update(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.menus.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.menus.remove(id, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post(':id/dishes')
-  addDish(@Param('id') id: string, @Body() dto: CreateMenuDishDto) {
-    return this.menus.addDish(id, dto);
+  addDish(
+    @Param('id') id: string,
+    @Body() dto: CreateMenuDishDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.menus.addDish(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Delete(':id/dishes/:dishId')
-  removeDish(@Param('id') id: string, @Param('dishId') dishId: string) {
-    return this.menus.removeDish(id, dishId);
+  removeDish(
+    @Param('id') id: string,
+    @Param('dishId') dishId: string,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.menus.removeDish(id, dishId, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post(':id/media')
-  addMedia(@Param('id') id: string, @Body() dto: CreateMenuMediaDto) {
-    return this.menus.addMedia(id, dto);
+  addMedia(
+    @Param('id') id: string,
+    @Body() dto: CreateMenuMediaDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.menus.addMedia(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Delete(':id/media/:mediaId')
-  removeMedia(@Param('id') id: string, @Param('mediaId') mediaId: string) {
-    return this.menus.removeMedia(id, mediaId);
+  removeMedia(
+    @Param('id') id: string,
+    @Param('mediaId') mediaId: string,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.menus.removeMedia(id, mediaId, user.sub, user.fullName);
   }
 }

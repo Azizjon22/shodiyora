@@ -1,4 +1,4 @@
-import { WorkerPosition } from '@prisma/client';
+import { WorkerGender, WorkerPosition } from '@prisma/client';
 import {
   IsEnum,
   IsOptional,
@@ -19,6 +19,9 @@ export class RegisterWorkerDto {
 
   @IsEnum(WorkerPosition)
   position!: WorkerPosition;
+
+  @IsEnum(WorkerGender)
+  gender!: WorkerGender;
 
   @IsOptional()
   @IsUrl()

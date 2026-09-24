@@ -93,7 +93,7 @@ export class DashboardService {
             },
             status: { not: 'CANCELLED' },
           },
-          include: { payments: true },
+          include: { payments: true, expenses: true },
         }),
       ]);
 
@@ -113,6 +113,13 @@ export class DashboardService {
         ),
       new Prisma.Decimal(0),
     );
+    const totalExpenses = monthEvents.reduce(
+      (sum, e) =>
+        sum.add(
+          e.expenses.reduce((s, x) => s.add(x.amount), new Prisma.Decimal(0)),
+        ),
+      new Prisma.Decimal(0),
+    );
 
     return {
       ...base,
@@ -123,6 +130,8 @@ export class DashboardService {
         totalExpected,
         totalCollected,
         totalOutstanding: totalExpected.sub(totalCollected),
+        totalExpenses,
+        netProfit: totalCollected.sub(totalExpenses),
       },
     };
   }

@@ -3,7 +3,13 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { WORKER_POSITIONS, WORKER_POSITION_LABELS_UZ, workerRegisterSchema } from "@shodiyora/shared";
+import {
+  WORKER_GENDERS,
+  WORKER_GENDER_LABELS_UZ,
+  WORKER_POSITIONS,
+  WORKER_POSITION_LABELS_UZ,
+  workerRegisterSchema,
+} from "@shodiyora/shared";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageDropzone } from "@/components/uploads/image-dropzone";
@@ -15,6 +21,7 @@ export function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [position, setPosition] = useState<(typeof WORKER_POSITIONS)[number]>("WAITER_MALE");
+  const [gender, setGender] = useState<(typeof WORKER_GENDERS)[number]>("MALE");
   const [pin, setPin] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [localPreview, setLocalPreview] = useState<string | undefined>();
@@ -65,6 +72,7 @@ export function RegisterForm() {
       fullName,
       phone,
       position,
+      gender,
       pin: needsPin ? pin : undefined,
     });
     if (!parsed.success) {
@@ -134,6 +142,20 @@ export function RegisterForm() {
           {WORKER_POSITIONS.map((p) => (
             <option key={p} value={p}>
               {WORKER_POSITION_LABELS_UZ[p]}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="gender">Jinsi</Label>
+        <Select
+          id="gender"
+          value={gender}
+          onChange={(e) => setGender(e.target.value as typeof gender)}
+        >
+          {WORKER_GENDERS.map((g) => (
+            <option key={g} value={g}>
+              {WORKER_GENDER_LABELS_UZ[g]}
             </option>
           ))}
         </Select>

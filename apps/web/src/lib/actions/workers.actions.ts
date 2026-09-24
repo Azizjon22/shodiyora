@@ -16,6 +16,7 @@ export async function createWorkerByStaffAction(
     fullName: formData.get("fullName"),
     phone: formData.get("phone"),
     position,
+    gender: formData.get("gender"),
     photoUrl: formData.get("photoUrl") || undefined,
     pin: position === "CHEF" ? formData.get("pin") || undefined : undefined,
   });
@@ -29,20 +30,50 @@ export async function createWorkerByStaffAction(
     return { error: extractErrorMessage(err, "Ishchini qo'shib bo'lmadi") };
   }
   revalidatePath("/dashboard/workers");
+  revalidatePath("/dashboard/staff");
   return undefined;
 }
 
-export async function approveWorkerAction(workerId: string) {
-  await apiFetch(`/workers/${workerId}/approve`, { method: "PATCH" });
+export async function approveWorkerAction(workerId: string): Promise<{ error?: string }> {
+  try {
+    await apiFetch(`/workers/${workerId}/approve`, { method: "PATCH" });
+  } catch (err) {
+    return { error: extractErrorMessage(err, "Ishchini tasdiqlab bo'lmadi") };
+  }
   revalidatePath("/dashboard/workers");
+  return {};
 }
 
-export async function rejectWorkerAction(workerId: string) {
-  await apiFetch(`/workers/${workerId}/reject`, { method: "PATCH" });
+export async function rejectWorkerAction(workerId: string): Promise<{ error?: string }> {
+  try {
+    await apiFetch(`/workers/${workerId}/reject`, { method: "PATCH" });
+  } catch (err) {
+    return { error: extractErrorMessage(err, "Ishchini rad etib bo'lmadi") };
+  }
   revalidatePath("/dashboard/workers");
+  return {};
 }
 
-export async function deleteWorkerAction(workerId: string) {
-  await apiFetch(`/workers/${workerId}`, { method: "DELETE" });
+export async function deleteWorkerAction(workerId: string): Promise<{ error?: string }> {
+  try {
+    await apiFetch(`/workers/${workerId}`, { method: "DELETE" });
+  } catch (err) {
+    return { error: extractErrorMessage(err, "Ishchini o'chirib bo'lmadi") };
+  }
   revalidatePath("/dashboard/workers");
+  return {};
+}
+
+export async function resetWorkerPinAction(workerId: string, newPin: string): Promise<{ error?: string }> {
+  if (!/^[0-9]{4}$/.test(newPin)) {
+    return { error: "PIN 4 ta raqamdan iborat bo'lishi kerak" };
+  }
+  try {
+    await apiFetch(`/workers/${workerId}`, { method: "PATCH", body: JSON.stringify({ pin: newPin }) });
+  } catch (err) {
+    return { error: extractErrorMessage(err, "PIN kodni tiklab bo'lmadi") };
+  }
+  revalidatePath("/dashboard/workers");
+  revalidatePath("/dashboard/staff");
+  return {};
 }

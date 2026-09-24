@@ -10,6 +10,7 @@ import {
   PRODUCT_CATEGORIES,
   TABLE_CAPACITIES,
   UNITS,
+  WORKER_GENDERS,
   WORKER_POSITIONS,
 } from "./enums";
 
@@ -25,6 +26,7 @@ export const workerRegisterSchema = z.object({
   fullName: z.string().trim().min(3, "Ism-familiya kiritilishi shart"),
   phone: z.string().regex(phoneRegex, "Telefon raqami noto'g'ri"),
   position: z.enum(WORKER_POSITIONS),
+  gender: z.enum(WORKER_GENDERS, { message: "Jinsni tanlang" }),
   photoUrl: z.string().url().optional().or(z.literal("")),
   pin: z
     .string()

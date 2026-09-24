@@ -11,6 +11,7 @@ type StaffSessionUser = {
   fullName: string;
   phone: string;
   role: StaffRole;
+  mustChangePassword: boolean;
 };
 
 type WorkerSessionUser = {
@@ -19,6 +20,7 @@ type WorkerSessionUser = {
   fullName: string;
   phone: string;
   position: WorkerPosition;
+  mustChangePin: boolean;
 };
 
 export type SessionUser = StaffSessionUser | WorkerSessionUser;

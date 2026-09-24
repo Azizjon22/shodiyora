@@ -1,4 +1,4 @@
-import { WorkerPosition, WorkerStatus } from '@prisma/client';
+import { WorkerGender, WorkerPosition, WorkerStatus } from '@prisma/client';
 import { IsEnum, IsOptional } from 'class-validator';
 
 export class FindWorkersQuery {
@@ -9,4 +9,8 @@ export class FindWorkersQuery {
   @IsOptional()
   @IsEnum(WorkerPosition)
   position?: WorkerPosition;
+
+  @IsOptional()
+  @IsEnum(WorkerGender)
+  gender?: WorkerGender;
 }

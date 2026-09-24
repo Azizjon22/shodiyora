@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "./card";
 import { cn } from "@/lib/utils";
 
@@ -7,11 +8,13 @@ export function StatCard({
   value,
   icon,
   tone = "default",
+  href,
 }: {
   label: string;
   value: ReactNode;
   icon?: ReactNode;
   tone?: "default" | "primary" | "accent" | "destructive";
+  href?: string;
 }) {
   const toneClasses: Record<string, string> = {
     default: "bg-muted text-foreground",
@@ -20,8 +23,8 @@ export function StatCard({
     destructive: "bg-destructive/10 text-destructive",
   };
 
-  return (
-    <Card>
+  const content = (
+    <Card className={cn(href && "transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md")}>
       <CardContent className="flex items-center justify-between gap-4 p-4 sm:p-5">
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>
@@ -35,4 +38,14 @@ export function StatCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

@@ -1,14 +1,23 @@
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
-import type { DailyReport } from "@/lib/types";
+import type { DailyReport, EventDetail } from "@/lib/types";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { DailyBreakdown } from "@/components/accounting/daily-breakdown";
 import { ExpensesByDay } from "@/components/accounting/expenses-by-day";
-import { formatSom } from "@/lib/utils";
-import { Wallet, TrendingDown, PiggyBank, CalendarDays, Receipt } from "lucide-react";
+import { formatDate, formatSom } from "@/lib/utils";
+import { Wallet, TrendingDown, PiggyBank, CalendarDays, Receipt, AlertCircle } from "lucide-react";
 
 export default async function AccountingPage() {
-  const report = await apiFetch<DailyReport>("/payments/daily-report");
+  const [report, events] = await Promise.all([
+    apiFetch<DailyReport>("/payments/daily-report"),
+    apiFetch<EventDetail[]>("/events"),
+  ]);
+
+  const outstandingEvents = events
+    .filter((e) => e.status !== "CANCELLED" && e.balance && Number(e.balance) > 0)
+    .sort((a, b) => Number(b.balance) - Number(a.balance));
+  const totalOutstanding = outstandingEvents.reduce((sum, e) => sum + Number(e.balance ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -27,6 +36,36 @@ export default async function AccountingPage() {
           tone={Number(report.netProfit) >= 0 ? "accent" : "destructive"}
         />
       </div>
+
+      <CollapsibleCard
+        icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
+        title="Qarzdor to'ylar"
+        meta={
+          outstandingEvents.length > 0 ? (
+            <span className="text-sm font-semibold text-destructive">{formatSom(totalOutstanding)}</span>
+          ) : undefined
+        }
+        defaultOpen={outstandingEvents.length > 0}
+      >
+        <div className="space-y-2">
+          {outstandingEvents.length === 0 && (
+            <p className="text-sm text-muted-foreground">Qarzdorlik yo&apos;q — barcha to&apos;lovlar amalga oshirilgan.</p>
+          )}
+          {outstandingEvents.map((event) => (
+            <Link
+              key={event.id}
+              href={`/dashboard/events/${event.id}`}
+              className="flex items-center justify-between rounded-md border border-border p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted/50"
+            >
+              <div>
+                <p className="font-medium">{event.clientName}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}</p>
+              </div>
+              <span className="font-medium text-destructive">{formatSom(event.balance ?? "0")}</span>
+            </Link>
+          ))}
+        </div>
+      </CollapsibleCard>
 
       <CollapsibleCard icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} title="Kunlar bo'yicha sof foyda">
         <DailyBreakdown days={report.days} valueKey="netProfit" tone="success" />

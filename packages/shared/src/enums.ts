@@ -12,6 +12,9 @@ export type WorkerPosition = (typeof WORKER_POSITIONS)[number];
 export const WORKER_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
 export type WorkerStatus = (typeof WORKER_STATUSES)[number];
 
+export const WORKER_GENDERS = ["MALE", "FEMALE"] as const;
+export type WorkerGender = (typeof WORKER_GENDERS)[number];
+
 export const EVENT_STATUSES = [
   "PENDING",
   "CONFIRMED",
@@ -104,6 +107,11 @@ export const WORKER_POSITION_LABELS_UZ: Record<WorkerPosition, string> = {
   WAITER_FEMALE: "Afitsant (qiz)",
   CHEF: "Oshpaz",
   OTHER: "Boshqa",
+};
+
+export const WORKER_GENDER_LABELS_UZ: Record<WorkerGender, string> = {
+  MALE: "Erkak",
+  FEMALE: "Ayol",
 };
 
 export const MENU_DISH_CATEGORY_LABELS_UZ: Record<MenuDishCategory, string> = {

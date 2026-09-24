@@ -45,12 +45,12 @@ export class PaymentsController {
     @Body() dto: CreatePaymentDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.payments.create(eventId, dto, user.sub);
+    return this.payments.create(eventId, dto, user.sub, user.fullName);
   }
 
   @Roles('SUPER_ADMIN')
   @Delete('payments/:id')
-  remove(@Param('id') id: string) {
-    return this.payments.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.payments.remove(id, user.sub, user.fullName);
   }
 }

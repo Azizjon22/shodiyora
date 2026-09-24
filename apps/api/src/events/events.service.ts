@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { AssignWorkerDto } from './dto/assign-worker.dto';
@@ -43,11 +44,21 @@ const eventDetailInclude = {
   },
 };
 
+const STATUS_LABEL_UZ: Record<string, string> = {
+  PENDING: 'Kutilmoqda',
+  CONFIRMED: 'Tasdiqlangan',
+  COMPLETED: 'Yakunlangan',
+  CANCELLED: 'Bekor qilingan',
+};
+
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditLog: AuditLogService,
+  ) {}
 
-  async create(dto: CreateEventDto, createdById: string) {
+  async create(dto: CreateEventDto, actorId: string, actorName: string) {
     const menu = await this.prisma.menu.findUnique({
       where: { id: dto.menuId },
     });
@@ -65,10 +76,20 @@ export class EventsService {
         menuId: dto.menuId,
         totalPrice,
         notes: dto.notes,
-        createdById,
+        createdById: actorId,
       },
       include: eventDetailInclude,
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'CREATE',
+      entityType: 'EVENT',
+      entityId: event.id,
+      description: `"${event.clientName}" uchun yangi to'y yaratdi (${event.guestCount} mehmon)`,
+    });
+
     return this.withBalance(event);
   }
 
@@ -108,7 +129,12 @@ export class EventsService {
     return this.withBalance(event);
   }
 
-  async update(id: string, dto: UpdateEventDto) {
+  async update(
+    id: string,
+    dto: UpdateEventDto,
+    actorId: string,
+    actorName: string,
+  ) {
     const existing = await this.ensureExists(id);
     let totalPrice = existing.totalPrice;
 
@@ -134,31 +160,77 @@ export class EventsService {
       },
       include: eventDetailInclude,
     });
+
+    const changes: string[] = [];
+    if (dto.guestCount && dto.guestCount !== existing.guestCount) {
+      changes.push(`mehmonlar soni ${existing.guestCount} → ${dto.guestCount}`);
+    }
+    if (dto.eventDate) changes.push('sana');
+    if (dto.menuId && dto.menuId !== existing.menuId) changes.push('menyu');
+    if (dto.clientName && dto.clientName !== existing.clientName) {
+      changes.push(`mijoz nomi "${existing.clientName}" → "${dto.clientName}"`);
+    }
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UPDATE',
+      entityType: 'EVENT',
+      entityId: event.id,
+      description: `"${event.clientName}" to'yini tahrirladi${changes.length ? ` (${changes.join(', ')})` : ''}`,
+    });
+
     return this.withBalance(event);
   }
 
-  async updateStatus(id: string, status: string) {
-    await this.ensureExists(id);
+  async updateStatus(
+    id: string,
+    status: string,
+    actorId: string,
+    actorName: string,
+  ) {
+    const existing = await this.ensureExists(id);
     const event = await this.prisma.event.update({
       where: { id },
       data: { status: status as never },
       include: eventDetailInclude,
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'STATUS_CHANGE',
+      entityType: 'EVENT',
+      entityId: event.id,
+      description: `"${event.clientName}" to'y holatini ${STATUS_LABEL_UZ[existing.status] ?? existing.status} → ${STATUS_LABEL_UZ[status] ?? status} ga o'zgartirdi`,
+    });
+
     return this.withBalance(event);
   }
 
-  async remove(id: string) {
-    await this.ensureExists(id);
+  async remove(id: string, actorId: string, actorName: string) {
+    const existing = await this.ensureExists(id);
     await this.prisma.event.delete({ where: { id } });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'DELETE',
+      entityType: 'EVENT',
+      entityId: id,
+      description: `"${existing.clientName}" to'yini butunlay o'chirdi`,
+    });
+
     return { success: true };
   }
 
   async assignWorker(
     eventId: string,
     dto: AssignWorkerDto,
-    assignedById: string,
+    actorId: string,
+    actorName: string,
   ) {
-    await this.ensureExists(eventId);
+    const existingEvent = await this.ensureExists(eventId);
     const worker = await this.prisma.worker.findUnique({
       where: { id: dto.workerId },
     });
@@ -179,18 +251,46 @@ export class EventsService {
       data: {
         eventId,
         workerId: dto.workerId,
-        assignedById,
+        assignedById: actorId,
         roleAtEvent: dto.roleAtEvent,
       },
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'ASSIGN',
+      entityType: 'EVENT',
+      entityId: eventId,
+      description: `${worker.fullName}ni "${existingEvent.clientName}" to'yiga belgiladi`,
+    });
+
     return this.findOne(eventId);
   }
 
-  async unassignWorker(eventId: string, workerId: string) {
-    await this.ensureExists(eventId);
+  async unassignWorker(
+    eventId: string,
+    workerId: string,
+    actorId: string,
+    actorName: string,
+  ) {
+    const existingEvent = await this.ensureExists(eventId);
+    const worker = await this.prisma.worker.findUnique({
+      where: { id: workerId },
+    });
     await this.prisma.eventWorkerAssignment.delete({
       where: { eventId_workerId: { eventId, workerId } },
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UNASSIGN',
+      entityType: 'EVENT',
+      entityId: eventId,
+      description: `${worker?.fullName ?? 'Ishchi'}ni "${existingEvent.clientName}" to'yidan olib tashladi`,
+    });
+
     return this.findOne(eventId);
   }
 

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, ShoppingListStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreateShoppingListDto } from './dto/create-shopping-list.dto';
 import { MarkPurchasedDto } from './dto/mark-purchased.dto';
 
@@ -15,9 +16,19 @@ const include = {
   reviewedBy: { select: { id: true, fullName: true } },
 };
 
+const STATUS_LABEL_UZ: Record<string, string> = {
+  SUBMITTED: 'Yuborilgan',
+  REVIEWED: "Ko'rib chiqilgan",
+  PURCHASED: 'Xarid qilingan',
+  CLOSED: 'Yopilgan',
+};
+
 @Injectable()
 export class ShoppingListsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditLog: AuditLogService,
+  ) {}
 
   create(dto: CreateShoppingListDto, workerId: string) {
     return this.prisma.shoppingList.create({
@@ -73,14 +84,26 @@ export class ShoppingListsService {
   async updateStatus(
     id: string,
     status: ShoppingListStatus,
-    reviewedById: string,
+    actorId: string,
+    actorName: string,
   ) {
-    await this.findOne(id);
-    return this.prisma.shoppingList.update({
+    const existing = await this.findOne(id);
+    const list = await this.prisma.shoppingList.update({
       where: { id },
-      data: { status, reviewedById, reviewedAt: new Date() },
+      data: { status, reviewedById: actorId, reviewedAt: new Date() },
       include,
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'STATUS_CHANGE',
+      entityType: 'SHOPPING_LIST',
+      entityId: id,
+      description: `${existing.createdByWorker.fullName}ning bozorlik ro'yxati holatini ${STATUS_LABEL_UZ[existing.status] ?? existing.status} → ${STATUS_LABEL_UZ[status] ?? status} ga o'zgartirdi`,
+    });
+
+    return list;
   }
 
   /**
@@ -99,7 +122,8 @@ export class ShoppingListsService {
     listId: string,
     itemId: string,
     dto: MarkPurchasedDto,
-    createdById: string,
+    actorId: string,
+    actorName: string,
   ) {
     const list = await this.findOne(listId);
     const item = list.items.find((i) => i.id === itemId);
@@ -126,10 +150,19 @@ export class ShoppingListsService {
           quantity: item.quantity,
           note: `Bozorlik ro'yxatidan: ${item.name}`,
           sourceShoppingListItemId: itemId,
-          createdById,
+          createdById: actorId,
         },
       }),
     ]);
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'UPDATE',
+      entityType: 'SHOPPING_LIST',
+      entityId: listId,
+      description: `"${item.name}" (${item.quantity} ${item.unit}) xarid qilinganini belgiladi, narxi ${dto.unitPrice.toLocaleString('uz-UZ')} so'm`,
+    });
 
     return this.findOne(listId);
   }

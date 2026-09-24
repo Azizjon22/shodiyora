@@ -1,27 +1,47 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditLog: AuditLogService,
+  ) {}
 
-  async create(eventId: string, dto: CreatePaymentDto, createdById: string) {
+  async create(
+    eventId: string,
+    dto: CreatePaymentDto,
+    actorId: string,
+    actorName: string,
+  ) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
     });
     if (!event) throw new NotFoundException("To'y buyurtmasi topilmadi");
 
-    return this.prisma.payment.create({
+    const payment = await this.prisma.payment.create({
       data: {
         eventId,
         amount: new Prisma.Decimal(dto.amount),
         method: dto.method,
         note: dto.note,
-        createdById,
+        createdById: actorId,
       },
     });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'CREATE',
+      entityType: 'PAYMENT',
+      entityId: payment.id,
+      description: `"${event.clientName}" to'yiga ${dto.amount.toLocaleString('uz-UZ')} so'm to'lov qo'shdi`,
+    });
+
+    return payment;
   }
 
   findAllForEvent(eventId: string) {
@@ -32,10 +52,23 @@ export class PaymentsService {
     });
   }
 
-  async remove(id: string) {
-    const payment = await this.prisma.payment.findUnique({ where: { id } });
+  async remove(id: string, actorId: string, actorName: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id },
+      include: { event: { select: { clientName: true } } },
+    });
     if (!payment) throw new NotFoundException("To'lov topilmadi");
     await this.prisma.payment.delete({ where: { id } });
+
+    await this.auditLog.record({
+      actorId,
+      actorName,
+      action: 'DELETE',
+      entityType: 'PAYMENT',
+      entityId: id,
+      description: `"${payment.event.clientName}" to'yidan ${Number(payment.amount).toLocaleString('uz-UZ')} so'm to'lovni o'chirdi`,
+    });
+
     return { success: true };
   }
 

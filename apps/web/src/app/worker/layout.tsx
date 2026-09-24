@@ -8,6 +8,9 @@ export default async function WorkerLayout({ children }: LayoutProps<"/worker">)
   if (!session || session.user.kind !== "WORKER") {
     redirect("/login");
   }
+  if (session.user.mustChangePin) {
+    redirect("/change-pin");
+  }
 
   return (
     <div className="min-h-screen bg-background">

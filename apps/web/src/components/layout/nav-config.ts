@@ -16,4 +16,5 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/shopping-lists", label: "Bozorlik ro'yxatlari", roles: ["SUPER_ADMIN", "ADMIN"] },
   { href: "/dashboard/accounting", label: "Hisob-kitob", roles: ["SUPER_ADMIN", "ADMIN"] },
   { href: "/dashboard/staff", label: "Xodimlar", roles: ["SUPER_ADMIN"] },
+  { href: "/dashboard/audit-log", label: "Faoliyat tarixi", roles: ["SUPER_ADMIN"] },
 ];

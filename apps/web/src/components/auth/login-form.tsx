@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { loginStaffAction, loginWorkerAction, type AuthActionState } from "@/lib/actions/auth.actions";
-import { Input, Label, FieldError } from "@/components/ui/input";
+import { Input, PasswordInput, Label, FieldError } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,15 @@ export function LoginForm() {
   const [mode, setMode] = useState<"staff" | "worker">("staff");
   const [staffState, staffFormAction] = useActionState(loginStaffAction, initialState);
   const [workerState, workerFormAction] = useActionState(loginWorkerAction, initialState);
+
+  // Controlled so a failed attempt doesn't wipe what was typed — React
+  // resets a <form action> after the action settles (even on a returned
+  // error, not just success), which would otherwise erase the phone/PIN
+  // the person needs to see to spot their own typo.
+  const [staffPhone, setStaffPhone] = useState("");
+  const [staffPassword, setStaffPassword] = useState("");
+  const [workerPhone, setWorkerPhone] = useState("");
+  const [workerPin, setWorkerPin] = useState("");
 
   return (
     <div className="w-full max-w-sm">
@@ -43,11 +52,28 @@ export function LoginForm() {
         <form action={staffFormAction} className="space-y-4">
           <div>
             <Label htmlFor="phone">Telefon raqami</Label>
-            <Input id="phone" name="phone" placeholder="+998901234567" required autoComplete="tel" />
+            <Input
+              id="phone"
+              name="phone"
+              placeholder="+998901234567"
+              required
+              autoComplete="tel"
+              value={staffPhone}
+              onChange={(e) => setStaffPhone(e.target.value)}
+              className={cn(staffState?.error && "border-destructive")}
+            />
           </div>
           <div>
             <Label htmlFor="password">Parol</Label>
-            <Input id="password" name="password" type="password" required autoComplete="current-password" />
+            <PasswordInput
+              id="password"
+              name="password"
+              required
+              autoComplete="current-password"
+              value={staffPassword}
+              onChange={(e) => setStaffPassword(e.target.value)}
+              className={cn(staffState?.error && "border-destructive")}
+            />
           </div>
           <FieldError>{staffState?.error}</FieldError>
           <SubmitButton className="w-full" pendingText="Kirilmoqda...">
@@ -58,11 +84,30 @@ export function LoginForm() {
         <form action={workerFormAction} className="space-y-4">
           <div>
             <Label htmlFor="worker-phone">Telefon raqami</Label>
-            <Input id="worker-phone" name="phone" placeholder="+998901234567" required autoComplete="tel" />
+            <Input
+              id="worker-phone"
+              name="phone"
+              placeholder="+998901234567"
+              required
+              autoComplete="tel"
+              value={workerPhone}
+              onChange={(e) => setWorkerPhone(e.target.value)}
+              className={cn(workerState?.error && "border-destructive")}
+            />
           </div>
           <div>
             <Label htmlFor="pin">PIN kod</Label>
-            <Input id="pin" name="pin" inputMode="numeric" maxLength={4} placeholder="****" required />
+            <Input
+              id="pin"
+              name="pin"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="****"
+              required
+              value={workerPin}
+              onChange={(e) => setWorkerPin(e.target.value)}
+              className={cn(workerState?.error && "border-destructive")}
+            />
           </div>
           <FieldError>{workerState?.error}</FieldError>
           <SubmitButton className="w-full" pendingText="Kirilmoqda...">

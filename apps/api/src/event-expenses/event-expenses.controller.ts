@@ -23,12 +23,12 @@ export class EventExpensesController {
     @Body() dto: CreateEventExpenseDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.expenses.create(eventId, dto, user.sub);
+    return this.expenses.create(eventId, dto, user.sub, user.fullName);
   }
 
   @Roles('SUPER_ADMIN')
   @Delete('expenses/:id')
-  remove(@Param('id') id: string) {
-    return this.expenses.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.expenses.remove(id, user.sub, user.fullName);
   }
 }

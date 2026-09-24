@@ -29,8 +29,8 @@ export class StaffUsersController {
   }
 
   @Post()
-  create(@Body() dto: CreateStaffUserDto) {
-    return this.staffUsers.create(dto);
+  create(@Body() dto: CreateStaffUserDto, @CurrentUser() user: AuthPayload) {
+    return this.staffUsers.create(dto, user.sub, user.fullName);
   }
 
   @Patch(':id')
@@ -42,7 +42,7 @@ export class StaffUsersController {
     if (id === user.sub && dto.isActive === false) {
       throw new ForbiddenException("O'zingizni faolsizlantira olmaysiz");
     }
-    return this.staffUsers.update(id, dto);
+    return this.staffUsers.update(id, dto, user.sub, user.fullName);
   }
 
   @Delete(':id')
@@ -50,6 +50,6 @@ export class StaffUsersController {
     if (id === user.sub) {
       throw new ForbiddenException("O'zingizni o'chira olmaysiz");
     }
-    return this.staffUsers.remove(id);
+    return this.staffUsers.remove(id, user.sub, user.fullName);
   }
 }

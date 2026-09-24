@@ -9,6 +9,7 @@ import type {
   ProductCategory,
   ShoppingListStatus,
   Unit,
+  WorkerGender,
   WorkerPosition,
   WorkerStatus,
 } from "@shodiyora/shared";
@@ -50,8 +51,10 @@ export interface WorkerSummary {
   phone: string;
   photoUrl: string | null;
   position: WorkerPosition;
+  gender: WorkerGender | null;
   status: WorkerStatus;
   hasPin?: boolean;
+  mustChangePin?: boolean;
   createdAt: string;
 }
 
@@ -178,5 +181,17 @@ export interface StaffUserSummary {
   phone: string;
   role: "SUPER_ADMIN" | "ADMIN" | "ZAVZAL";
   isActive: boolean;
+  mustChangePassword?: boolean;
+  createdAt: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string | null;
+  actorName: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  description: string;
   createdAt: string;
 }

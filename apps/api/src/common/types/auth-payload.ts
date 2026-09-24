@@ -7,4 +7,6 @@ export interface AuthPayload {
   kind: AuthKind;
   role?: StaffRole;
   fullName: string;
+  mustChangePassword?: boolean;
+  mustChangePin?: boolean;
 }

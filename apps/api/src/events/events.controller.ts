@@ -43,7 +43,7 @@ export class EventsController {
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post()
   create(@Body() dto: CreateEventDto, @CurrentUser() user: AuthPayload) {
-    return this.events.create(dto, user.sub);
+    return this.events.create(dto, user.sub, user.fullName);
   }
 
   // No @Roles(): reachable by workers too, so chefs can pick which wedding
@@ -72,20 +72,28 @@ export class EventsController {
 
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateEventDto) {
-    return this.events.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateEventDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.events.update(id, dto, user.sub, user.fullName);
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateEventStatusDto) {
-    return this.events.updateStatus(id, dto.status);
+  updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateEventStatusDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.events.updateStatus(id, dto.status, user.sub, user.fullName);
   }
 
   @Roles('SUPER_ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.events.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.events.remove(id, user.sub, user.fullName);
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN', 'ZAVZAL')
@@ -95,7 +103,12 @@ export class EventsController {
     @Body() dto: AssignWorkerDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    const event = await this.events.assignWorker(id, dto, user.sub);
+    const event = await this.events.assignWorker(
+      id,
+      dto,
+      user.sub,
+      user.fullName,
+    );
     return user.role === 'ZAVZAL' ? hideFinancials(event) : event;
   }
 
@@ -106,7 +119,12 @@ export class EventsController {
     @Param('workerId') workerId: string,
     @CurrentUser() user: AuthPayload,
   ) {
-    const event = await this.events.unassignWorker(id, workerId);
+    const event = await this.events.unassignWorker(
+      id,
+      workerId,
+      user.sub,
+      user.fullName,
+    );
     return user.role === 'ZAVZAL' ? hideFinancials(event) : event;
   }
 }

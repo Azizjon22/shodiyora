@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { WORKER_POSITIONS, WORKER_POSITION_LABELS_UZ } from "@shodiyora/shared";
+import { WORKER_GENDERS, WORKER_GENDER_LABELS_UZ, WORKER_POSITIONS, WORKER_POSITION_LABELS_UZ } from "@shodiyora/shared";
 import { createWorkerByStaffAction, type FormActionState } from "@/lib/actions/workers.actions";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -15,7 +15,7 @@ export function CreateWorkerForm() {
   const needsPin = position === "CHEF";
 
   return (
-    <form action={formAction} className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+    <form action={formAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
         <Label htmlFor="fullName">Ism va familiya</Label>
         <Input id="fullName" name="fullName" required />
@@ -35,6 +35,16 @@ export function CreateWorkerForm() {
           {WORKER_POSITIONS.map((p) => (
             <option key={p} value={p}>
               {WORKER_POSITION_LABELS_UZ[p]}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="gender">Jinsi</Label>
+        <Select id="gender" name="gender" defaultValue="MALE" required>
+          {WORKER_GENDERS.map((g) => (
+            <option key={g} value={g}>
+              {WORKER_GENDER_LABELS_UZ[g]}
             </option>
           ))}
         </Select>

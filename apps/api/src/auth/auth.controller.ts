@@ -4,16 +4,20 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
+import { SkipMustChange } from '../common/decorators/skip-must-change.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthPayload } from '../common/types/auth-payload';
 import { AuthService } from './auth.service';
 import { StaffLoginDto } from './dto/staff-login.dto';
 import { WorkerLoginDto } from './dto/worker-login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ChangeStaffPasswordDto } from './dto/change-staff-password.dto';
+import { ChangeWorkerPinDto } from './dto/change-worker-pin.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -40,8 +44,27 @@ export class AuthController {
     return this.auth.refresh(dto.refreshToken);
   }
 
+  @SkipMustChange()
   @Get('me')
   me(@CurrentUser() user: AuthPayload) {
     return this.auth.me(user);
+  }
+
+  @SkipMustChange()
+  @Patch('staff/password')
+  changeStaffPassword(
+    @CurrentUser() user: AuthPayload,
+    @Body() dto: ChangeStaffPasswordDto,
+  ) {
+    return this.auth.changeStaffPassword(user, dto);
+  }
+
+  @SkipMustChange()
+  @Patch('worker/pin')
+  changeWorkerPin(
+    @CurrentUser() user: AuthPayload,
+    @Body() dto: ChangeWorkerPinDto,
+  ) {
+    return this.auth.changeWorkerPin(user, dto);
   }
 }

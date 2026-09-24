@@ -52,22 +52,26 @@ export class InventoryController {
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post()
-  create(@Body() dto: CreateInventoryItemDto) {
-    return this.inventory.create(dto);
+  create(@Body() dto: CreateInventoryItemDto, @CurrentUser() user: AuthPayload) {
+    return this.inventory.create(dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto) {
-    return this.inventory.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateInventoryItemDto,
+    @CurrentUser() user: AuthPayload,
+  ) {
+    return this.inventory.update(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN')
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.inventory.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
+    return this.inventory.remove(id, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
@@ -78,7 +82,7 @@ export class InventoryController {
     @Body() dto: CreateTransactionDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.inventory.addTransaction(id, dto, user.sub);
+    return this.inventory.addTransaction(id, dto, user.sub, user.fullName);
   }
 
   @UseGuards(RolesGuard)
