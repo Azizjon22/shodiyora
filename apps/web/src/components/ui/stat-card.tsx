@@ -24,14 +24,25 @@ export function StatCard({
   };
 
   const content = (
-    <Card className={cn(href && "transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md")}>
-      <CardContent className="flex items-center justify-between gap-4 p-4 sm:p-5">
-        <div>
+    <Card
+      className={cn(
+        "overflow-hidden transition-shadow hover:shadow-[0_4px_20px_rgba(122,31,61,0.08)]",
+        href && "transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
+      )}
+    >
+      <CardContent className="relative flex items-center justify-between gap-4 p-4 sm:p-5">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--surface-glow),transparent_55%)]" />
+        <div className="relative">
           <p className="text-sm text-muted-foreground">{label}</p>
           <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
         </div>
         {icon && (
-          <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-full", toneClasses[tone])}>
+          <div
+            className={cn(
+              "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
+              toneClasses[tone],
+            )}
+          >
             {icon}
           </div>
         )}

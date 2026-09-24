@@ -1,92 +1,50 @@
 @import "tailwindcss";
 
-:root {
-  --background: #faf9f5;
-  --foreground: #23201b;
+:root,
+:root[data-theme="light"] {
+  --background: #f7f6f8;
+  --foreground: #1c1917;
   --card: #ffffff;
-  --card-foreground: #23201b;
-  --border: #e8e3d8;
-  --input: #e8e3d8;
-  --muted: #f0ede3;
-  --muted-foreground: #85796d;
-  --primary: #c15f3c;
-  --primary-foreground: #fdf8f5;
-  --accent: #a9822e;
-  --accent-foreground: #2a2110;
-  --destructive: #b3432f;
-  --destructive-foreground: #fdf5f2;
-  --success: #4b7a54;
-  --success-foreground: #f0f7f1;
-  --ring: #c15f3c;
-  --radius: 0.875rem;
-}
-
-:root[data-theme="dark"],
-:root:not([data-theme="light"]) {
-  @media (prefers-color-scheme: dark) {
-    --background: #1e1b17;
-    --foreground: #f1ede4;
-    --card: #272320;
-    --card-foreground: #f1ede4;
-    --border: #3b362e;
-    --input: #3b362e;
-    --muted: #2a2622;
-    --muted-foreground: #a89e90;
-    --primary: #e08659;
-    --primary-foreground: #201209;
-    --accent: #cba357;
-    --accent-foreground: #241c0c;
-    --destructive: #e2705c;
-    --destructive-foreground: #200e0a;
-    --success: #6fae79;
-    --success-foreground: #0c1710;
-    --ring: #e08659;
-  }
+  --card-foreground: #1c1917;
+  --border: #e7e2e4;
+  --input: #e7e2e4;
+  --muted: #f0ecef;
+  --muted-foreground: #6b6469;
+  --primary: #7a1f3d;
+  --primary-foreground: #fdf8fa;
+  --accent: #9a6b2f;
+  --accent-foreground: #1f1608;
+  --destructive: #b42318;
+  --destructive-foreground: #fef3f2;
+  --success: #2f6b4f;
+  --success-foreground: #f0faf4;
+  --ring: #7a1f3d;
+  --radius: 0.75rem;
+  --surface-glow: rgba(122, 31, 61, 0.08);
 }
 
 :root[data-theme="dark"] {
-  --background: #1e1b17;
-  --foreground: #f1ede4;
-  --card: #272320;
-  --card-foreground: #f1ede4;
-  --border: #3b362e;
-  --input: #3b362e;
-  --muted: #2a2622;
-  --muted-foreground: #a89e90;
-  --primary: #e08659;
-  --primary-foreground: #201209;
-  --accent: #cba357;
-  --accent-foreground: #241c0c;
-  --destructive: #e2705c;
-  --destructive-foreground: #200e0a;
-  --success: #6fae79;
-  --success-foreground: #0c1710;
-  --ring: #e08659;
+  --background: #161214;
+  --foreground: #f5f0f2;
+  --card: #201a1d;
+  --card-foreground: #f5f0f2;
+  --border: #3a3034;
+  --input: #3a3034;
+  --muted: #2a2226;
+  --muted-foreground: #b0a6ab;
+  --primary: #d47896;
+  --primary-foreground: #2a0c16;
+  --accent: #d4a85c;
+  --accent-foreground: #24180a;
+  --destructive: #f97066;
+  --destructive-foreground: #2a0a08;
+  --success: #6fbf91;
+  --success-foreground: #0c1a12;
+  --ring: #d47896;
+  --surface-glow: rgba(212, 120, 150, 0.12);
 }
 
-/* Warm dark showcase scope for the public menu presentation pages —
-   always renders in this palette regardless of the visitor's light/dark
-   preference, since it's a storefront, not a themable dashboard. */
-.showcase-dark {
-  --background: #1a1512;
-  --foreground: #f5ece2;
-  --card: #221b16;
-  --card-foreground: #f5ece2;
-  --border: #3c2f23;
-  --input: #3c2f23;
-  --muted: #2a2119;
-  --muted-foreground: #b8a992;
-  --primary: #e8985e;
-  --primary-foreground: #1a1108;
-  --accent: #e3bd7e;
-  --accent-foreground: #241c0c;
-  --destructive: #e2705c;
-  --destructive-foreground: #200e0a;
-  --success: #6fae79;
-  --success-foreground: #0c1710;
-  --ring: #e8985e;
-}
-
+/* Presentation uses the same light/dark tokens as the dashboard */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -106,17 +64,53 @@
   --color-success-foreground: var(--success-foreground);
   --color-ring: var(--ring);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 0.25rem);
-  --radius-sm: calc(var(--radius) - 0.375rem);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --radius-md: calc(var(--radius) - 0.2rem);
+  --radius-sm: calc(var(--radius) - 0.35rem);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-cormorant);
+  --font-mono: var(--font-manrope);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
 }
 
 * {
   border-color: var(--border);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+
+.animate-soft-scale {
+  animation: soft-scale 0.45s ease-out both;
 }

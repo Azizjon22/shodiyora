@@ -1,45 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { X } from "lucide-react";
 import { CreateWorkerForm } from "@/components/workers/create-worker-form";
+import { useT } from "@/components/i18n/locale-provider";
 
-export function CreateWorkerModal() {
-  const [open, setOpen] = useState(false);
+export function CreateWorkerModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
-    <>
-      <Button type="button" onClick={() => setOpen(true)}>
-        <Plus className="h-4 w-4" /> Yangi ishchi qo&apos;shish
-      </Button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-lg"
-            onClick={(e) => e.stopPropagation()}
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="max-h-[92vh] w-full max-w-lg overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-worker-title"
+      >
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h2 id="create-worker-title" className="font-display text-xl font-semibold tracking-tight">
+            {t("workers.createTitle")}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("common.close")}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <div className="flex items-center justify-between border-b border-border p-4">
-              <p className="font-semibold">Yangi ishchi qo&apos;shish</p>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Yopish"
-                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="p-4">
-              <CreateWorkerForm />
-            </div>
-          </div>
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
-    </>
+        <div className="max-h-[calc(92vh-4.5rem)] overflow-y-auto p-5">
+          <CreateWorkerForm onSuccess={onClose} />
+        </div>
+      </div>
+    </div>
   );
 }

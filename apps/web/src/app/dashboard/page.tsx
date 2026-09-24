@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime, formatSom } from "@/lib/utils";
-import { WORKER_POSITION_LABELS_UZ } from "@shodiyora/shared";
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 interface TomorrowEvent {
   id: string;
@@ -15,7 +16,7 @@ interface TomorrowEvent {
   guestCount: number;
   tableCapacity: number;
   menuName: string;
-  assignedWorkers: { id: string; fullName: string; position: keyof typeof WORKER_POSITION_LABELS_UZ }[];
+  assignedWorkers: { id: string; fullName: string; position: string }[];
 }
 
 interface DashboardOverview {
@@ -35,44 +36,47 @@ interface DashboardOverview {
 }
 
 export default async function DashboardOverviewPage() {
-  const [overview, session] = await Promise.all([
+  const [overview, session, locale] = await Promise.all([
     apiFetch<DashboardOverview>("/dashboard/overview"),
     getSession(),
+    getLocale(),
   ]);
+  const dict = getDictionary(locale);
+  const t = (key: string, params?: Record<string, string | number>) => translate(dict, key, params);
 
   const isZavzal = session?.user.kind === "STAFF" && session.user.role === "ZAVZAL";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Boshqaruv paneli</h1>
-        <p className="text-sm text-muted-foreground">Umumiy holat va ertangi to&apos;ylar</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{t("dashboard.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Ertangi to'ylar"
+          label={t("dashboard.tomorrowWeddings")}
           value={overview.tomorrowEvents.length}
           icon={<CalendarDays className="h-5 w-5" />}
           tone="primary"
           href="/dashboard/events"
         />
         <StatCard
-          label="Kelgusi 7 kun"
+          label={t("dashboard.upcoming")}
           value={overview.upcomingEventsCount}
           icon={<CalendarDays className="h-5 w-5" />}
           tone="accent"
           href="/dashboard/events"
         />
         <StatCard
-          label="Tasdiqlangan ishchilar"
+          label={t("dashboard.approvedWorkers")}
           value={overview.workers.approved}
           icon={<Users className="h-5 w-5" />}
           tone="accent"
           href="/dashboard/workers"
         />
         <StatCard
-          label="Kutilayotgan ishchilar"
+          label={t("dashboard.pendingWorkers")}
           value={overview.workers.pending}
           icon={<Users className="h-5 w-5" />}
           tone={overview.workers.pending > 0 ? "destructive" : "default"}
@@ -83,22 +87,22 @@ export default async function DashboardOverviewPage() {
       {!isZavzal && overview.monthlyFinancials && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard
-            label="Shu oy to'langan"
-            value={formatSom(overview.monthlyFinancials.totalCollected)}
+            label={t("dashboard.monthCollected")}
+            value={formatSom(overview.monthlyFinancials.totalCollected, locale)}
             icon={<Wallet className="h-5 w-5" />}
             tone="primary"
             href="/dashboard/accounting"
           />
           <StatCard
-            label="Shu oy sof foyda"
-            value={formatSom(overview.monthlyFinancials.netProfit)}
+            label={t("dashboard.netProfit")}
+            value={formatSom(overview.monthlyFinancials.netProfit, locale)}
             icon={<PiggyBank className="h-5 w-5" />}
             tone={Number(overview.monthlyFinancials.netProfit) >= 0 ? "accent" : "destructive"}
             href="/dashboard/accounting"
           />
           <StatCard
-            label="Qarzdorlik"
-            value={formatSom(overview.monthlyFinancials.totalOutstanding)}
+            label={t("dashboard.outstanding")}
+            value={formatSom(overview.monthlyFinancials.totalOutstanding, locale)}
             icon={<Wallet className="h-5 w-5" />}
             tone={Number(overview.monthlyFinancials.totalOutstanding) > 0 ? "destructive" : "default"}
             href="/dashboard/accounting"
@@ -108,33 +112,34 @@ export default async function DashboardOverviewPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ertangi to&apos;ylar</CardTitle>
+          <CardTitle>{t("dashboard.tomorrowWeddings")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {overview.tomorrowEvents.length === 0 && (
-            <p className="text-sm text-muted-foreground">Ertaga to&apos;y rejalashtirilmagan.</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.noTomorrow")}</p>
           )}
           {overview.tomorrowEvents.map((event) => (
             <Link
               key={event.id}
               href={`/dashboard/events/${event.id}`}
-              className="block rounded-md border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/50"
+              className="block rounded-xl border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/50"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium">{event.clientName}</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatDateTime(event.eventDate)} · {event.guestCount} mehmon · {event.tableCapacity} kishilik stol · {event.menuName}
+                    {formatDateTime(event.eventDate, locale)} · {event.guestCount} {t("dashboard.guest")} ·{" "}
+                    {event.tableCapacity} {t("dashboard.table")} · {event.menuName}
                   </p>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {event.assignedWorkers.length === 0 && (
-                  <Badge variant="destructive">Ishchilar hali belgilanmagan</Badge>
+                  <Badge variant="destructive">{t("dashboard.workersNotAssigned")}</Badge>
                 )}
                 {event.assignedWorkers.map((w) => (
                   <Badge key={w.id} variant="default">
-                    {w.fullName} · {WORKER_POSITION_LABELS_UZ[w.position]}
+                    {w.fullName} · {t(`workerPositions.${w.position}`)}
                   </Badge>
                 ))}
               </div>
@@ -148,7 +153,7 @@ export default async function DashboardOverviewPage() {
           <Card className="transition-colors hover:border-destructive/40 hover:bg-muted/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <PackageX className="h-4 w-4 text-destructive" /> Omborda kam qolgan mahsulotlar
+                <PackageX className="h-4 w-4 text-destructive" /> {t("dashboard.lowStock")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
@@ -167,10 +172,7 @@ export default async function DashboardOverviewPage() {
           <Card className="transition-colors hover:border-primary/40 hover:bg-muted/50">
             <CardContent className="flex items-center gap-3 p-4 sm:p-5">
               <ChefHat className="h-5 w-5 text-accent" />
-              <p className="text-sm">
-                <span className="font-medium">{overview.pendingShoppingLists}</span> ta yangi bozorlik ro&apos;yxati
-                ko&apos;rib chiqilishini kutmoqda.
-              </p>
+              <p className="text-sm">{t("dashboard.pendingLists", { count: overview.pendingShoppingLists })}</p>
             </CardContent>
           </Card>
         </Link>

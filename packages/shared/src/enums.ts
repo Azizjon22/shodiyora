@@ -167,3 +167,46 @@ export const EVENT_EXPENSE_CATEGORY_LABELS_UZ: Record<EventExpenseCategory, stri
   CARWASH: "Moyka",
   OTHER: "Boshqa",
 };
+
+export const STAFF_ROLE_LABELS_RU: Record<StaffRole, string> = {
+  SUPER_ADMIN: "Супер Админ",
+  ADMIN: "Админ",
+  ZAVZAL: "Завзал",
+};
+
+export const WORKER_POSITION_LABELS_RU: Record<WorkerPosition, string> = {
+  WAITER_MALE: "Официант (м)",
+  WAITER_FEMALE: "Официантка (ж)",
+  CHEF: "Повар",
+  OTHER: "Другое",
+};
+
+export const MENU_DISH_CATEGORY_LABELS_RU: Record<MenuDishCategory, string> = {
+  SALAD: "Салат",
+  FIRST_DISH: "Первое блюдо",
+  SECOND_DISH: "Второе блюдо",
+  FRUIT: "Фрукты",
+  DESSERT: "Десерт",
+  DRINK: "Напиток",
+  OTHER: "Другое",
+};
+
+export const MENU_MEDIA_SECTION_LABELS_RU: Record<MenuMediaSection, string> = {
+  HALL: "Общий зал",
+  TABLE_SETUP: "Сервировка стола",
+  KORTEJ: "Кортеж",
+  PHOTOGRAPHER: "Фотограф",
+  OTHER: "Другое",
+};
+
+export const EVENT_EXPENSE_CATEGORY_LABELS_RU: Record<EventExpenseCategory, string> = {
+  SHOPPING: "Закупки",
+  CAMERAMAN: "Оператор",
+  ARTIST: "Артист",
+  KORTEJ: "Кортеж",
+  CHEF: "Оплата повару",
+  WAITERS: "Оплата официантам",
+  ZAVZAL: "Оплата завзалу",
+  CARWASH: "Мойка",
+  OTHER: "Другое",
+};

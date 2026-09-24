@@ -1,13 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Locale } from "@/i18n/types";
+import { getDictionary } from "@/i18n/get-dictionary";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-// Formatting below is done manually (not via Intl locale APIs) so that server-rendered
-// output always matches client re-renders: Node's bundled ICU data doesn't reliably
-// include "uz-UZ", which otherwise causes React hydration mismatches in Client Components.
 
 function groupThousands(value: number) {
   return Math.round(value)
@@ -15,36 +13,26 @@ function groupThousands(value: number) {
     .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-export function formatSom(value: number | string) {
+export function formatSom(value: number | string, locale: Locale = "uz") {
   const num = typeof value === "string" ? Number(value) : value;
-  return `${groupThousands(num)} so'm`;
+  const dict = getDictionary(locale);
+  return `${groupThousands(num)} ${dict.common.som}`;
 }
-
-export const UZ_MONTHS = [
-  "yanvar",
-  "fevral",
-  "mart",
-  "aprel",
-  "may",
-  "iyun",
-  "iyul",
-  "avgust",
-  "sentabr",
-  "oktabr",
-  "noyabr",
-  "dekabr",
-];
 
 function pad2(n: number) {
   return n.toString().padStart(2, "0");
 }
 
-export function formatDate(value: string | Date) {
+export function formatDate(value: string | Date, locale: Locale = "uz") {
   const date = typeof value === "string" ? new Date(value) : value;
-  return `${date.getDate()} ${UZ_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  const months = getDictionary(locale).months;
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-export function formatDateTime(value: string | Date) {
+export function formatDateTime(value: string | Date, locale: Locale = "uz") {
   const date = typeof value === "string" ? new Date(value) : value;
-  return `${formatDate(date)}, ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  return `${formatDate(date, locale)}, ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
+
+/** @deprecated Use formatDate with locale */
+export const UZ_MONTHS = getDictionary("uz").months;

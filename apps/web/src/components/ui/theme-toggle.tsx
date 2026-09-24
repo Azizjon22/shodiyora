@@ -3,39 +3,38 @@
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 type Theme = "light" | "dark";
 
 function getSnapshot(): Theme {
   const stored = document.documentElement.getAttribute("data-theme");
   if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 function getServerSnapshot(): Theme {
-  return "dark";
+  return "light";
 }
 
 function subscribe(callback: () => void) {
-  const mql = window.matchMedia("(prefers-color-scheme: dark)");
   const observer = new MutationObserver(callback);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  mql.addEventListener("change", callback);
-  return () => {
-    observer.disconnect();
-    mql.removeEventListener("change", callback);
-  };
+  return () => observer.disconnect();
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const t = useT();
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try {
       localStorage.setItem("theme", next);
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   }
 
   return (
@@ -43,10 +42,10 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={toggle}
       className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+        "flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
         className,
       )}
-      aria-label={theme === "dark" ? "Yorug' rejimga o'tish" : "Qorong'i rejimga o'tish"}
+      aria-label={theme === "dark" ? t("common.themeLight") : t("common.themeDark")}
     >
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>

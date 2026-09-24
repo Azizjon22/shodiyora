@@ -3,20 +3,16 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  WORKER_GENDERS,
-  WORKER_GENDER_LABELS_UZ,
-  WORKER_POSITIONS,
-  WORKER_POSITION_LABELS_UZ,
-  workerRegisterSchema,
-} from "@shodiyora/shared";
+import { WORKER_GENDERS, WORKER_POSITIONS, workerRegisterSchema } from "@shodiyora/shared";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageDropzone } from "@/components/uploads/image-dropzone";
+import { useT } from "@/components/i18n/locale-provider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 export function RegisterForm() {
+  const t = useT();
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -119,11 +115,11 @@ export function RegisterForm() {
   return (
     <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
       <div>
-        <Label htmlFor="fullName">Ism va familiya</Label>
+        <Label htmlFor="fullName">{t("workers.fullName")}</Label>
         <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
       </div>
       <div>
-        <Label htmlFor="phone">Telefon raqami</Label>
+        <Label htmlFor="phone">{t("authExtra.phoneLabel")}</Label>
         <Input
           id="phone"
           value={phone}
@@ -133,7 +129,7 @@ export function RegisterForm() {
         />
       </div>
       <div>
-        <Label htmlFor="position">Lavozim</Label>
+        <Label htmlFor="position">{t("workers.position")}</Label>
         <Select
           id="position"
           value={position}
@@ -141,13 +137,13 @@ export function RegisterForm() {
         >
           {WORKER_POSITIONS.map((p) => (
             <option key={p} value={p}>
-              {WORKER_POSITION_LABELS_UZ[p]}
+              {t(`workerPositions.${p}`)}
             </option>
           ))}
         </Select>
       </div>
       <div>
-        <Label htmlFor="gender">Jinsi</Label>
+        <Label htmlFor="gender">{t("workers.gender")}</Label>
         <Select
           id="gender"
           value={gender}
@@ -155,14 +151,14 @@ export function RegisterForm() {
         >
           {WORKER_GENDERS.map((g) => (
             <option key={g} value={g}>
-              {WORKER_GENDER_LABELS_UZ[g]}
+              {t(`workerGenders.${g}`)}
             </option>
           ))}
         </Select>
       </div>
       {needsPin && (
         <div>
-          <Label htmlFor="pin">PIN kod (4 raqam) — tizimga kirish uchun</Label>
+          <Label htmlFor="pin">{t("auth.pin")}</Label>
           <Input
             id="pin"
             inputMode="numeric"
@@ -175,7 +171,7 @@ export function RegisterForm() {
         </div>
       )}
       <ImageDropzone
-        label="Rasm (ixtiyoriy)"
+        label={t("workers.photo")}
         accept="image/jpeg,image/png,image/webp"
         previewUrl={photoUrl || localPreview}
         uploading={photoUploading}
@@ -189,12 +185,12 @@ export function RegisterForm() {
       />
       <FieldError>{error}</FieldError>
       <Button type="submit" className="w-full" disabled={submitting}>
-        {submitting ? "Yuborilmoqda..." : "Ro'yxatdan o'tish"}
+        {submitting ? t("common.loading") : t("auth.register")}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        Hisobingiz bormi?{" "}
+        {t("auth.hasAccount")}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Kirish
+          {t("auth.login")}
         </Link>
       </p>
     </form>

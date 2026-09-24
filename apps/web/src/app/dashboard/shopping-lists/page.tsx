@@ -14,11 +14,16 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "primar
   CLOSED: { label: "Yopilgan", variant: "default" },
 };
 
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
+
 export default async function ShoppingListsPage() {
-  const [lists, catalog] = await Promise.all([
+  const [lists, catalog, locale] = await Promise.all([
     apiFetch<ShoppingList[]>("/shopping-lists"),
     apiFetch<ProductCatalogItem[]>("/inventory/catalog"),
+    getLocale(),
   ]);
+  const t = (key: string) => translate(getDictionary(locale), key);
   const catalogByName = new Map(catalog.map((c) => [c.name, c]));
 
   // Opening this page counts as "seen" — clears the notification badge in the
@@ -26,10 +31,10 @@ export default async function ShoppingListsPage() {
   await apiFetch("/shopping-lists/mark-all-seen", { method: "PATCH" }).catch(() => undefined);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Bozorlik ro&apos;yxatlari</h1>
-        <p className="text-sm text-muted-foreground">Oshpazlar tomonidan yuborilgan kerakli mahsulotlar</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{t("shoppingLists.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("nav.shoppingLists")}</p>
       </div>
 
       {lists.length === 0 && (

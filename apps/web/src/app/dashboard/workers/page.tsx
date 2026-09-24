@@ -3,8 +3,10 @@ import { apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import type { EventDetail, WorkerSummary } from "@/lib/types";
 import { StatCard } from "@/components/ui/stat-card";
-import { CreateWorkerModal } from "@/components/workers/create-worker-modal";
 import { WorkersBrowser } from "@/components/workers/workers-browser";
+import { WorkersPageHeader } from "@/components/workers/workers-page-header";
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 export default async function WorkersPage() {
   const startOfToday = new Date();
@@ -31,26 +33,24 @@ export default async function WorkersPage() {
   const pendingCount = workers.filter((w) => w.status === "PENDING").length;
   const rejectedCount = workers.filter((w) => w.status === "REJECTED").length;
 
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const t = (key: string) => translate(dict, key);
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Ishchilar</h1>
-          <p className="text-sm text-muted-foreground">Ro&apos;yxatdan o&apos;tgan afitsant va oshpazlar</p>
-        </div>
-        <CreateWorkerModal />
-      </div>
+    <div className="space-y-6 animate-fade-up">
+      <WorkersPageHeader />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Jami ishchilar" value={workers.length} icon={<Users className="h-5 w-5" />} tone="primary" />
-        <StatCard label="Tasdiqlangan" value={approvedCount} icon={<UserCheck className="h-5 w-5" />} tone="accent" />
+        <StatCard label={t("workers.totalWorkers")} value={workers.length} icon={<Users className="h-5 w-5" />} tone="primary" />
+        <StatCard label={t("workerStatus.APPROVED")} value={approvedCount} icon={<UserCheck className="h-5 w-5" />} tone="accent" />
         <StatCard
-          label="Kutilmoqda"
+          label={t("workerStatus.PENDING")}
           value={pendingCount}
           icon={<Clock className="h-5 w-5" />}
           tone={pendingCount > 0 ? "destructive" : "default"}
         />
-        <StatCard label="Rad etilgan" value={rejectedCount} icon={<UserX className="h-5 w-5" />} />
+        <StatCard label={t("workerStatus.REJECTED")} value={rejectedCount} icon={<UserX className="h-5 w-5" />} />
       </div>
 
       <WorkersBrowser workers={workers} role={role} events={staffingEvents} />

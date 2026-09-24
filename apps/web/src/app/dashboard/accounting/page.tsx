@@ -1,18 +1,25 @@
 import Link from "next/link";
+import { Wallet, TrendingDown, PiggyBank, CalendarDays, Receipt, AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { DailyReport, EventDetail } from "@/lib/types";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { DailyBreakdown } from "@/components/accounting/daily-breakdown";
 import { ExpensesByDay } from "@/components/accounting/expenses-by-day";
+import { ProfitTrendChart } from "@/components/accounting/profit-trend-chart";
+import { ExpensesCategoryChart } from "@/components/accounting/expenses-category-chart";
 import { formatDate, formatSom } from "@/lib/utils";
-import { Wallet, TrendingDown, PiggyBank, CalendarDays, Receipt, AlertCircle } from "lucide-react";
+import { getLocale } from "@/i18n/locale";
+import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 export default async function AccountingPage() {
-  const [report, events] = await Promise.all([
+  const [report, events, locale] = await Promise.all([
     apiFetch<DailyReport>("/payments/daily-report"),
     apiFetch<EventDetail[]>("/events"),
+    getLocale(),
   ]);
+  const dict = getDictionary(locale);
+  const t = (key: string, params?: Record<string, string | number>) => translate(dict, key, params);
 
   const outstandingEvents = events
     .filter((e) => e.status !== "CANCELLED" && e.balance && Number(e.balance) > 0)
@@ -20,18 +27,28 @@ export default async function AccountingPage() {
   const totalOutstanding = outstandingEvents.reduce((sum, e) => sum + Number(e.balance ?? 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Hisob-kitob</h1>
-        <p className="text-sm text-muted-foreground">Bugungacha bo&apos;lgan to&apos;ylardan olingan aniq sof foyda va xarajatlar</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{t("accounting.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("accounting.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Jami olingan (bugungacha)" value={formatSom(report.totalPaid)} icon={<Wallet className="h-5 w-5" />} tone="primary" />
-        <StatCard label="Jami xarajat" value={formatSom(report.totalExpenses)} icon={<TrendingDown className="h-5 w-5" />} tone="destructive" />
         <StatCard
-          label="Sof foyda"
-          value={formatSom(report.netProfit)}
+          label={t("accounting.totalPaid")}
+          value={formatSom(report.totalPaid, locale)}
+          icon={<Wallet className="h-5 w-5" />}
+          tone="primary"
+        />
+        <StatCard
+          label={t("accounting.totalExpenses")}
+          value={formatSom(report.totalExpenses, locale)}
+          icon={<TrendingDown className="h-5 w-5" />}
+          tone="destructive"
+        />
+        <StatCard
+          label={t("accounting.netProfit")}
+          value={formatSom(report.netProfit, locale)}
           icon={<PiggyBank className="h-5 w-5" />}
           tone={Number(report.netProfit) >= 0 ? "accent" : "destructive"}
         />
@@ -39,17 +56,17 @@ export default async function AccountingPage() {
 
       <CollapsibleCard
         icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
-        title="Qarzdor to'ylar"
+        title={t("accounting.outstandingEvents")}
         meta={
           outstandingEvents.length > 0 ? (
-            <span className="text-sm font-semibold text-destructive">{formatSom(totalOutstanding)}</span>
+            <span className="text-sm font-semibold text-destructive">{formatSom(totalOutstanding, locale)}</span>
           ) : undefined
         }
         defaultOpen={outstandingEvents.length > 0}
       >
         <div className="space-y-2">
           {outstandingEvents.length === 0 && (
-            <p className="text-sm text-muted-foreground">Qarzdorlik yo&apos;q — barcha to&apos;lovlar amalga oshirilgan.</p>
+            <p className="text-sm text-muted-foreground">{t("accounting.noOutstanding")}</p>
           )}
           {outstandingEvents.map((event) => (
             <Link
@@ -59,21 +76,33 @@ export default async function AccountingPage() {
             >
               <div>
                 <p className="font-medium">{event.clientName}</p>
-                <p className="text-xs text-muted-foreground">{formatDate(event.eventDate)}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(event.eventDate, locale)}</p>
               </div>
-              <span className="font-medium text-destructive">{formatSom(event.balance ?? "0")}</span>
+              <span className="font-medium text-destructive">{formatSom(event.balance ?? "0", locale)}</span>
             </Link>
           ))}
         </div>
       </CollapsibleCard>
 
-      <CollapsibleCard icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />} title="Kunlar bo'yicha sof foyda">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <ProfitTrendChart days={report.days} />
+        </div>
+        <div className="lg:col-span-2">
+          <ExpensesCategoryChart expensesByCategory={report.expensesByCategory} />
+        </div>
+      </div>
+
+      <CollapsibleCard
+        icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+        title={t("accounting.dailyProfit")}
+      >
         <DailyBreakdown days={report.days} valueKey="netProfit" tone="success" />
       </CollapsibleCard>
 
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
-          <Receipt className="h-4 w-4 text-muted-foreground" /> Kunlar bo&apos;yicha xarajatlar
+          <Receipt className="h-4 w-4 text-muted-foreground" /> {t("accounting.dailyExpenses")}
         </h2>
         <ExpensesByDay days={report.days} />
       </div>

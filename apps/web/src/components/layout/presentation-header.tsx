@@ -1,24 +1,39 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useT } from "@/components/i18n/locale-provider";
 
 export function PresentationHeader() {
+  const t = useT();
   const phone = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+998 90 000 00 00";
 
   return (
-    <header className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/menyular" className="flex items-center gap-2 text-lg font-semibold text-foreground">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+    <header className="sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <Link href="/dashboard" className="flex items-center gap-2.5 text-foreground">
+          <span className="font-display flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground shadow-sm shadow-primary/20">
             S
           </span>
-          Shodiyora
+          <span className="font-display text-xl font-semibold tracking-tight">{t("common.brand")}</span>
         </Link>
-        <div className="flex items-center gap-4 text-sm">
-          <a href={`tel:${phone.replace(/\s/g, "")}`} className="font-medium text-foreground hover:text-primary">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-sm">
+          <LanguageSwitcher />
+          <ThemeToggle />
+          <a
+            href={`tel:${phone.replace(/\s/g, "")}`}
+            className="hidden font-medium text-foreground hover:text-primary sm:inline sm:ml-1"
+          >
             {phone}
           </a>
-          <Link href="/dashboard" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Boshqaruv paneli
+          <Link
+            href="/dashboard"
+            className="ml-1 flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("presentation.backToDashboard")}</span>
           </Link>
         </div>
       </div>

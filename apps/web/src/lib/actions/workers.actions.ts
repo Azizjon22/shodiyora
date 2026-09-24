@@ -5,7 +5,7 @@ import { workerRegisterSchema } from "@shodiyora/shared";
 import { apiFetch } from "@/lib/api";
 import { extractErrorMessage } from "@/lib/errors";
 
-export type FormActionState = { error?: string } | undefined;
+export type FormActionState = { error?: string; success?: boolean } | undefined;
 
 export async function createWorkerByStaffAction(
   _prev: FormActionState,
@@ -31,7 +31,7 @@ export async function createWorkerByStaffAction(
   }
   revalidatePath("/dashboard/workers");
   revalidatePath("/dashboard/staff");
-  return undefined;
+  return { success: true };
 }
 
 export async function approveWorkerAction(workerId: string): Promise<{ error?: string }> {
