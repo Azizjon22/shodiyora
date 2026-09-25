@@ -114,3 +114,42 @@ body {
 .animate-soft-scale {
   animation: soft-scale 0.45s ease-out both;
 }
+
+@keyframes dissolve-fade {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+  55% {
+    opacity: 0.4;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes dissolve-particle {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(1);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.25);
+  }
+}
+
+.animate-dissolve-fade {
+  animation: dissolve-fade 1.1s ease-in forwards;
+}
+
+.animate-dissolve-particle {
+  animation: dissolve-particle 1s ease-out forwards;
+}

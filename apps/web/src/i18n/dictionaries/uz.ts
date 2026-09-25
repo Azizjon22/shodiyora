@@ -117,9 +117,13 @@ export const uz = {
   },
   events: {
     title: "To'y buyurtmalari",
-    subtitle: "Barcha rejalashtirilgan va o'tgan to'ylar",
+    subtitle: "Rejalashtirilgan va bugungi to'ylar",
     new: "Yangi to'y",
     edit: "To'yni tahrirlash",
+    viewArchive: "Arxiv to'ylar",
+    archive: "Arxiv to'ylar",
+    archiveSubtitle: "Sanasi o'tgan to'ylar shu yerda saqlanadi",
+    noArchived: "Arxivda hali to'y yo'q.",
   },
   eventStatus: {
     PENDING: "Kutilmoqda",
