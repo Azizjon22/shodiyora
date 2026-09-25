@@ -64,6 +64,20 @@ export default async function AccountingPage() {
       </div>
 
       <CollapsibleCard
+        icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+        title={t("accounting.dailyProfit")}
+      >
+        <DailyBreakdown days={report.days} valueKey="netProfit" tone="success" />
+      </CollapsibleCard>
+
+      <div>
+        <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
+          <Receipt className="h-4 w-4 text-muted-foreground" /> {t("accounting.dailyExpenses")}
+        </h2>
+        <ExpensesByDay days={report.days} />
+      </div>
+
+      <CollapsibleCard
         icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
         title={t("accounting.outstandingEvents")}
         meta={
@@ -92,20 +106,6 @@ export default async function AccountingPage() {
           ))}
         </div>
       </CollapsibleCard>
-
-      <CollapsibleCard
-        icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
-        title={t("accounting.dailyProfit")}
-      >
-        <DailyBreakdown days={report.days} valueKey="netProfit" tone="success" />
-      </CollapsibleCard>
-
-      <div>
-        <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
-          <Receipt className="h-4 w-4 text-muted-foreground" /> {t("accounting.dailyExpenses")}
-        </h2>
-        <ExpensesByDay days={report.days} />
-      </div>
     </div>
   );
 }
