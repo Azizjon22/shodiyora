@@ -79,28 +79,40 @@ export class DashboardService {
       return base;
     }
 
-    const [lowStockItems, pendingShoppingLists, monthEvents] =
-      await Promise.all([
-        this.prisma.inventoryItem.findMany({
-          where: { minThreshold: { not: null } },
-        }),
-        this.prisma.shoppingList.count({ where: { status: 'SUBMITTED' } }),
-        this.prisma.event.findMany({
-          where: {
-            eventDate: {
-              gte: new Date(now.getFullYear(), now.getMonth(), 1),
-              lt: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-            },
-            status: { not: 'CANCELLED' },
-          },
-          include: { payments: true, expenses: true },
-        }),
-      ]);
+    const [lowStockItems, pendingShoppingLists] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { minThreshold: { not: null } },
+      }),
+      this.prisma.shoppingList.count({ where: { status: 'SUBMITTED' } }),
+    ]);
 
     const lowStock = lowStockItems.filter(
       (item) =>
         item.minThreshold && item.quantity.lessThanOrEqualTo(item.minThreshold),
     );
+
+    const withOperational = {
+      ...base,
+      lowStockItems: lowStock,
+      pendingShoppingLists,
+    };
+
+    // Profit/revenue figures are super_admin-only — admin still gets the
+    // operational widgets above (low stock, pending shopping lists).
+    if (role !== 'SUPER_ADMIN') {
+      return withOperational;
+    }
+
+    const monthEvents = await this.prisma.event.findMany({
+      where: {
+        eventDate: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+          lt: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+        },
+        status: { not: 'CANCELLED' },
+      },
+      include: { payments: true, expenses: true },
+    });
 
     const totalExpected = monthEvents.reduce(
       (sum, e) => sum.add(e.totalPrice),
@@ -122,9 +134,7 @@ export class DashboardService {
     );
 
     return {
-      ...base,
-      lowStockItems: lowStock,
-      pendingShoppingLists,
+      ...withOperational,
       monthlyFinancials: {
         eventCount: monthEvents.length,
         totalExpected,

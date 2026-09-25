@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarDays, ChefHat, PackageX, PiggyBank, Users, Wallet } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
@@ -36,9 +37,15 @@ interface DashboardOverview {
 }
 
 export default async function DashboardOverviewPage() {
-  const [overview, session, locale] = await Promise.all([
+  const session = await getSession();
+  // No longer in the ADMIN sidebar — block direct navigation too, since it
+  // used to surface month-level revenue/profit figures.
+  if (session?.user.kind === "STAFF" && session.user.role === "ADMIN") {
+    redirect("/dashboard/events");
+  }
+
+  const [overview, locale] = await Promise.all([
     apiFetch<DashboardOverview>("/dashboard/overview"),
-    getSession(),
     getLocale(),
   ]);
   const dict = getDictionary(locale);

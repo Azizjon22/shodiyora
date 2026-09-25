@@ -16,7 +16,7 @@ import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @UseGuards(RolesGuard)
-@Roles('SUPER_ADMIN', 'ADMIN')
+@Roles('SUPER_ADMIN')
 @Controller()
 export class PaymentsController {
   constructor(private payments: PaymentsService) {}

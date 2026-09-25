@@ -7,7 +7,7 @@ import { EventExpensesService } from './event-expenses.service';
 import { CreateEventExpenseDto } from './dto/create-event-expense.dto';
 
 @UseGuards(RolesGuard)
-@Roles('SUPER_ADMIN', 'ADMIN')
+@Roles('SUPER_ADMIN')
 @Controller()
 export class EventExpensesController {
   constructor(private expenses: EventExpensesService) {}

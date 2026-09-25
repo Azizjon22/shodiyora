@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Wallet, TrendingDown, PiggyBank, CalendarDays, Receipt, AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { getSession } from "@/lib/session";
 import type { DailyReport, EventDetail } from "@/lib/types";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { StatCard } from "@/components/ui/stat-card";
@@ -13,6 +15,11 @@ import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 
 export default async function AccountingPage() {
+  const session = await getSession();
+  if (session?.user.kind !== "STAFF" || session.user.role !== "SUPER_ADMIN") {
+    redirect("/dashboard/events");
+  }
+
   const [report, events, locale] = await Promise.all([
     apiFetch<DailyReport>("/payments/daily-report"),
     apiFetch<EventDetail[]>("/events"),

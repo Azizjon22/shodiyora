@@ -20,7 +20,13 @@ import { UpdateEventStatusDto } from './dto/update-event-status.dto';
 import { AssignWorkerDto } from './dto/assign-worker.dto';
 import { FindEventsQuery } from './dto/find-events.query';
 
-function hideFinancials(event: Record<string, unknown>) {
+// ADMIN still needs to see which shopping lists were written for a wedding
+// (they manage procurement), so only ZAVZAL loses that too — everyone
+// below SUPER_ADMIN loses the money fields themselves.
+function hideFinancials(
+  event: Record<string, unknown>,
+  keepShoppingLists: boolean,
+) {
   const {
     totalPrice: _totalPrice,
     paidAmount: _paidAmount,
@@ -29,10 +35,10 @@ function hideFinancials(event: Record<string, unknown>) {
     expenses: _expenses,
     totalExpenses: _totalExpenses,
     netProfit: _netProfit,
-    shoppingLists: _shoppingLists,
+    shoppingLists,
     ...rest
   } = event;
-  return rest;
+  return keepShoppingLists ? { ...rest, shoppingLists } : rest;
 }
 
 @UseGuards(RolesGuard)
@@ -42,8 +48,10 @@ export class EventsController {
 
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post()
-  create(@Body() dto: CreateEventDto, @CurrentUser() user: AuthPayload) {
-    return this.events.create(dto, user.sub, user.fullName);
+  async create(@Body() dto: CreateEventDto, @CurrentUser() user: AuthPayload) {
+    const event = await this.events.create(dto, user.sub, user.fullName);
+    if (user.role === 'SUPER_ADMIN') return event;
+    return hideFinancials(event, true);
   }
 
   // No @Roles(): reachable by workers too, so chefs can pick which wedding
@@ -60,34 +68,44 @@ export class EventsController {
     @CurrentUser() user: AuthPayload,
   ) {
     const events = await this.events.findAll(query);
-    return user.role === 'ZAVZAL' ? events.map(hideFinancials) : events;
+    if (user.role === 'SUPER_ADMIN') return events;
+    const keepShoppingLists = user.role === 'ADMIN';
+    return events.map((e) => hideFinancials(e, keepShoppingLists));
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN', 'ZAVZAL')
   @Get(':id')
   async findOne(@Param('id') id: string, @CurrentUser() user: AuthPayload) {
     const event = await this.events.findOne(id);
-    return user.role === 'ZAVZAL' ? hideFinancials(event) : event;
+    if (user.role === 'SUPER_ADMIN') return event;
+    return hideFinancials(event, user.role === 'ADMIN');
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() dto: UpdateEventDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.events.update(id, dto, user.sub, user.fullName);
+    const event = await this.events.update(id, dto, user.sub, user.fullName);
+    return user.role === 'SUPER_ADMIN' ? event : hideFinancials(event, true);
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id/status')
-  updateStatus(
+  async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateEventStatusDto,
     @CurrentUser() user: AuthPayload,
   ) {
-    return this.events.updateStatus(id, dto.status, user.sub, user.fullName);
+    const event = await this.events.updateStatus(
+      id,
+      dto.status,
+      user.sub,
+      user.fullName,
+    );
+    return user.role === 'SUPER_ADMIN' ? event : hideFinancials(event, true);
   }
 
   @Roles('SUPER_ADMIN')
@@ -109,7 +127,8 @@ export class EventsController {
       user.sub,
       user.fullName,
     );
-    return user.role === 'ZAVZAL' ? hideFinancials(event) : event;
+    if (user.role === 'SUPER_ADMIN') return event;
+    return hideFinancials(event, user.role === 'ADMIN');
   }
 
   @Roles('SUPER_ADMIN', 'ADMIN', 'ZAVZAL')
@@ -125,6 +144,7 @@ export class EventsController {
       user.sub,
       user.fullName,
     );
-    return user.role === 'ZAVZAL' ? hideFinancials(event) : event;
+    if (user.role === 'SUPER_ADMIN') return event;
+    return hideFinancials(event, user.role === 'ADMIN');
   }
 }

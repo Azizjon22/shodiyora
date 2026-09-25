@@ -28,7 +28,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
   const [event, session] = await Promise.all([apiFetch<EventDetail>(`/events/${id}`), getSession()]);
 
   const role = session?.user.kind === "STAFF" ? session.user.role : undefined;
-  const canSeeFinancials = !!role && role !== "ZAVZAL";
+  const canSeeFinancials = role === "SUPER_ADMIN";
   const canEdit = role === "SUPER_ADMIN" || role === "ADMIN";
   const canDelete = role === "SUPER_ADMIN";
 
