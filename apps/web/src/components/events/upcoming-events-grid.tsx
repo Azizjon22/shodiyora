@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { EventDetail } from "@/lib/types";
 import type { Locale } from "@/i18n/types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +28,8 @@ export function UpcomingEventsGrid({
   emptyLabel: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const previewDissolve = searchParams.get("preview") === "dissolve";
   const [items, setItems] = useState(events);
   const [dissolvingIds, setDissolvingIds] = useState<Set<string>>(new Set());
 
@@ -65,6 +67,16 @@ export function UpcomingEventsGrid({
     return () => clearTimeout(timer);
   }, []);
 
+  // ?preview=dissolve lets anyone see the archive transition on demand,
+  // instead of waiting for real midnight, by snapping the first card.
+  useEffect(() => {
+    if (!previewDissolve) return;
+    const first = itemsRef.current[0];
+    if (!first) return;
+    const timer = setTimeout(() => setDissolvingIds((current) => new Set(current).add(first.id)), 400);
+    return () => clearTimeout(timer);
+  }, [previewDissolve]);
+
   function handleDone(id: string) {
     setItems((current) => current.filter((e) => e.id !== id));
     setDissolvingIds((current) => {
@@ -72,7 +84,7 @@ export function UpcomingEventsGrid({
       next.delete(id);
       return next;
     });
-    router.refresh();
+    if (!previewDissolve) router.refresh();
   }
 
   if (items.length === 0) {
