@@ -2,11 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CalendarSearch, X } from "lucide-react";
 import type { EventDetail } from "@/lib/types";
 import type { Locale } from "@/i18n/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { EventCard } from "@/components/events/event-card";
 import { DissolvingCard } from "@/components/events/dissolving-card";
+import { toDateParam } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -18,20 +22,14 @@ function startOfDay(date: Date) {
  * dissolves off this list on its own (no reload needed) and lands in the
  * archive page, since the archive is just "eventDate before today".
  */
-export function UpcomingEventsGrid({
-  events,
-  locale,
-  emptyLabel,
-}: {
-  events: EventDetail[];
-  locale: Locale;
-  emptyLabel: string;
-}) {
+export function UpcomingEventsGrid({ events, locale }: { events: EventDetail[]; locale: Locale }) {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const previewDissolve = searchParams.get("preview") === "dissolve";
   const [items, setItems] = useState(events);
   const [dissolvingIds, setDissolvingIds] = useState<Set<string>>(new Set());
+  const [dateFilter, setDateFilter] = useState("");
 
   const eventsKey = events.map((e) => e.id).join(",");
   const [syncedKey, setSyncedKey] = useState(eventsKey);
@@ -87,21 +85,52 @@ export function UpcomingEventsGrid({
     if (!previewDissolve) router.refresh();
   }
 
+  const visible = dateFilter ? items.filter((e) => toDateParam(e.eventDate) === dateFilter) : items;
+
   if (items.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6 text-sm text-muted-foreground">{emptyLabel}</CardContent>
+        <CardContent className="p-6 text-sm text-muted-foreground">{t("common.noData")}</CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {items.map((event) => (
-        <DissolvingCard key={event.id} dissolving={dissolvingIds.has(event.id)} onDone={() => handleDone(event.id)}>
-          <EventCard event={event} locale={locale} />
-        </DissolvingCard>
-      ))}
+    <div className="space-y-4">
+      <div className="relative max-w-xs">
+        <CalendarSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="date"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="pl-9 pr-9"
+          aria-label={t("events.filterByDate")}
+        />
+        {dateFilter && (
+          <button
+            type="button"
+            onClick={() => setDateFilter("")}
+            aria-label={t("common.close")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {visible.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-sm text-muted-foreground">{t("events.noResultsForDate")}</CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible.map((event) => (
+            <DissolvingCard key={event.id} dissolving={dissolvingIds.has(event.id)} onDone={() => handleDone(event.id)}>
+              <EventCard event={event} locale={locale} />
+            </DissolvingCard>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

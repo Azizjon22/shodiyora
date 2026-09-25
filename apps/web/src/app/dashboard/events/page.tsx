@@ -42,7 +42,7 @@ export default async function EventsPage() {
           .map((e) => ({ id: e.id, clientName: e.clientName, eventDate: e.eventDate }))}
       />
 
-      <UpcomingEventsGrid events={upcoming} locale={locale} emptyLabel={t("common.noData")} />
+      <UpcomingEventsGrid events={upcoming} locale={locale} />
     </div>
   );
 }

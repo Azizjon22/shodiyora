@@ -124,6 +124,8 @@ export const uz = {
     archive: "Arxiv to'ylar",
     archiveSubtitle: "Sanasi o'tgan to'ylar shu yerda saqlanadi",
     noArchived: "Arxivda hali to'y yo'q.",
+    filterByDate: "Sana bo'yicha qidirish",
+    noResultsForDate: "Bu sanada to'y topilmadi.",
   },
   eventStatus: {
     PENDING: "Kutilmoqda",

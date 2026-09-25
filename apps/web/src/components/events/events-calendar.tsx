@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn, formatTime } from "@/lib/utils";
+import { cn, formatTime, toDateParam } from "@/lib/utils";
 import { UZ_MONTHS } from "@/lib/utils";
 
 const WEEKDAYS_UZ = ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan", "Yak"];
@@ -18,13 +18,6 @@ interface CalendarEvent {
 
 function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
-function toDateParam(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function buildMonthGrid(year: number, month: number) {

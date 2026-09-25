@@ -1,9 +1,8 @@
 import { ArrowLeft } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { EventDetail } from "@/lib/types";
-import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
-import { EventCard } from "@/components/events/event-card";
+import { ArchivedEventsGrid } from "@/components/events/archived-events-grid";
 import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 
@@ -33,17 +32,7 @@ export default async function ArchivedEventsPage() {
         </div>
       </div>
 
-      {archived.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">{t("events.noArchived")}</CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {archived.map((event) => (
-            <EventCard key={event.id} event={event} locale={locale} />
-          ))}
-        </div>
-      )}
+      <ArchivedEventsGrid events={archived} locale={locale} />
     </div>
   );
 }

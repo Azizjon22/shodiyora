@@ -126,6 +126,8 @@ export const ru: Dictionary = {
     archive: "Архив свадеб",
     archiveSubtitle: "Здесь хранятся свадьбы с прошедшей датой",
     noArchived: "В архиве пока нет свадеб.",
+    filterByDate: "Поиск по дате",
+    noResultsForDate: "На эту дату свадеб не найдено.",
   },
   eventStatus: {
     PENDING: "Ожидает",

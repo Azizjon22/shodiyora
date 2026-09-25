@@ -39,5 +39,11 @@ export function formatTime(value: string | Date) {
   return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
+/** Local-date key like "2026-09-25", matching an <input type="date"> value. */
+export function toDateParam(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 /** @deprecated Use formatDate with locale */
 export const UZ_MONTHS = getDictionary("uz").months;
