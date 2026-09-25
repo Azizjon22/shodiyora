@@ -34,7 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard",
     labelKey: "nav.dashboard",
-    roles: ["SUPER_ADMIN", "ADMIN", "ZAVZAL"],
+    roles: ["SUPER_ADMIN", "ZAVZAL"],
     icon: LayoutDashboard,
     group: "main",
   },
@@ -55,7 +55,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard/menus",
     labelKey: "nav.menus",
-    roles: ["SUPER_ADMIN", "ADMIN"],
+    roles: ["SUPER_ADMIN"],
     icon: UtensilsCrossed,
     group: "ops",
   },
@@ -83,7 +83,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard/accounting",
     labelKey: "nav.accounting",
-    roles: ["SUPER_ADMIN", "ADMIN"],
+    roles: ["SUPER_ADMIN"],
     icon: Wallet,
     group: "finance",
   },
