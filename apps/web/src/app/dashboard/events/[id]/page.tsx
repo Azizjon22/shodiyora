@@ -7,13 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
 import { DeleteIconButton } from "@/components/ui/delete-icon-button";
 import { formatDateTime, formatSom } from "@/lib/utils";
-import { WORKER_POSITION_LABELS_UZ, EVENT_EXPENSE_CATEGORY_LABELS_UZ } from "@shodiyora/shared";
+import { WORKER_POSITION_LABELS_UZ, EVENT_EXPENSE_CATEGORY_LABELS_UZ, UNIT_LABELS_UZ } from "@shodiyora/shared";
 import { StatusSelect } from "@/components/events/status-select";
 import { UnassignButton } from "@/components/events/unassign-button";
 import { PaymentForm } from "@/components/events/payment-form";
 import { ExpenseForm } from "@/components/events/expense-form";
 import { DeleteEventButton } from "@/components/events/delete-event-button";
+import { ShoppingListPdfButton } from "@/components/shopping-lists/shopping-list-pdf-button";
 import { removeExpenseAction } from "@/lib/actions/events.actions";
+
+const SHOPPING_STATUS_LABEL: Record<string, string> = {
+  SUBMITTED: "Yangi",
+  REVIEWED: "Ko'rib chiqilgan",
+  PURCHASED: "Sotib olingan",
+  CLOSED: "Yopilgan",
+};
 
 export default async function EventDetailPage({ params }: PageProps<"/dashboard/events/[id]">) {
   const { id } = await params;
@@ -116,6 +124,44 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
               </Badge>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bozorlik ro&apos;yxatlari</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {(event.shoppingLists ?? []).length === 0 && (
+            <p className="text-sm text-muted-foreground">Bu to&apos;y uchun hali bozorlik ro&apos;yxati yozilmagan.</p>
+          )}
+          {(event.shoppingLists ?? []).map((list) => (
+            <div key={list.id} className="rounded-md border border-border p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium">{list.createdByWorker.fullName}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateTime(list.createdAt)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={list.status === "PURCHASED" || list.status === "CLOSED" ? "success" : "primary"}>
+                    {SHOPPING_STATUS_LABEL[list.status] ?? list.status}
+                  </Badge>
+                  <ShoppingListPdfButton list={list} />
+                </div>
+              </div>
+              <ul className="mt-2 space-y-1 text-sm">
+                {list.items.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between">
+                    <span>{item.name}</span>
+                    <span className="text-muted-foreground">
+                      {item.quantity} {UNIT_LABELS_UZ[item.unit]}
+                      {item.isPurchased && " · ✓"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

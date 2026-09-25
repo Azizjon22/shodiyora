@@ -94,6 +94,10 @@ export function ShoppingListForm() {
       setError("Kamida bitta mahsulot tanlang yoki kiriting");
       return;
     }
+    if (upcomingEvents.length > 0 && !eventId) {
+      setError("Bu ro'yxatni qaysi to'yga yozayotganingizni tanlang");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -185,13 +189,15 @@ export function ShoppingListForm() {
       {upcomingEvents.length > 0 && (
         <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
           <Label htmlFor="eventId" className="text-sm font-semibold">
-            Bu ro&apos;yxatni qaysi to&apos;yga yozamiz?
+            Bu ro&apos;yxatni qaysi to&apos;yga yozamiz? <span className="text-destructive">*</span>
           </Label>
           <p className="mb-2 text-xs text-muted-foreground">
             Tanlangan to&apos;y sahifasida bu bozorlikka ketgan xarajat ko&apos;rinadi.
           </p>
-          <Select id="eventId" value={eventId} onChange={(e) => setEventId(e.target.value)}>
-            <option value="">Tanlanmagan — umumiy zaxira uchun</option>
+          <Select id="eventId" value={eventId} onChange={(e) => setEventId(e.target.value)} required>
+            <option value="" disabled>
+              To&apos;yni tanlang...
+            </option>
             {upcomingEvents.map((event) => (
               <option key={event.id} value={event.id}>
                 {formatDate(event.eventDate)} — {event.clientName}

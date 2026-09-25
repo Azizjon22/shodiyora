@@ -1,15 +1,12 @@
+import Link from "next/link";
+import { CalendarDays, ShoppingCart } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import type { ShoppingList, UpcomingEvent } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { UNIT_LABELS_UZ } from "@shodiyora/shared";
-import { formatDateTime } from "@/lib/utils";
-import { ShoppingListForm } from "@/components/worker/shopping-list-form";
-import { EventsCalendar } from "@/components/events/events-calendar";
 import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { cn } from "@/lib/utils";
 
 export default async function WorkerHomePage() {
   const [session, locale] = await Promise.all([getSession(), getLocale()]);
@@ -21,13 +18,6 @@ export default async function WorkerHomePage() {
     apiFetch<ShoppingList[]>("/shopping-lists/mine"),
     isChef ? apiFetch<UpcomingEvent[]>("/events/upcoming") : Promise.resolve<UpcomingEvent[]>([]),
   ]);
-
-  const statusLabels: Record<string, { label: string; variant: "default" | "primary" | "success" }> = {
-    SUBMITTED: { label: locale === "ru" ? "Отправлен" : "Yuborildi", variant: "primary" },
-    REVIEWED: { label: locale === "ru" ? "Просмотрен" : "Ko'rib chiqildi", variant: "default" },
-    PURCHASED: { label: locale === "ru" ? "Куплен" : "Sotib olindi", variant: "success" },
-    CLOSED: { label: locale === "ru" ? "Закрыт" : "Yopildi", variant: "default" },
-  };
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -43,54 +33,30 @@ export default async function WorkerHomePage() {
         <LanguageSwitcher />
       </div>
 
-      {isChef && (
-        <div>
-          <h2 className="mb-3 text-base font-semibold">{t("workerApp.weddingDays")}</h2>
-          <EventsCalendar events={upcomingEvents} readOnly />
-        </div>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("workerApp.sendList")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ShoppingListForm />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("workerApp.myLists")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {myLists.length === 0 && <p className="text-sm text-muted-foreground">{t("common.noData")}</p>}
-          {myLists.map((list) => {
-            const status = statusLabels[list.status] ?? statusLabels.SUBMITTED;
-            return (
-              <div key={list.id} className="rounded-xl border border-border p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    {formatDateTime(list.createdAt, locale)}
-                    {list.event && ` · ${list.event.clientName}`}
-                  </p>
-                  <Badge variant={status.variant}>{status.label}</Badge>
-                </div>
-                <ul className="mt-2 space-y-1 text-sm">
-                  {list.items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between">
-                      <span>{item.name}</span>
-                      <span className="text-muted-foreground">
-                        {item.quantity} {UNIT_LABELS_UZ[item.unit]} {item.isPurchased && "✓"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <div className={cn("grid gap-4", isChef ? "grid-cols-2" : "grid-cols-1")}>
+        {isChef && (
+          <Link
+            href="/worker/events"
+            className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <CalendarDays className="h-6 w-6" />
+            </span>
+            <span className="font-semibold">{t("workerApp.weddingDays")}</span>
+            <span className="text-xs text-muted-foreground">{t("accounting.eventsCount", { count: upcomingEvents.length })}</span>
+          </Link>
+        )}
+        <Link
+          href="/worker/shopping"
+          className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/15 text-accent">
+            <ShoppingCart className="h-6 w-6" />
+          </span>
+          <span className="font-semibold">{t("nav.shoppingLists")}</span>
+          <span className="text-xs text-muted-foreground">{myLists.length}</span>
+        </Link>
+      </div>
     </div>
   );
 }

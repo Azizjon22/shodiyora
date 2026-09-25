@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { UNIT_LABELS_UZ } from "@shodiyora/shared";
 import { formatDateTime, formatSom } from "@/lib/utils";
 import { PurchaseItemForm } from "@/components/shopping-lists/purchase-item-form";
+import { ShoppingListPdfButton } from "@/components/shopping-lists/shopping-list-pdf-button";
 import { ProductCategoryIcon } from "@/components/inventory/product-category-icon";
 
 const STATUS_LABEL: Record<string, { label: string; variant: "default" | "primary" | "success" }> = {
@@ -55,7 +56,10 @@ export default async function ShoppingListsPage() {
                   {list.event && ` · ${list.event.clientName}`}
                 </p>
               </div>
-              <Badge variant={status.variant}>{status.label}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={status.variant}>{status.label}</Badge>
+                <ShoppingListPdfButton list={list} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-2">
               {list.items.map((item) => {
