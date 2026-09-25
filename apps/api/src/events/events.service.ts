@@ -100,7 +100,9 @@ export class EventsService {
       where: { eventDate: { gte: startOfToday }, status: { not: 'CANCELLED' } },
       select: { id: true, clientName: true, eventDate: true },
       orderBy: { eventDate: 'asc' },
-      take: 30,
+      // Also backs the chef's read-only events calendar, which needs every
+      // upcoming booking in view, not just the nearest handful.
+      take: 500,
     });
   }
 

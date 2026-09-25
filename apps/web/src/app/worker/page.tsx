@@ -1,12 +1,12 @@
-import { CalendarDays } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import type { ShoppingList, UpcomingEvent } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UNIT_LABELS_UZ } from "@shodiyora/shared";
-import { formatDate, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { ShoppingListForm } from "@/components/worker/shopping-list-form";
+import { EventsCalendar } from "@/components/events/events-calendar";
 import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -44,29 +44,15 @@ export default async function WorkerHomePage() {
       </div>
 
       {isChef && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" /> {t("nav.events")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {upcomingEvents.length === 0 && (
-              <p className="text-sm text-muted-foreground">{t("common.noData")}</p>
-            )}
-            {upcomingEvents.map((event) => (
-              <div key={event.id} className="rounded-xl border border-border p-3">
-                <p className="text-sm font-medium">{formatDate(event.eventDate, locale)}</p>
-                <p className="text-xs text-muted-foreground">{event.clientName}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <div>
+          <h2 className="mb-3 text-base font-semibold">{t("workerApp.weddingDays")}</h2>
+          <EventsCalendar events={upcomingEvents} readOnly />
+        </div>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("nav.shoppingLists")}</CardTitle>
+          <CardTitle>{t("workerApp.sendList")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ShoppingListForm />
@@ -75,7 +61,7 @@ export default async function WorkerHomePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("nav.shoppingLists")}</CardTitle>
+          <CardTitle>{t("workerApp.myLists")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {myLists.length === 0 && <p className="text-sm text-muted-foreground">{t("common.noData")}</p>}

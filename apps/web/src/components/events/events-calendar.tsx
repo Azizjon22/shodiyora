@@ -42,7 +42,7 @@ function buildMonthGrid(year: number, month: number) {
 
 type Filter = "all" | "free" | "booked";
 
-export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
+export function EventsCalendar({ events, readOnly = false }: { events: CalendarEvent[]; readOnly?: boolean }) {
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [filter, setFilter] = useState<Filter>("all");
@@ -143,20 +143,29 @@ export function EventsCalendar({ events }: { events: CalendarEvent[] }) {
                   {date.getDate()}
                 </span>
                 {inMonth &&
-                  dayEvents.slice(0, 2).map((event) => (
-                    <Link
-                      key={event.id}
-                      href={`/dashboard/events/${event.id}`}
-                      className="flex items-baseline gap-1 truncate rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary hover:bg-primary/25"
-                    >
-                      <span className="shrink-0 font-semibold">{formatTime(event.eventDate)}</span>
-                      <span className="truncate">{event.clientName}</span>
-                    </Link>
-                  ))}
+                  dayEvents.slice(0, 2).map((event) => {
+                    const tagContent = (
+                      <>
+                        <span className="shrink-0 font-semibold">{formatTime(event.eventDate)}</span>
+                        <span className="truncate">{event.clientName}</span>
+                      </>
+                    );
+                    const tagClassName =
+                      "flex items-baseline gap-1 truncate rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary";
+                    return readOnly ? (
+                      <span key={event.id} className={tagClassName}>
+                        {tagContent}
+                      </span>
+                    ) : (
+                      <Link key={event.id} href={`/dashboard/events/${event.id}`} className={cn(tagClassName, "hover:bg-primary/25")}>
+                        {tagContent}
+                      </Link>
+                    );
+                  })}
                 {inMonth && dayEvents.length > 2 && (
                   <span className="text-[10px] text-muted-foreground">+{dayEvents.length - 2} ta</span>
                 )}
-                {inMonth && (
+                {inMonth && !readOnly && (
                   <Link
                     href={`/dashboard/events/new?date=${key}`}
                     className="mt-auto flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"

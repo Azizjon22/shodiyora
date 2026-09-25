@@ -181,6 +181,9 @@ export const uz = {
   workerApp: {
     title: "Ishchi paneli",
     greeting: "Assalomu alaykum, {name}",
+    weddingDays: "To'y kunlari",
+    sendList: "Bozorlik ro'yxati yuborish",
+    myLists: "Mening ro'yxatlarim",
   },
   roles: {
     SUPER_ADMIN: "Super Admin",

@@ -183,6 +183,9 @@ export const ru: Dictionary = {
   workerApp: {
     title: "Панель сотрудника",
     greeting: "Здравствуйте, {name}",
+    weddingDays: "Дни свадеб",
+    sendList: "Отправить список покупок",
+    myLists: "Мои списки",
   },
   roles: {
     SUPER_ADMIN: "Супер Админ",
