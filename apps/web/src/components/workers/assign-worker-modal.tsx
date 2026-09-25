@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { toggleEventAssignmentAction } from "@/lib/actions/events.actions";
 import { formatDateTime } from "@/lib/utils";
 import { Portal } from "@/components/ui/portal";
+import { Switch } from "@/components/ui/switch";
 
 export interface StaffingEvent {
   id: string;
@@ -69,22 +70,21 @@ export function AssignWorkerModal({
             {events.map((event) => {
               const checked = assigned.has(event.id);
               return (
-                <label
+                <div
                   key={event.id}
                   className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5"
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    disabled={isPending}
-                    onChange={() => toggle(event.id, !checked)}
-                    className="h-4 w-4 rounded border-input"
-                  />
                   <span className="flex-1">
                     <span className="block font-medium">{formatDateTime(event.eventDate)}</span>
                     <span className="block text-xs text-muted-foreground">{event.clientName}</span>
                   </span>
-                </label>
+                  <Switch
+                    checked={checked}
+                    disabled={isPending}
+                    onChange={() => toggle(event.id, !checked)}
+                    aria-label={event.clientName}
+                  />
+                </div>
               );
             })}
           </div>
