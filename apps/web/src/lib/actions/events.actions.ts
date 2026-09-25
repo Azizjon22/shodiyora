@@ -89,7 +89,9 @@ export async function updateEventStatusAction(eventId: string, status: string) {
 export async function unassignWorkerAction(eventId: string, workerId: string) {
   await apiFetch(`/events/${eventId}/assignments/${workerId}`, { method: "DELETE" });
   revalidatePath(`/dashboard/events/${eventId}`);
+  revalidatePath("/dashboard/events");
   revalidatePath("/dashboard/workers");
+  revalidatePath("/dashboard");
 }
 
 export async function toggleEventAssignmentAction(eventId: string, workerId: string, assign: boolean) {
@@ -103,6 +105,8 @@ export async function toggleEventAssignmentAction(eventId: string, workerId: str
   }
   revalidatePath("/dashboard/workers");
   revalidatePath(`/dashboard/events/${eventId}`);
+  revalidatePath("/dashboard/events");
+  revalidatePath("/dashboard");
 }
 
 export async function addPaymentAction(

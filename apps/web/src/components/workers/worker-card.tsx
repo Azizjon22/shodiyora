@@ -62,7 +62,7 @@ export function WorkerCard({
         >
           <Phone className="h-3.5 w-3.5" /> {worker.phone}
         </a>
-        {onAssign && worker.status === "APPROVED" && (
+        {onAssign && worker.status === "APPROVED" && worker.position !== "CHEF" && (
           <button
             type="button"
             onClick={() => onAssign(worker)}

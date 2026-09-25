@@ -60,7 +60,7 @@ export function WorkerTable({
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
-                    {onAssign && worker.status === "APPROVED" && (
+                    {onAssign && worker.status === "APPROVED" && worker.position !== "CHEF" && (
                       <button
                         type="button"
                         onClick={() => onAssign(worker)}
