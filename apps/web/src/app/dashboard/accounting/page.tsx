@@ -54,6 +54,15 @@ export default async function AccountingPage() {
         />
       </div>
 
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <ProfitTrendChart days={report.days} />
+        </div>
+        <div className="lg:col-span-2">
+          <ExpensesCategoryChart expensesByCategory={report.expensesByCategory} />
+        </div>
+      </div>
+
       <CollapsibleCard
         icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
         title={t("accounting.outstandingEvents")}
@@ -83,15 +92,6 @@ export default async function AccountingPage() {
           ))}
         </div>
       </CollapsibleCard>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <ProfitTrendChart days={report.days} />
-        </div>
-        <div className="lg:col-span-2">
-          <ExpensesCategoryChart expensesByCategory={report.expensesByCategory} />
-        </div>
-      </div>
 
       <CollapsibleCard
         icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
