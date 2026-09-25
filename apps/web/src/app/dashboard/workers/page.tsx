@@ -8,20 +8,23 @@ import { WorkersPageHeader } from "@/components/workers/workers-page-header";
 import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 
-export default async function WorkersPage() {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  const windowEnd = new Date(startOfToday);
-  windowEnd.setDate(windowEnd.getDate() + 30);
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
 
-  const [workers, upcomingEvents, session] = await Promise.all([
+export default async function WorkersPage() {
+  const [workers, allEvents, session] = await Promise.all([
     apiFetch<WorkerSummary[]>("/workers"),
-    apiFetch<EventDetail[]>(`/events?from=${startOfToday.toISOString()}&to=${windowEnd.toISOString()}`),
+    apiFetch<EventDetail[]>("/events"),
     getSession(),
   ]);
 
   const role = session?.user.kind === "STAFF" ? session.user.role : "ADMIN";
 
+  const today = startOfDay(new Date());
+  const upcomingEvents = allEvents.filter(
+    (e) => e.status !== "CANCELLED" && startOfDay(new Date(e.eventDate)) >= today,
+  );
   const staffingEvents = upcomingEvents.map((e) => ({
     id: e.id,
     clientName: e.clientName,
