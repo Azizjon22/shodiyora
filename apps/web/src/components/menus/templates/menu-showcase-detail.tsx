@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, Play, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, ChevronDown, UtensilsCrossed } from "lucide-react";
 import type { Menu, MenuDish } from "@/lib/types";
 import { PresentationHeader } from "@/components/layout/presentation-header";
 import { OrnamentDivider, CornerFlourish } from "@/components/menus/showcase/ornament-divider";
@@ -22,7 +22,7 @@ function tileSpans(count: number) {
   const spans: string[] = [];
   for (let start = 0; start < count; start += 5) {
     const small = Math.min(4, count - start - 1);
-    spans.push(small === 0 ? "col-span-2 row-span-2 md:col-span-4" : "col-span-2 row-span-2");
+    spans.push(small === 0 ? "col-span-2 row-span-2 lg:col-span-4" : "col-span-2 row-span-2");
     if (small === 4) spans.push("", "", "", "");
     if (small === 3) spans.push("", "", "col-span-2");
     if (small === 2) spans.push("col-span-2", "col-span-2");
@@ -108,7 +108,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
         </div>
 
         <div className="mx-auto w-full max-w-5xl px-4 pb-14 pt-24 text-center sm:px-6 sm:pb-20 2xl:max-w-6xl 2xl:pb-28 [@media(max-height:620px)]:pb-8 [@media(max-height:620px)]:pt-20">
-          <p className="text-[11px] font-medium uppercase tracking-[0.4em] text-[#e9cf98] animate-fade-up">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#e9cf98] animate-fade-up sm:tracking-[0.4em]">
             {t("common.brand")} · {t("presentation.eyebrow")}
           </p>
           <h1 className="font-display mt-5 text-[clamp(2.6rem,min(9vw,11svh),8.5rem)] font-semibold leading-[0.95] tracking-tight lining-nums [overflow-wrap:anywhere] animate-fade-up [@media(max-height:620px)]:mt-3">
@@ -195,7 +195,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
                     <Reveal key={category} delay={ci * 60}>
                       <div className="mb-6 flex items-center gap-4">
                         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-accent/40" />
-                        <h3 className="text-xs font-semibold uppercase tracking-[0.35em] text-accent">
+                        <h3 className="max-w-[70%] text-center text-xs font-semibold uppercase tracking-[0.16em] text-accent sm:tracking-[0.28em]">
                           {t(`dishCategories.${category}`)}
                         </h3>
                         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-accent/40" />
@@ -203,7 +203,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
                       <ul
                         className={cn(
                           "grid gap-x-12 gap-y-5",
-                          dishes.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-sm",
+                          dishes.length > 1 ? "md:grid-cols-2" : "mx-auto max-w-sm",
                         )}
                       >
                         {dishes.map((dish) => (
@@ -223,9 +223,9 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
                                 />
                               </span>
                               <span className="min-w-0">
-                                <span className="font-display block text-xl font-semibold leading-tight min-[400px]:text-2xl 2xl:text-3xl">{dish.name}</span>
+                                <span className="font-display block text-xl font-semibold leading-tight [overflow-wrap:anywhere] min-[400px]:text-2xl 2xl:text-3xl">{dish.name}</span>
                                 {dish.description && (
-                                  <span className="mt-0.5 block text-sm italic text-muted-foreground">{dish.description}</span>
+                                  <span className="mt-0.5 line-clamp-2 block text-sm italic text-muted-foreground [overflow-wrap:anywhere]">{dish.description}</span>
                                 )}
                               </span>
                             </button>
@@ -282,7 +282,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
                 </div>
               )}
 
-              <div className="grid auto-rows-[clamp(130px,38vw,190px)] grid-flow-dense grid-cols-2 gap-2 min-[400px]:gap-3 md:auto-rows-[clamp(180px,16vw,340px)] md:grid-cols-4">
+              <div className="grid auto-rows-[clamp(130px,38vw,190px)] grid-flow-dense grid-cols-2 gap-2 min-[400px]:gap-3 lg:auto-rows-[clamp(180px,16vw,340px)] lg:grid-cols-4">
                 {visibleMedia.map((item, i) => (
                   <button
                     key={item.id}
@@ -293,19 +293,22 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
                       spans[i],
                     )}
                   >
-                    {item.mediaType === "PHOTO" ? (
+                    {item.mediaType === "VIDEO" || /\.(?:mp4|mov)(?:$|\?)/i.test(item.url) ? (
+                      <video
+                        src={item.url}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="pointer-events-none h-full w-full object-cover"
+                      />
+                    ) : (
                       <SafeImage
                         src={item.url}
                         alt={item.caption ?? ""}
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                         onBroken={() => markBroken(item.url)}
                       />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/40 via-accent/20 to-background">
-                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-black shadow-xl transition-transform group-hover:scale-110">
-                          <Play className="h-6 w-6 translate-x-0.5 fill-current" />
-                        </span>
-                      </span>
                     )}
                     <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-80 transition-opacity group-hover:opacity-100" />
                     <span className="pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4">

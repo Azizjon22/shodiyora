@@ -34,7 +34,7 @@ export function StatCard({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--surface-glow),transparent_55%)]" />
         <div className="relative min-w-0">
           <p className="truncate text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 break-words text-2xl font-semibold tracking-tight">{value}</p>
+          <p className="mt-1 break-words text-[clamp(1.15rem,2.4vw,1.5rem)] font-semibold leading-tight tracking-tight">{value}</p>
         </div>
         {icon && (
           <div

@@ -67,7 +67,7 @@ export function ListDetail({
       {/* ---------- Header ---------- */}
       <div className="border-b border-border p-4 sm:p-5">
         {onBack && (
-          <button type="button" onClick={onBack} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden">
+          <button type="button" onClick={onBack} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground xl:hidden">
             <ArrowLeft className="h-4 w-4" /> Ro&apos;yxatlar
           </button>
         )}
@@ -99,7 +99,7 @@ export function ListDetail({
             return (
               <li key={step.key} className="min-w-0">
                 <div className={cn("h-1.5 rounded-full", done ? (i === current ? "bg-primary" : "bg-primary/50") : "bg-muted")} />
-                <p className={cn("mt-1.5 truncate text-[11px] font-medium", done ? "text-foreground" : "text-muted-foreground")}>{step.label}</p>
+                <p className={cn("mt-1.5 text-[10px] font-medium leading-tight sm:text-[11px]", done ? "text-foreground" : "text-muted-foreground")}>{step.label}</p>
                 {done && time && <p className="hidden truncate text-[10px] text-muted-foreground sm:block">{formatDateTime(time)}</p>}
               </li>
             );
@@ -123,7 +123,7 @@ export function ListDetail({
           </div>
           <div className="col-span-2 rounded-xl bg-muted/60 px-3 py-2.5 sm:col-span-1">
             <p className="text-xs text-muted-foreground">Holat</p>
-            <p className="font-semibold">
+            <p className="font-semibold leading-tight [overflow-wrap:anywhere]">
               {!sent ? "Tekshirilmoqda" : list.status === "APPROVED" ? (complete ? "Hammasi olindi" : `${total - bought} ta qoldi`) : STEPS[current]?.label}
             </p>
           </div>

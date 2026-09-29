@@ -58,7 +58,7 @@ export function ChefEventCard({ event, defaultOpen }: { event: ChefEvent; defaul
           ).map(([label, dish]) => (
             <div key={label} className="rounded-xl bg-accent/10 px-3 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-accent">{label}</p>
-              <p className="font-display truncate text-lg font-semibold leading-tight">{dish ?? "—"}</p>
+              <p className="font-display text-base font-semibold leading-tight [overflow-wrap:anywhere] sm:text-lg">{dish ?? "—"}</p>
             </div>
           ))}
         </div>
@@ -73,12 +73,12 @@ export function ChefEventCard({ event, defaultOpen }: { event: ChefEvent; defaul
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-sm hover:bg-muted/50"
       >
-        <span className="inline-flex items-center gap-2">
-          <UtensilsCrossed className="h-4 w-4 text-accent" />
-          <span className="font-medium">{event.menu.name}</span>
-          <span className="text-xs text-muted-foreground">· {event.menu.dishes.length} ta taom</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <UtensilsCrossed className="h-4 w-4 shrink-0 text-accent" />
+          <span className="truncate font-medium">{event.menu.name}</span>
+          <span className="shrink-0 text-xs text-muted-foreground">· {event.menu.dishes.length} ta taom</span>
         </span>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition", open && "rotate-180")} />
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition", open && "rotate-180")} />
       </button>
       {open && (
         <div className="space-y-3 border-t border-border bg-muted/30 px-4 py-3 animate-soft-scale">
@@ -91,7 +91,7 @@ export function ChefEventCard({ event, defaultOpen }: { event: ChefEvent; defaul
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5">
         {lists.length > 0 ? (
           <Link href="/worker/shopping?tab=mine" className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
             <Check className="h-4 w-4" /> Bozorlik yozilgan {lists.length > 1 && `(${lists.length})`}

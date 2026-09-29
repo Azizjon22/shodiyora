@@ -12,6 +12,11 @@ export async function generateMetadata() {
 }
 
 export default async function MenuShowcasePage() {
-  const menus = await publicApiFetch<Menu[]>("/menus");
-  return <MenuShowcaseList menus={menus} />;
+  const [menus, brand] = await Promise.all([publicApiFetch<Menu[]>("/menus"), getBrand()]);
+  return (
+    <MenuShowcaseList
+      menus={menus}
+      hero={{ url: brand.heroMediaUrl, kind: brand.heroMediaKind }}
+    />
+  );
 }

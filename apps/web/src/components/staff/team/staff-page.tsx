@@ -262,9 +262,9 @@ export function StaffPage({ staff, chefs, currentUserId }: { staff: StaffUserSum
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className="font-display mt-0.5 text-3xl font-semibold leading-none lining-nums tabular-nums">{s.value}</p>
+              <p className="font-display mt-0.5 text-[clamp(1.5rem,4vw,1.875rem)] font-semibold leading-none lining-nums tabular-nums">{s.value}</p>
               <p className="mt-1 text-[11px] text-muted-foreground">{s.hint}</p>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">{s.icon}</span>

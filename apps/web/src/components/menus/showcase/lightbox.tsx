@@ -118,6 +118,9 @@ export function Lightbox({
                     src={slide.url}
                     controls
                     autoPlay={i === index}
+                    muted
+                    loop
+                    playsInline
                     className="w-full rounded-lg xl:max-h-[70vh]"
                   />
                 ) : (

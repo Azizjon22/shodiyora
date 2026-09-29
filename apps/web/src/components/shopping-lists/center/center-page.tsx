@@ -91,7 +91,7 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
       </div>
 
       {/* ---------- Pipeline ---------- */}
-      <div className={cn("grid gap-3", isSuperAdmin ? "grid-cols-3 lg:grid-cols-4" : "grid-cols-2")}>
+      <div className={cn("grid gap-3", isSuperAdmin ? "grid-cols-1 min-[520px]:grid-cols-3 xl:grid-cols-4" : "grid-cols-1 min-[420px]:grid-cols-2")}>
         {stages.map((s) => {
           const count = byStage(s.key).length;
           const active = stage === s.key;
@@ -112,7 +112,7 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
             >
               <div className="min-w-0">
                 <p className="truncate text-xs text-muted-foreground">{s.label}</p>
-                <p className={cn("font-display mt-0.5 text-3xl font-semibold leading-none lining-nums tabular-nums", urgent && !active && "text-primary")}>
+                <p className={cn("font-display mt-0.5 text-[clamp(1.6rem,4vw,1.875rem)] font-semibold leading-none lining-nums tabular-nums", urgent && !active && "text-primary")}>
                   {count}
                 </p>
                 <p className="mt-1 hidden truncate text-[11px] text-muted-foreground sm:block">{s.hint}</p>
@@ -124,10 +124,10 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
           );
         })}
         {isSuperAdmin && (
-          <div className="col-span-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 lg:col-span-1">
-            <div>
+          <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 xl:col-span-1">
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Shu oy bozorlik</p>
-              <p className="font-display mt-0.5 text-2xl font-semibold leading-none lining-nums tabular-nums">{formatSom(monthSpent)}</p>
+              <p className="font-display mt-0.5 break-words text-[clamp(1.15rem,3vw,1.5rem)] font-semibold leading-tight lining-nums tabular-nums">{formatSom(monthSpent)}</p>
               <p className="mt-1 text-[11px] text-muted-foreground">sotib olingan mahsulotlar</p>
             </div>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
@@ -146,8 +146,8 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
-          <div className={cn("min-w-0 space-y-2.5 lg:sticky lg:top-20 lg:self-start", mobileDetail && "hidden lg:block")}>
+        <div className="grid gap-5 xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+          <div className={cn("min-w-0 space-y-2.5 xl:sticky xl:top-20 xl:self-start", mobileDetail && "hidden xl:block")}>
             {visible.map((l) => (
               <ListCard
                 key={l.id}
@@ -161,7 +161,7 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
             ))}
           </div>
           {selected && (
-            <div className={cn("min-w-0", !mobileDetail && "hidden lg:block")}>
+            <div className={cn("min-w-0", !mobileDetail && "hidden xl:block")}>
               <ListDetail key={selected.id} list={selected} catalog={catalog} isSuperAdmin={isSuperAdmin} onBack={() => setMobileDetail(false)} />
             </div>
           )}

@@ -147,9 +147,9 @@ export function TeamPage({
               s.warn ? "border-accent/40 bg-accent/5" : "border-border",
             )}
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className={cn("font-display mt-0.5 text-3xl font-semibold leading-none lining-nums tabular-nums", s.warn && "text-accent")}>
+              <p className={cn("font-display mt-0.5 text-[clamp(1.5rem,4vw,1.875rem)] font-semibold leading-none lining-nums tabular-nums", s.warn && "text-accent")}>
                 {s.value}
               </p>
             </div>

@@ -20,7 +20,7 @@ export function ClosingCta({ title, subtitle }: { title: string; subtitle: strin
         <p className="mt-3 text-white/65">{subtitle}</p>
         <a
           href={`tel:${phone.replace(/\s/g, "")}`}
-          className="mt-8 inline-flex items-center gap-3 whitespace-nowrap rounded-full bg-gradient-to-r from-[#c99a52] via-[#f1d9a0] to-[#c99a52] px-6 py-3.5 text-lg font-semibold text-[#24180a] shadow-xl shadow-[#d4a85c]/20 transition-transform hover:scale-[1.03] min-[400px]:px-8 min-[400px]:py-4 min-[400px]:text-xl sm:text-2xl"
+          className="mt-8 inline-flex max-w-full flex-wrap items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#c99a52] via-[#f1d9a0] to-[#c99a52] px-5 py-3.5 text-center text-lg font-semibold text-[#24180a] shadow-xl shadow-[#d4a85c]/20 transition-transform hover:scale-[1.03] min-[400px]:px-8 min-[400px]:py-4 min-[400px]:text-xl sm:text-2xl"
         >
           <Phone className="h-5 w-5" /> {phone}
         </a>

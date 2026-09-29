@@ -49,7 +49,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{event.clientName}</h1>
+          <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere]">{event.clientName}</h1>
           <p className="text-sm text-muted-foreground">{event.clientPhone}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -95,7 +95,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
                 ).map(([label, dish]) => (
                   <div key={label} className="rounded-xl border border-accent/30 bg-accent/5 px-3 py-2.5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-accent">{label}</p>
-                    <p className="font-display text-lg font-semibold">{dish ?? "—"}</p>
+                    <p className="font-display text-lg font-semibold leading-tight [overflow-wrap:anywhere]">{dish ?? "—"}</p>
                   </div>
                 ))}
               </div>
@@ -259,7 +259,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
                         {isRefund ? "−" : "+"}
                         {formatSom(p.amount)}
                       </span>
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="mt-0.5 block break-words text-xs text-muted-foreground">
                         {isRefund ? "Qaytarildi" : "To'lov"} · {METHOD_LABEL[p.method] ?? p.method}
                         {p.note && ` · ${p.note}`}
                       </span>
@@ -270,18 +270,18 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
               })}
             </div>
             {refunded > 0 && (
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="rounded-lg bg-muted/60 px-2 py-2">
+              <div className="grid grid-cols-1 gap-2 text-center text-xs min-[420px]:grid-cols-3">
+                <div className="min-w-0 rounded-lg bg-muted/60 px-2 py-2">
                   <p className="text-muted-foreground">Olindi</p>
-                  <p className="font-semibold tabular-nums">{formatSom(received)}</p>
+                  <p className="break-words font-semibold tabular-nums">{formatSom(received)}</p>
                 </div>
-                <div className="rounded-lg bg-destructive/10 px-2 py-2">
+                <div className="min-w-0 rounded-lg bg-destructive/10 px-2 py-2">
                   <p className="text-muted-foreground">Qaytarildi</p>
-                  <p className="font-semibold tabular-nums text-destructive">−{formatSom(refunded)}</p>
+                  <p className="break-words font-semibold tabular-nums text-destructive">−{formatSom(refunded)}</p>
                 </div>
-                <div className="rounded-lg bg-muted/60 px-2 py-2">
+                <div className="min-w-0 rounded-lg bg-muted/60 px-2 py-2">
                   <p className="text-muted-foreground">Sof</p>
-                  <p className="font-semibold tabular-nums">{formatSom(kept)}</p>
+                  <p className="break-words font-semibold tabular-nums">{formatSom(kept)}</p>
                 </div>
               </div>
             )}
