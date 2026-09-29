@@ -126,7 +126,7 @@ export function DashboardShell({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border/70 bg-card md:flex",
+          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border/70 bg-card lg:flex",
           collapsed ? "w-[76px]" : "w-[260px]",
         )}
       >
@@ -160,7 +160,7 @@ export function DashboardShell({
       {/* Mobile drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-card shadow-xl transition-transform md:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(280px,88vw)] flex-col border-r border-border bg-card shadow-xl transition-transform lg:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -179,17 +179,17 @@ export function DashboardShell({
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label={t("common.closeMenu")}
         />
       )}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/70 bg-card/85 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/70 bg-card/85 px-3 backdrop-blur-md sm:gap-3 sm:px-6">
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-foreground hover:bg-muted md:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-foreground hover:bg-muted lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label={t("common.openMenu")}
           >
@@ -211,7 +211,7 @@ export function DashboardShell({
             <h1 className="truncate text-base font-semibold tracking-tight sm:text-[17px]">{pageTitle}</h1>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
             {pendingShoppingListsCount > 0 && (
@@ -229,7 +229,7 @@ export function DashboardShell({
             <Link
               href="/dashboard/profile"
               title={t("nav.profile")}
-              className="ml-1 hidden items-center gap-2 rounded-full border border-border/80 bg-muted/40 py-1 pl-1 pr-3 transition hover:border-primary/40 hover:bg-muted sm:flex"
+              className="ml-1 hidden items-center gap-2 rounded-full border border-border/80 bg-muted/40 py-1 pl-1 pr-3 transition hover:border-primary/40 hover:bg-muted md:flex"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                 {fullName
@@ -240,7 +240,7 @@ export function DashboardShell({
                   .toUpperCase()}
               </span>
               <div className="min-w-0 text-left">
-                <p className="max-w-[120px] truncate text-xs font-medium leading-none">{fullName}</p>
+                <p className="max-w-[9rem] truncate text-xs font-medium leading-none lg:max-w-[7.5rem] xl:max-w-[10rem]">{fullName}</p>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">{t(`roles.${role}`)}</p>
               </div>
             </Link>
@@ -257,7 +257,7 @@ export function DashboardShell({
         </header>
 
         {/* Mobile bottom nav — top destinations */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border/80 bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border/80 bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
           {items.slice(0, 5).map((item) => {
             const active = isNavActive(pathname, item.href);
             const Icon = item.icon;
@@ -266,18 +266,18 @@ export function DashboardShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium",
+                  "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-2 text-center text-[10px] font-medium leading-tight",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="h-5 w-5" />
-                <span className="max-w-[64px] truncate">{t(item.labelKey)}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="line-clamp-2 w-full">{t(item.labelKey)}</span>
               </Link>
             );
           })}
         </nav>
 
-        <main className="flex-1 bg-[radial-gradient(ellipse_at_top,var(--surface-glow),transparent_50%)] p-4 pb-24 sm:p-6 md:pb-6">
+        <main className="@container/main flex-1 bg-[radial-gradient(ellipse_at_top,var(--surface-glow),transparent_50%)] p-4 pb-24 sm:p-6 lg:pb-6">
           {children}
         </main>
       </div>

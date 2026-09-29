@@ -13,17 +13,17 @@ export function PresentationHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6 2xl:max-w-7xl">
-        <Link href="/dashboard" className="flex items-center gap-2.5 text-foreground">
-          <BrandMark className="h-8 w-8 text-lg shadow-sm shadow-primary/20" />
-          <span className="font-display text-xl font-semibold tracking-tight">{t("common.brand")}</span>
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 2xl:max-w-7xl">
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 text-foreground">
+          <BrandMark className="h-8 w-8 shrink-0 text-lg shadow-sm shadow-primary/20" />
+          <span className="font-display truncate text-lg font-semibold tracking-tight sm:text-xl">{t("common.brand")}</span>
         </Link>
-        <div className="flex items-center gap-1.5 sm:gap-2 text-sm">
+        <div className="flex shrink-0 items-center gap-1.5 text-sm sm:gap-2">
           <LanguageSwitcher />
           <ThemeToggle />
           <a
             href={`tel:${phone.replace(/\s/g, "")}`}
-            className="hidden font-medium text-foreground hover:text-primary sm:inline sm:ml-1"
+            className="ml-1 hidden font-medium text-foreground hover:text-primary lg:inline"
           >
             {phone}
           </a>

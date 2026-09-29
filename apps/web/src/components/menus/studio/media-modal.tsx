@@ -7,8 +7,11 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { UploadField } from "@/components/uploads/upload-field";
-import { cn } from "@/lib/utils";
 import { menuApi, errorText } from "./api";
+
+function mediaKind(url: string): "PHOTO" | "VIDEO" {
+  return /\.(?:mp4|mov)(?:$|\?)/i.test(url) ? "VIDEO" : "PHOTO";
+}
 
 export function MediaModal({
   open,
@@ -25,7 +28,6 @@ export function MediaModal({
   item?: MenuMedia;
   section?: MenuMediaSection;
 }) {
-  const [kind, setKind] = useState<"PHOTO" | "VIDEO">(item?.mediaType ?? "PHOTO");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -33,10 +35,10 @@ export function MediaModal({
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const url = String(form.get("url") ?? "");
-    if (!url) return setError(kind === "PHOTO" ? "Rasmni yuklang" : "Videoni yuklang");
+    if (!url) return setError("Rasm yoki videoni yuklang");
     const body = {
       section: form.get("section"),
-      mediaType: kind,
+      mediaType: mediaKind(url),
       url,
       caption: String(form.get("caption") ?? "").trim(),
     };
@@ -73,35 +75,18 @@ export function MediaModal({
       }
     >
       <form id="media-form" onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
-        {!item && (
-          <div className="sm:col-span-2">
-            <div className="inline-flex rounded-lg border border-border p-1">
-              {(["PHOTO", "VIDEO"] as const).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setKind(k)}
-                  className={cn(
-                    "rounded-md px-4 py-1.5 text-sm font-medium transition",
-                    kind === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {k === "PHOTO" ? "Rasm" : "Video"}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         <div className="sm:col-span-2">
           <UploadField
-            key={kind}
             name="url"
-            label={kind === "PHOTO" ? "Rasm" : "Video (mp4)"}
-            kind={kind === "PHOTO" ? "image" : "video"}
+            label="Rasm yoki video"
             folder="menus"
-            accept={kind === "PHOTO" ? "image/jpeg,image/png,image/webp" : "video/mp4"}
+            kind={item?.mediaType === "VIDEO" ? "video" : "image"}
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,.mov"
+            browse
+            formats="JPG, PNG, WebP, MP4, MOV"
             defaultValue={item?.url}
           />
+          <p className="mt-2 text-xs text-muted-foreground">Video galereyada ovozsiz ko&apos;rsatiladi.</p>
         </div>
         <div>
           <Label htmlFor="media-section">Bo&apos;lim</Label>

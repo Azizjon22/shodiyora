@@ -1,10 +1,10 @@
 import { Type } from 'class-transformer';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 import {
   IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   MinLength,
 } from 'class-validator';
@@ -24,7 +24,7 @@ export class CreateMenuDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsMediaUrl()
   coverImageUrl?: string;
 
   @IsOptional()

@@ -64,7 +64,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
   }, [events]);
 
   return (
-    <Card>
+    <Card className="@container min-w-0">
       <CardHeader className="flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-center gap-2 sm:justify-start">
           <Button
@@ -89,7 +89,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-muted p-1 text-xs font-medium">
+        <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1 text-xs font-medium">
           {(
             [
               ["all", "Barchasi"],
@@ -102,7 +102,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
               type="button"
               onClick={() => setFilter(value)}
               className={cn(
-                "shrink-0 rounded-md px-2.5 py-1.5 transition-colors",
+                "rounded-md px-2.5 py-1.5 transition-colors",
                 filter === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
               )}
             >
@@ -112,14 +112,15 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-medium text-muted-foreground">
+        <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium text-muted-foreground sm:gap-1.5 sm:text-xs">
           {WEEKDAYS_UZ.map((w) => (
-            <div key={w} className="py-1">
-              {w}
+            <div key={w} className="truncate py-1">
+              <span className="@min-[640px]:hidden">{w.slice(0, 2)}</span>
+              <span className="hidden @min-[640px]:inline">{w}</span>
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
           {cells.map(({ date, inMonth }) => {
             const key = toDateParam(date);
             const dayEvents = eventsByDay.get(key) ?? [];
@@ -131,7 +132,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
               <div
                 key={key}
                 className={cn(
-                  "flex min-h-20 flex-col gap-1 rounded-md border p-1.5 text-left transition",
+                  "flex min-h-16 min-w-0 flex-col gap-1 overflow-hidden rounded-md border p-1 text-left transition sm:min-h-24 sm:p-1.5",
                   !inMonth && "border-transparent opacity-30",
                   inMonth && isBooked && "border-primary/40 bg-primary/5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-sm",
                   inMonth && !isBooked && "border-border bg-card hover:border-primary/30 hover:bg-muted/60 hover:shadow-sm",
@@ -147,11 +148,11 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
                     const tagContent = (
                       <>
                         <span className="shrink-0 font-semibold">{formatTime(event.eventDate)}</span>
-                        <span className="truncate">{event.clientName}</span>
+                        <span className="hidden min-w-0 truncate @min-[720px]:inline">{event.clientName}</span>
                       </>
                     );
                     const tagClassName =
-                      "flex items-baseline gap-1 truncate rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary";
+                      "flex min-w-0 items-baseline gap-1 overflow-hidden rounded bg-primary/15 px-1 py-0.5 text-[10px] font-medium text-primary";
                     return readOnly ? (
                       <span key={event.id} className={tagClassName}>
                         {tagContent}
@@ -168,9 +169,10 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
                 {inMonth && !readOnly && (
                   <Link
                     href={`/dashboard/events/new?date=${key}`}
-                    className="mt-auto flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"
+                    className="mt-auto flex min-w-0 items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"
                   >
-                    <Plus className="h-3 w-3" /> to&apos;y
+                    <Plus className="h-3 w-3 shrink-0" />
+                    <span className="truncate">to&apos;y</span>
                   </Link>
                 )}
               </div>

@@ -324,8 +324,8 @@ export function ListBuilder({
 
         <div className="rounded-2xl border border-dashed border-border p-3">
           <p className="mb-2 text-xs font-medium text-muted-foreground">Katalogda yo&apos;q mahsulot</p>
-          <div className="grid grid-cols-[1fr_70px_80px_auto] gap-1.5">
-            <Input value={custom.name} onChange={(e) => setCustom({ ...custom, name: e.target.value })} placeholder="nomi" className="h-10" />
+          <div className="grid grid-cols-2 gap-1.5 min-[480px]:grid-cols-[minmax(0,1fr)_4.5rem_5.5rem_2.5rem]">
+            <Input value={custom.name} onChange={(e) => setCustom({ ...custom, name: e.target.value })} placeholder="nomi" className="col-span-2 h-10 min-w-0 min-[480px]:col-span-1" />
             <Input
               value={custom.quantity}
               onChange={(e) => setCustom({ ...custom, quantity: e.target.value })}
@@ -362,7 +362,7 @@ export function ListBuilder({
       </section>
 
       {/* ---------- Sticky cart ---------- */}
-      <div className="sticky bottom-[84px] z-20 sm:bottom-4">
+      <div className="sticky bottom-[84px] z-20 md:bottom-4">
         <div
           className={cn(
             "flex items-center justify-between gap-3 rounded-2xl border p-3 shadow-xl backdrop-blur-md transition",

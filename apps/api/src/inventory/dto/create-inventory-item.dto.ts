@@ -1,11 +1,11 @@
 import { InventoryCategory, ProductCategory, Unit } from '@prisma/client';
 import { Type } from 'class-transformer';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 import {
   IsEnum,
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   MinLength,
 } from 'class-validator';
@@ -24,7 +24,7 @@ export class CreateInventoryItemDto {
   productCategory?: ProductCategory;
 
   @IsOptional()
-  @IsUrl()
+  @IsMediaUrl()
   photoUrl?: string;
 
   @IsEnum(Unit)

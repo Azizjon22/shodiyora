@@ -2,10 +2,10 @@
 
 import { startTransition, useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, KeyRound, Link2, Palette, Phone, RotateCcw, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ImageIcon, KeyRound, Phone, RotateCcw, ShieldCheck } from "lucide-react";
 import type { StaffRole } from "@shodiyora/shared";
 import { changeStaffPasswordAction } from "@/lib/actions/auth.actions";
-import type { Brand } from "@/lib/brand-shared";
+import type { Brand, HeroMediaKind } from "@/lib/brand-shared";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Input, Label, PasswordInput } from "@/components/ui/input";
@@ -67,58 +67,25 @@ function PasswordCard({ justChanged }: { justChanged: boolean }) {
   );
 }
 
-/** Live preview of where the brand shows up: sidebar, login, client presentation. */
-function BrandPreview({ name, logoUrl }: { name: string; logoUrl: string | null }) {
-  const shown = name.trim() || "Nomsiz";
-  return (
-    <div className="space-y-3">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ko&apos;rinishi</p>
-      <div className="rounded-xl border border-border bg-background p-3">
-        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Yon menyu</p>
-        <div className="flex items-center gap-2.5">
-          <BrandMark name={shown} logoUrl={logoUrl} className="h-9 w-9 text-lg" />
-          <span className="font-display truncate text-lg font-semibold">{shown}</span>
-        </div>
-      </div>
-      <div className="rounded-xl border border-border bg-background p-4 text-center">
-        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Kirish sahifasi</p>
-        <BrandMark name={shown} logoUrl={logoUrl} className="mx-auto h-12 w-12 text-xl shadow-lg shadow-primary/25" />
-        <p className="font-display mt-2 truncate text-2xl font-semibold">{shown}</p>
-      </div>
-      <div className="rounded-xl bg-[#0d0a0b] p-4 text-center text-white">
-        <p className="mb-2 text-[10px] uppercase tracking-wider text-white/50">Mijozga taqdimot</p>
-        <p className="truncate text-[10px] font-medium uppercase tracking-[0.35em] text-[#e9cf98]">{shown} · To&apos;y menyusi</p>
-      </div>
-    </div>
-  );
+function heroKind(url: string | null): HeroMediaKind | null {
+  if (!url) return null;
+  return /\.(?:mp4|mov)(?:$|\?)/i.test(url) ? "VIDEO" : "IMAGE";
 }
 
 function BrandCard({ brand }: { brand: Brand }) {
   const router = useRouter();
   const [name, setName] = useState(brand.brandName);
   const [logoUrl, setLogoUrl] = useState<string | null>(brand.logoUrl);
-  const [linkMode, setLinkMode] = useState(false);
-  const [link, setLink] = useState("");
-  const [uploaderKey, setUploaderKey] = useState(0);
+  const [heroUrl, setHeroUrl] = useState<string | null>(brand.heroMediaUrl);
+  const [logoKey, setLogoKey] = useState(0);
+  const [heroKey, setHeroKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [saved, setSaved] = useState(false);
 
   const trimmed = name.trim();
-  const dirty = trimmed !== brand.brandName || logoUrl !== brand.logoUrl;
   const validName = trimmed.length >= 2 && trimmed.length <= 40;
-
-  function applyLink() {
-    try {
-      const u = new URL(link.trim());
-      if (!/^https?:$/.test(u.protocol)) throw new Error();
-      setLogoUrl(u.toString());
-      setLinkMode(false);
-      setError(undefined);
-    } catch {
-      setError("Havola noto'g'ri — https:// bilan boshlanadigan rasm manzilini kiriting");
-    }
-  }
+  const dirty = trimmed !== brand.brandName || logoUrl !== brand.logoUrl || heroUrl !== brand.heroMediaUrl;
 
   async function save() {
     if (!validName) return setError("Nom 2 dan 40 belgigacha bo'lishi kerak");
@@ -129,7 +96,12 @@ function BrandCard({ brand }: { brand: Brand }) {
       const res = await fetch("/api/proxy/settings/brand", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandName: trimmed, logoUrl }),
+        body: JSON.stringify({
+          brandName: trimmed,
+          logoUrl,
+          heroMediaUrl: heroUrl,
+          heroMediaKind: heroKind(heroUrl),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -149,10 +121,10 @@ function BrandCard({ brand }: { brand: Brand }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="flex items-center gap-2 font-semibold">
-            <Palette className="h-4 w-4 text-muted-foreground" /> Loyiha brendi
+            <ImageIcon className="h-4 w-4 text-muted-foreground" /> Sayt nomi, logo va fon
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Nom va logo yon menyu, kirish sahifasi, oshpaz ilovasi va mijozga taqdimotda ko&apos;rinadi.
+            Nom va logo butun loyihada. Orqa fon faqat «To&apos;y menyu paketlari» sahifasida. Video ovozsiz aylanadi.
           </p>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
@@ -160,86 +132,106 @@ function BrandCard({ brand }: { brand: Brand }) {
         </span>
       </div>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="space-y-5">
-          <div>
-            <Label htmlFor="brandName">Loyiha nomi</Label>
-            <Input id="brandName" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="masalan: Shodiyora" />
-            <p className={cn("mt-1 text-xs", validName ? "text-muted-foreground" : "text-destructive")}>{trimmed.length}/40 belgi</p>
-          </div>
+      <div className="mt-5 max-w-md">
+        <Label htmlFor="brandName">Sayt nomi</Label>
+        <Input id="brandName" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="masalan: Shodiyora" />
+        <p className={cn("mt-1 text-xs", validName ? "text-muted-foreground" : "text-destructive")}>{trimmed.length}/40 belgi</p>
+      </div>
 
-          <div>
-            <p className="mb-1.5 text-sm font-medium">Logo</p>
-            <div className="flex flex-wrap items-center gap-4">
-              <BrandMark name={trimmed || "?"} logoUrl={logoUrl} className="h-20 w-20 text-3xl shadow-md" />
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setLinkMode((v) => !v)}>
-                  <Link2 className="h-4 w-4" /> Havola orqali
-                </Button>
-                {logoUrl && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setLogoUrl(null);
-                      setUploaderKey((k) => k + 1);
-                    }}
-                  >
-                    <RotateCcw className="h-4 w-4" /> Harfli logoga qaytarish
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="mt-3 max-w-xs">
-              <UploadField
-                key={uploaderKey}
-                name="logoUpload"
-                label="Rasm yuklash (kvadrat, PNG/JPG/WebP)"
-                folder="branding"
-                aspect="square"
-                onChange={(url) => url && setLogoUrl(url)}
-              />
-            </div>
-            {linkMode && (
-              <div className="mt-3 flex max-w-lg gap-2">
-                <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://.../logo.png" />
-                <Button type="button" variant="outline" onClick={applyLink}>
-                  Qo&apos;llash
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
-            <Button type="button" onClick={save} disabled={busy || !dirty || !validName}>
-              {busy ? "Saqlanmoqda..." : "Saqlash"}
-            </Button>
-            {dirty && (
+      <div className="mt-5 grid gap-6 lg:grid-cols-2">
+        <div>
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <BrandMark name={trimmed || "?"} logoUrl={logoUrl} className="h-16 w-16 text-2xl shadow-md" />
+            {logoUrl && (
               <Button
                 type="button"
                 variant="ghost"
+                size="sm"
                 onClick={() => {
-                  setName(brand.brandName);
-                  setLogoUrl(brand.logoUrl);
-                  setUploaderKey((k) => k + 1);
-                  setError(undefined);
+                  setLogoUrl(null);
+                  setLogoKey((k) => k + 1);
                 }}
-                disabled={busy}
               >
-                Bekor qilish
+                <RotateCcw className="h-4 w-4" /> Harfli logoga qaytarish
               </Button>
             )}
-            {saved && !dirty && (
-              <span className="flex items-center gap-1.5 text-sm text-success">
-                <CheckCircle2 className="h-4 w-4" /> Saqlandi — butun loyihada yangilandi
-              </span>
-            )}
-            {error && <span className="text-sm text-destructive">{error}</span>}
           </div>
+          <UploadField
+            key={logoKey}
+            name="logoUpload"
+            label="Logo"
+            folder="branding"
+            aspect="square"
+            browse
+            formats="JPG, PNG, WebP"
+            defaultValue={logoUrl}
+            onChange={(url) => setLogoUrl(url || null)}
+          />
         </div>
 
-        <BrandPreview name={name} logoUrl={logoUrl} />
+        <div>
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm font-medium">To&apos;y menyu paketlari — orqa fon</p>
+            {heroUrl && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setHeroUrl(null);
+                  setHeroKey((k) => k + 1);
+                }}
+              >
+                <RotateCcw className="h-4 w-4" /> Menyudagi rasmga qaytarish
+              </Button>
+            )}
+          </div>
+          <UploadField
+            key={heroKey}
+            name="heroUpload"
+            label="Orqa fon"
+            folder="branding"
+            kind={heroKind(heroUrl) === "VIDEO" ? "video" : "image"}
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,.mov"
+            aspect="video"
+            browse
+            formats="JPG, PNG, WebP, MP4, MOV"
+            defaultValue={heroUrl}
+            onChange={(url) => setHeroUrl(url || null)}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Rasm yoki video. MP4 va MOV sahifa ochilganda ovozsiz, takrorlanib turadi.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+        <Button type="button" onClick={save} disabled={busy || !dirty || !validName}>
+          {busy ? "Saqlanmoqda..." : "Saqlash"}
+        </Button>
+        {dirty && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setName(brand.brandName);
+              setLogoUrl(brand.logoUrl);
+              setHeroUrl(brand.heroMediaUrl);
+              setLogoKey((k) => k + 1);
+              setHeroKey((k) => k + 1);
+              setError(undefined);
+            }}
+            disabled={busy}
+          >
+            Bekor qilish
+          </Button>
+        )}
+        {saved && !dirty && (
+          <span className="flex items-center gap-1.5 text-sm text-success">
+            <CheckCircle2 className="h-4 w-4" /> Saqlandi
+          </span>
+        )}
+        {error && <span className="text-sm text-destructive">{error}</span>}
       </div>
     </section>
   );

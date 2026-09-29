@@ -31,7 +31,7 @@ export function PriceCalculator({
     "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/30 text-accent transition hover:bg-accent/10 disabled:opacity-30";
 
   return (
-    <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-center">
       <div className="space-y-6">
         <div className="flex flex-col items-center gap-3 min-[480px]:flex-row min-[480px]:justify-between">
           <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -114,11 +114,11 @@ export function PriceCalculator({
         <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">{t("presentation.calcTotal")}</p>
         <p
           key={total}
-          className="font-display text-gilded-adaptive mt-3 whitespace-nowrap text-[clamp(1.9rem,7.5vw,3.25rem)] font-semibold lining-nums tabular-nums animate-soft-scale md:text-[clamp(2rem,3.6vw,3.5rem)]"
+          className="font-display text-gilded-adaptive mt-3 text-[clamp(1.35rem,6.5vw,3.25rem)] font-semibold leading-none lining-nums tabular-nums [overflow-wrap:anywhere] animate-soft-scale md:text-[clamp(1.6rem,3.2vw,3.5rem)]"
         >
           {formatSom(total, locale)}
         </p>
-        <p className="mt-3 text-sm tabular-nums text-muted-foreground">
+        <p className="mt-3 text-sm tabular-nums text-muted-foreground [overflow-wrap:anywhere]">
           {guests} × {formatSom(pricePerPerson, locale)}
         </p>
         <p className="mt-4 text-xs text-muted-foreground/80">{t("presentation.calcNote")}</p>

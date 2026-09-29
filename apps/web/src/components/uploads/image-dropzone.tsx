@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, DragEvent } from "react";
-import { ImageOff, ImagePlus, Loader2, Video, X } from "lucide-react";
+import { FolderOpen, ImageOff, ImagePlus, Loader2, Video, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -15,6 +15,10 @@ interface Props {
   onClear?: () => void;
   className?: string;
   aspect?: "video" | "square";
+  /** Shows a folder picker next to drag-and-drop upload. */
+  browse?: boolean;
+  /** Allowed formats, shown under the control. */
+  formats?: string;
 }
 
 export function ImageDropzone({
@@ -28,6 +32,8 @@ export function ImageDropzone({
   onClear,
   className,
   aspect = "video",
+  browse,
+  formats,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -114,7 +120,13 @@ export function ImageDropzone({
           <div className="flex flex-col items-center gap-1.5 px-4 text-center text-muted-foreground">
             {kind === "image" ? <ImagePlus className="h-6 w-6" /> : <Video className="h-6 w-6" />}
             <span className="text-xs">
-              Rasmni shu yerga tashlang yoki <span className="font-medium text-primary">tanlash uchun bosing</span>
+              {browse ? (
+                "Yuklash: faylni shu yerga tashlang"
+              ) : (
+                <>
+                  Rasmni shu yerga tashlang yoki <span className="font-medium text-primary">tanlash uchun bosing</span>
+                </>
+              )}
             </span>
           </div>
         )}
@@ -125,6 +137,21 @@ export function ImageDropzone({
           </div>
         )}
       </div>
+      {(browse || formats) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+          {browse && (
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+              className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-input px-3 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              <FolderOpen className="h-4 w-4" /> Papkani tanlash
+            </button>
+          )}
+          {formats && <p className="text-xs text-muted-foreground">Formatlar: {formats}</p>}
+        </div>
+      )}
       {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );
