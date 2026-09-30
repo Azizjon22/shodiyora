@@ -5,9 +5,9 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUrl,
   MinLength,
 } from 'class-validator';
+import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class CreateMenuDishDto {
   @IsEnum(MenuDishCategory)
@@ -22,7 +22,7 @@ export class CreateMenuDishDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrlOrPath()
   photoUrl?: string;
 
   @IsOptional()

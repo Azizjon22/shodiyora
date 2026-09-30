@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Copy, Minus, Plus, Search, ShoppingBasket, Trash2, Users, X } from "lucide-react";
+import { ArrowRight, Check, Copy, Minus, Plus, Search, ShoppingBasket, Trash2, Users, X } from "lucide-react";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_LABELS_UZ,
@@ -157,7 +157,7 @@ export function ListBuilder({
   const copySources = previous.filter((l) => l.items.length > 0).slice(0, 8);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-40 sm:pb-24">
       {/* ---------- 1. Wedding ---------- */}
       {events.length > 0 && (
         <section>
@@ -266,22 +266,32 @@ export function ListBuilder({
               return (
                 <div
                   key={p.id}
-                  className={cn("overflow-hidden rounded-2xl border bg-card transition", on ? "border-primary ring-1 ring-primary" : "border-border")}
-                >
-                  {/* Photo header only when there is a photo — icon-only tiles stay compact. */}
-                  {p.photoUrl && (
-                    <button type="button" onClick={() => !on && step(p, 1)} className="relative block aspect-[4/3] w-full bg-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.photoUrl} alt={p.name} className="h-full w-full object-cover" />
-                    </button>
+                  className={cn(
+                    "overflow-hidden rounded-2xl border bg-card transition",
+                    on ? "border-primary ring-1 ring-primary" : "border-border",
                   )}
+                >
+                  {/* Every card gets the same photo slot — a real photo when the
+                      catalog has one, a tinted category icon otherwise — so the
+                      grid stays uniform instead of jumping between tile shapes
+                      as items gradually get real photos. */}
+                  <button type="button" onClick={() => !on && step(p, 1)} className="relative block aspect-[4/3] w-full bg-muted">
+                    {p.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photoUrl} alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                        <ProductCategoryIcon category={p.productCategory ?? "OTHER"} className="h-9 w-9 text-muted-foreground/70" />
+                      </span>
+                    )}
+                    {on && (
+                      <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                        <Check className="h-3.5 w-3.5" />
+                      </span>
+                    )}
+                  </button>
                   <div className="p-2">
-                    <button type="button" onClick={() => !on && step(p, 1)} className="flex w-full items-center gap-2 text-left">
-                      {!p.photoUrl && (
-                        <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", on ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>
-                          <ProductCategoryIcon category={p.productCategory ?? "OTHER"} className="h-4 w-4" />
-                        </span>
-                      )}
+                    <button type="button" onClick={() => !on && step(p, 1)} className="flex w-full items-center gap-1.5 text-left">
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{UNIT_LABELS_UZ[p.unit]}</span>
                     </button>
@@ -290,7 +300,7 @@ export function ListBuilder({
                         type="button"
                         onClick={() => step(p, -1)}
                         disabled={!on}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border disabled:opacity-30"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border disabled:opacity-30"
                         aria-label="Kamaytirish"
                       >
                         <Minus className="h-4 w-4" />
@@ -303,13 +313,13 @@ export function ListBuilder({
                         }}
                         inputMode="decimal"
                         placeholder="0"
-                        className="h-9 w-full min-w-0 rounded-lg border border-input bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus:ring-2 focus:ring-primary/30"
+                        className="h-10 w-full min-w-0 rounded-lg border border-input bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus:ring-2 focus:ring-primary/30"
                         aria-label={`${p.name} miqdori`}
                       />
                       <button
                         type="button"
                         onClick={() => step(p, 1)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
                         aria-label="Ko'paytirish"
                       >
                         <Plus className="h-4 w-4" />
@@ -361,11 +371,16 @@ export function ListBuilder({
         </div>
       </section>
 
-      {/* ---------- Sticky cart ---------- */}
-      <div className="sticky bottom-[84px] z-20 sm:bottom-4">
+      {/* ---------- Floating cart bar ---------- */}
+      {/* Fixed to the viewport (not `sticky`, which only re-engages once its own
+          in-flow position nears the bottom of a very long product grid) so it
+          stays reachable at a constant spot no matter how far the list scrolls,
+          on every screen size. `pb-40 sm:pb-24` above keeps the last grid row
+          and the custom-item box from ever sitting underneath it. */}
+      <div className="fixed inset-x-0 bottom-[84px] z-20 px-4 sm:bottom-4">
         <div
           className={cn(
-            "flex items-center justify-between gap-3 rounded-2xl border p-3 shadow-xl backdrop-blur-md transition",
+            "mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-2xl border p-3 shadow-xl backdrop-blur-md transition",
             lines.length > 0 ? "border-primary/40 bg-card/95" : "border-border bg-card/80",
           )}
         >

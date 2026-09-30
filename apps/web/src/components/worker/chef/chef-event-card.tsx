@@ -5,22 +5,53 @@ import Link from "next/link";
 import { AlertTriangle, Check, ChevronDown, ClipboardList, Plus, UserCheck, Users, UtensilsCrossed } from "lucide-react";
 import { MENU_DISH_CATEGORIES, MENU_DISH_CATEGORY_LABELS_UZ } from "@shodiyora/shared";
 import { formatDate, formatTime, cn } from "@/lib/utils";
+import { OrnamentDivider } from "@/components/menus/showcase/ornament-divider";
 import { WEEKDAYS_SHORT, daysUntil, whenLabel, type ChefEvent } from "./types";
 
 /** A wedding from the chef's point of view: when, how many, what to cook, is shopping sorted. */
-export function ChefEventCard({ event, defaultOpen }: { event: ChefEvent; defaultOpen?: boolean }) {
+export function ChefEventCard({
+  event,
+  defaultOpen,
+  variant = "default",
+}: {
+  event: ChefEvent;
+  defaultOpen?: boolean;
+  /** "hero" is the single next-up card on the chef's home page — same data,
+   * a touch of the showcase pages' warmth (glow + ornament) since it's the
+   * first thing a chef sees every day. Everywhere else (the /worker/events
+   * list) stays "default", unchanged. */
+  variant?: "default" | "hero";
+}) {
   const [open, setOpen] = useState(!!defaultOpen);
   const date = new Date(event.eventDate);
   const soon = daysUntil(date) <= 1;
   const lists = event.shoppingLists;
   const courses = MENU_DISH_CATEGORIES.map((c) => ({ c, dishes: event.menu.dishes.filter((d) => d.category === c) })).filter((g) => g.dishes.length > 0);
+  const hero = variant === "hero";
 
   return (
-    <div className={cn("overflow-hidden rounded-2xl border bg-card", soon ? "border-primary/40" : "border-border")}>
-      <div className="flex gap-3.5 p-4">
-        <div className={cn("flex w-14 shrink-0 flex-col items-center justify-center rounded-xl py-2", soon ? "bg-primary text-primary-foreground" : "bg-muted")}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border bg-card",
+        hero ? "border-primary/30 shadow-md shadow-primary/5" : soon ? "border-primary/40" : "border-border",
+      )}
+    >
+      {hero && <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--surface-glow),transparent_55%)]" />}
+      {hero && (
+        <div className="relative flex justify-center pt-3">
+          <OrnamentDivider className="scale-90 text-accent/70" />
+        </div>
+      )}
+      <div className="relative flex gap-3.5 p-4">
+        <div
+          className={cn(
+            "flex shrink-0 flex-col items-center justify-center rounded-xl py-2",
+            hero ? "w-16" : "w-14",
+            soon ? "bg-primary text-primary-foreground" : "bg-muted",
+          )}
+        >
           <span className="text-[10px] font-semibold uppercase opacity-80">{WEEKDAYS_SHORT[date.getDay()]}</span>
-          <span className="font-display text-2xl font-semibold leading-none lining-nums">{date.getDate()}</span>
+          <span className={cn("font-display font-semibold leading-none lining-nums", hero ? "text-3xl" : "text-2xl")}>{date.getDate()}</span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">

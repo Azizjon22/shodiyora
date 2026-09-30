@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { BrandProvider } from "@/components/brand/brand-provider";
 import { getBrand } from "@/lib/brand";
@@ -52,7 +53,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <script
+        {/* Must run before hydration paints, or the page flashes the wrong
+            theme for a frame. Placing a plain <script> directly in JSX
+            makes React log a (harmless but noisy) warning; next/script's
+            beforeInteractive strategy is Next's documented replacement —
+            and per this Next version's own hydration error, it has to
+            stay inside <head> (a bare <html> child isn't valid HTML for
+            a <script>, which Next 16 now enforces at dev time). */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html:
               "(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else{document.documentElement.setAttribute('data-theme','light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();",

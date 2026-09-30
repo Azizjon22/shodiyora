@@ -13,17 +13,16 @@ const ALLOWED_CONTENT_TYPES: Record<string, string> = {
 
 @Injectable()
 export class UploadsService {
-  private client: S3Client;
+  constructor(private config: ConfigService) {}
 
-  constructor(private config: ConfigService) {
-    this.client = new S3Client({
-      region: this.config.get<string>('S3_REGION', 'auto'),
-      endpoint: this.config.getOrThrow<string>('S3_ENDPOINT'),
-      credentials: {
-        accessKeyId: this.config.getOrThrow<string>('S3_ACCESS_KEY_ID'),
-        secretAccessKey: this.config.getOrThrow<string>('S3_SECRET_ACCESS_KEY'),
-      },
-    });
+  private isS3Configured(): boolean {
+    return Boolean(
+      this.config.get<string>('S3_ENDPOINT') &&
+        this.config.get<string>('S3_BUCKET') &&
+        this.config.get<string>('S3_ACCESS_KEY_ID') &&
+        this.config.get<string>('S3_SECRET_ACCESS_KEY') &&
+        this.config.get<string>('S3_PUBLIC_BASE_URL'),
+    );
   }
 
   async presign(
@@ -36,10 +35,31 @@ export class UploadsService {
     }
 
     const key = `${folder}/${randomUUID()}.${extension}`;
+
+    // No S3-compatible store configured yet — fall back to saving the file
+    // straight onto the web app's own disk (apps/web/public/uploads). Swap
+    // in real S3_* env vars later and this branch stops being used, with no
+    // other code (UploadField, callers) needing to change.
+    if (!this.isS3Configured()) {
+      return {
+        uploadUrl: `/api/local-uploads/${key}`,
+        publicUrl: `/uploads/${key}`,
+        key,
+      };
+    }
+
+    const client = new S3Client({
+      region: this.config.get<string>('S3_REGION', 'auto'),
+      endpoint: this.config.getOrThrow<string>('S3_ENDPOINT'),
+      credentials: {
+        accessKeyId: this.config.getOrThrow<string>('S3_ACCESS_KEY_ID'),
+        secretAccessKey: this.config.getOrThrow<string>('S3_SECRET_ACCESS_KEY'),
+      },
+    });
     const bucket = this.config.getOrThrow<string>('S3_BUCKET');
 
     const uploadUrl = await getSignedUrl(
-      this.client,
+      client,
       new PutObjectCommand({
         Bucket: bucket,
         Key: key,

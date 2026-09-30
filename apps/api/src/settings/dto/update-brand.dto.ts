@@ -1,11 +1,11 @@
 import {
   IsOptional,
   IsString,
-  IsUrl,
   MaxLength,
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class UpdateBrandDto {
   @IsOptional()
@@ -17,6 +17,6 @@ export class UpdateBrandDto {
   /** null resets to the default letter mark. */
   @IsOptional()
   @ValidateIf((_, v) => v !== null)
-  @IsUrl()
+  @IsUrlOrPath()
   logoUrl?: string | null;
 }

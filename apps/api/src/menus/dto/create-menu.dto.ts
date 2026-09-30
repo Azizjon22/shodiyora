@@ -4,10 +4,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   MinLength,
 } from 'class-validator';
+import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class CreateMenuDto {
   @IsString()
@@ -24,7 +24,7 @@ export class CreateMenuDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrlOrPath()
   coverImageUrl?: string;
 
   @IsOptional()

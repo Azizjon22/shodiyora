@@ -3,10 +3,10 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsUrl,
   Matches,
   MinLength,
 } from 'class-validator';
+import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class RegisterWorkerDto {
   @IsString()
@@ -24,7 +24,7 @@ export class RegisterWorkerDto {
   gender!: WorkerGender;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrlOrPath()
   photoUrl?: string;
 
   @IsOptional()

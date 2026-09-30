@@ -5,10 +5,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
   MinLength,
 } from 'class-validator';
+import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class CreateInventoryItemDto {
   @IsString()
@@ -24,7 +24,7 @@ export class CreateInventoryItemDto {
   productCategory?: ProductCategory;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrlOrPath()
   photoUrl?: string;
 
   @IsEnum(Unit)

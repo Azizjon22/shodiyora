@@ -127,7 +127,13 @@ export class WorkersService {
     const existing = await this.ensureExists(id);
     const worker = await this.prisma.worker.update({
       where: { id },
-      data: { status: 'REJECTED', approvedById: actorId },
+      // tokenVersion bump kills any session this worker is already holding —
+      // checked on every request by JwtStrategy, no need to wait for expiry.
+      data: {
+        status: 'REJECTED',
+        approvedById: actorId,
+        tokenVersion: { increment: 1 },
+      },
     });
 
     await this.auditLog.record({
@@ -170,6 +176,8 @@ export class WorkersService {
         photoUrl: dto.photoUrl,
         pinHash,
         mustChangePin: dto.pin ? true : undefined,
+        // An admin-forced PIN reset should kill this worker's existing sessions.
+        tokenVersion: dto.pin ? { increment: 1 } : undefined,
       },
     });
 

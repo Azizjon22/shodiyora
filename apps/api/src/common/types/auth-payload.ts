@@ -9,4 +9,5 @@ export interface AuthPayload {
   fullName: string;
   mustChangePassword?: boolean;
   mustChangePin?: boolean;
+  tokenVersion: number;
 }
