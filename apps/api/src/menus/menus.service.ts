@@ -26,7 +26,7 @@ export class MenusService {
         dishes: { orderBy: { order: 'asc' } },
         media: { orderBy: { order: 'asc' } },
       },
-      orderBy: { pricePerPerson: 'asc' },
+      orderBy: [{ packageType: 'asc' }, { guestCount: 'asc' }],
     });
   }
 
@@ -111,7 +111,9 @@ export class MenusService {
     const copy = await this.prisma.menu.create({
       data: {
         name: `${source.name} (nusxa)`,
-        pricePerPerson: source.pricePerPerson,
+        price: source.price,
+        guestCount: source.guestCount,
+        packageType: source.packageType,
         description: source.description,
         coverImageUrl: source.coverImageUrl,
         isVip: source.isVip,

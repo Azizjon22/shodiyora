@@ -66,7 +66,6 @@ async function main() {
     'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=80',
   ];
 
-  const dishPhoto = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80';
   const hallPhotos = [
     'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1000&q=80',
     'https://images.unsplash.com/photo-1464366400600-7168b8af9bc8?w=1000&q=80',
@@ -76,51 +75,155 @@ async function main() {
     'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1000&q=80',
   ];
 
-  const menuDefs = [
+  const menuDefs: {
+    name: string;
+    price: number;
+    guestCount: number;
+    packageType: Prisma.MenuCreateInput['packageType'];
+    description: string;
+    isVip: boolean;
+    cover: string;
+  }[] = [
     {
-      name: "160 ming menyu",
-      pricePerPerson: 160000,
-      description: "Standart to'y menyusi — salatlar, birinchi va ikkinchi ovqatlar, meva va ichimliklar.",
+      name: "To'liq paket — 100 kishi",
+      price: 32000000,
+      guestCount: 100,
+      packageType: 'FULL',
+      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 100 kishilik to'y uchun.",
       isVip: false,
       cover: coverImages[0],
     },
     {
-      name: "200 ming menyu",
-      pricePerPerson: 200000,
-      description: "Kengaytirilgan menyu — qo'shimcha shirinliklar va premium ichimliklar bilan.",
+      name: "To'liq paket — 150 kishi",
+      price: 38000000,
+      guestCount: 150,
+      packageType: 'FULL',
+      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 150 kishilik to'y uchun.",
       isVip: false,
       cover: coverImages[1],
     },
     {
-      name: "260 ming menyu",
-      pricePerPerson: 260000,
-      description: "Premium paket — boy dasturxon, bezatilgan stol va foto zona.",
-      isVip: false,
+      name: "To'liq paket — 200 kishi",
+      price: 46000000,
+      guestCount: 200,
+      packageType: 'FULL',
+      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 200 kishilik to'y uchun.",
+      isVip: true,
       cover: coverImages[2],
     },
     {
-      name: 'VIP menyu',
-      pricePerPerson: 350000,
-      description: "Eng yuqori darajadagi VIP menyu — maxsus taomlar, live cooking va to'liq servis.",
-      isVip: true,
+      name: 'Taomlar — 100 kishi',
+      price: 24000000,
+      guestCount: 100,
+      packageType: 'FOOD_ONLY',
+      description: "Faqat to'yxona taomlari — 100 kishilik to'y uchun.",
+      isVip: false,
       cover: coverImages[3],
+    },
+    {
+      name: 'Taomlar — 150 kishi',
+      price: 29000000,
+      guestCount: 150,
+      packageType: 'FOOD_ONLY',
+      description: "Faqat to'yxona taomlari — 150 kishilik to'y uchun.",
+      isVip: false,
+      cover: coverImages[0],
+    },
+    {
+      name: 'Taomlar — 200 kishi',
+      price: 37000000,
+      guestCount: 200,
+      packageType: 'FOOD_ONLY',
+      description: "Faqat to'yxona taomlari — 200 kishilik to'y uchun.",
+      isVip: false,
+      cover: coverImages[1],
     },
   ];
 
-  const dishTemplates: { category: Prisma.MenuDishCreateManyInput['category']; name: string; description: string }[] = [
-    { category: 'SALAD', name: 'Achchiq-chuchuk', description: "Pomidor, piyoz, ko'katlar" },
-    { category: 'SALAD', name: 'Olivye', description: 'Klassik olivye salati' },
-    { category: 'SALAD', name: "Smuzi salat", description: "Yangi sabzavotlar aralashmasi" },
-    { category: 'FIRST_DISH', name: "Lag'mon", description: "Uy qog'ozli lag'mon" },
-    { category: 'FIRST_DISH', name: "Mastava", description: "An'anaviy mastava" },
-    { category: 'SECOND_DISH', name: 'Osh', description: "To'y oshi" },
-    { category: 'SECOND_DISH', name: "Qo'y kabob", description: "Cho'g'da pishirilgan kabob" },
-    { category: 'SECOND_DISH', name: "Tovuq qovurma", description: "Ziravorli tovuq" },
-    { category: 'FRUIT', name: 'Meva assorti', description: "Mavsumiy mevalar" },
-    { category: 'DESSERT', name: 'Napoleon', description: 'Klassik tort' },
-    { category: 'DESSERT', name: 'Chak-chak', description: "Asalli shirinlik" },
-    { category: 'DRINK', name: 'Kompot', description: "Uy kompoti" },
-    { category: 'DRINK', name: 'Choy / Qahva', description: "Issiq ichimliklar" },
+  const dishTemplates: {
+    category: Prisma.MenuDishCreateManyInput['category'];
+    name: string;
+    description: string;
+    photoUrl: string;
+  }[] = [
+    {
+      category: 'SALAD',
+      name: 'Achchiq-chuchuk',
+      description: "Pomidor, piyoz, ko'katlar",
+      photoUrl: 'https://images.unsplash.com/photo-1660991016747-b083fe0b0db4?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Olivye',
+      description: 'Klassik olivye salati',
+      photoUrl: 'https://images.unsplash.com/photo-1757715375767-35ddb5ca9118?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Smuzi salat',
+      description: "Yangi sabzavotlar aralashmasi",
+      photoUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    },
+    {
+      category: 'FIRST_DISH',
+      name: "Lag'mon",
+      description: "Uy qog'ozli lag'mon",
+      photoUrl: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&q=80',
+    },
+    {
+      category: 'FIRST_DISH',
+      name: 'Mastava',
+      description: "An'anaviy mastava",
+      photoUrl: 'https://images.unsplash.com/photo-1665593998976-d957f2827fe7?w=600&q=80',
+    },
+    {
+      category: 'SECOND_DISH',
+      name: 'Osh',
+      description: "To'y oshi",
+      photoUrl: 'https://images.unsplash.com/photo-1634324092526-91f5e878b72f?w=600&q=80',
+    },
+    {
+      category: 'SECOND_DISH',
+      name: "Qo'y kabob",
+      description: "Cho'g'da pishirilgan kabob",
+      photoUrl: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+    },
+    {
+      category: 'SECOND_DISH',
+      name: 'Tovuq qovurma',
+      description: 'Ziravorli tovuq',
+      photoUrl: 'https://images.unsplash.com/photo-1727280376746-b89107a5b0df?w=600&q=80',
+    },
+    {
+      category: 'FRUIT',
+      name: 'Meva assorti',
+      description: "Mavsumiy mevalar",
+      photoUrl: 'https://images.unsplash.com/photo-1641642399576-487909d0ddbc?w=600&q=80',
+    },
+    {
+      category: 'DESSERT',
+      name: 'Napoleon',
+      description: 'Klassik tort',
+      photoUrl: 'https://images.unsplash.com/photo-1651484396889-5de94b4d2a8b?w=600&q=80',
+    },
+    {
+      category: 'DESSERT',
+      name: 'Chak-chak',
+      description: "Asalli shirinlik",
+      photoUrl: 'https://images.unsplash.com/photo-1778448806228-36ce0660a8ef?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Kompot',
+      description: "Uy kompoti",
+      photoUrl: 'https://images.unsplash.com/photo-1560526860-1f0e56046c85?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Choy / Qahva',
+      description: 'Issiq ichimliklar',
+      photoUrl: 'https://images.unsplash.com/photo-1498604636225-6b87a314baa0?w=600&q=80',
+    },
   ];
 
   const menus = [];
@@ -130,7 +233,9 @@ async function main() {
       menu = await prisma.menu.create({
         data: {
           name: def.name,
-          pricePerPerson: def.pricePerPerson,
+          price: def.price,
+          guestCount: def.guestCount,
+          packageType: def.packageType,
           description: def.description,
           isVip: def.isVip,
           coverImageUrl: def.cover,
@@ -142,7 +247,9 @@ async function main() {
         data: {
           description: def.description,
           coverImageUrl: def.cover,
-          pricePerPerson: def.pricePerPerson,
+          price: def.price,
+          guestCount: def.guestCount,
+          packageType: def.packageType,
           isVip: def.isVip,
         },
       });
@@ -156,7 +263,7 @@ async function main() {
           category: d.category,
           name: d.name,
           description: d.description,
-          photoUrl: dishPhoto,
+          photoUrl: d.photoUrl,
           order: i,
         })),
       });
@@ -164,12 +271,16 @@ async function main() {
 
     const mediaCount = await prisma.menuMedia.count({ where: { menuId: menu.id } });
     if (mediaCount === 0) {
-      await prisma.menuMedia.createMany({
-        data: [
-          { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[0], caption: 'Asosiy zal', order: 0 },
-          { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[1], caption: 'Zal panoramasi', order: 1 },
-          { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[0], caption: 'Stol bezagi', order: 0 },
-          { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[1], caption: 'Servirovka', order: 1 },
+      const mediaItems: Prisma.MenuMediaCreateManyInput[] = [
+        { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[0], caption: 'Asosiy zal', order: 0 },
+        { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[1], caption: 'Zal panoramasi', order: 1 },
+        { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[0], caption: 'Stol bezagi', order: 0 },
+        { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[1], caption: 'Servirovka', order: 1 },
+      ];
+      // Kortej and cameraman photos only make sense for the full package —
+      // food-only packages don't include those services.
+      if (menu.packageType === 'FULL') {
+        mediaItems.push(
           {
             menuId: menu.id,
             section: 'KORTEJ',
@@ -186,8 +297,9 @@ async function main() {
             caption: 'Foto zona',
             order: 0,
           },
-        ],
-      });
+        );
+      }
+      await prisma.menuMedia.createMany({ data: mediaItems });
     }
 
     menus.push(menu);
@@ -348,7 +460,7 @@ async function main() {
         eventDate: daysAgo(45),
         guestCount: 200,
         tableCapacity: 10,
-        menuIndex: 1,
+        menuIndex: 2,
         status: 'COMPLETED',
         notes: 'Klassik to\'y, kechki dasturxon',
         payments: [
@@ -369,7 +481,7 @@ async function main() {
         eventDate: daysAgo(28),
         guestCount: 280,
         tableCapacity: 12,
-        menuIndex: 2,
+        menuIndex: 5,
         status: 'COMPLETED',
         payments: [
           { amount: 20000000, daysOffset: -40, method: 'CARD' },
@@ -390,7 +502,7 @@ async function main() {
         eventDate: daysAgo(12),
         guestCount: 150,
         tableCapacity: 10,
-        menuIndex: 0,
+        menuIndex: 1,
         status: 'COMPLETED',
         payments: [{ amount: 24000000, daysOffset: -3, method: 'CASH' }],
         expenses: [
@@ -406,7 +518,7 @@ async function main() {
         eventDate: daysAgo(5),
         guestCount: 320,
         tableCapacity: 12,
-        menuIndex: 3,
+        menuIndex: 2,
         status: 'COMPLETED',
         payments: [
           { amount: 50000000, daysOffset: -20, method: 'TRANSFER' },
@@ -428,7 +540,7 @@ async function main() {
         eventDate: daysFromNow(1),
         guestCount: 220,
         tableCapacity: 10,
-        menuIndex: 1,
+        menuIndex: 4,
         status: 'CONFIRMED',
         notes: 'Ertaga — dashboardda ko\'rinadi',
         payments: [{ amount: 18000000, daysOffset: -7, method: 'CARD' }],
@@ -450,7 +562,7 @@ async function main() {
         eventDate: daysFromNow(10),
         guestCount: 260,
         tableCapacity: 12,
-        menuIndex: 2,
+        menuIndex: 5,
         status: 'PENDING',
         payments: [{ amount: 15000000, daysOffset: 0, method: 'TRANSFER' }],
       },
@@ -460,14 +572,14 @@ async function main() {
         eventDate: daysFromNow(15),
         guestCount: 100,
         tableCapacity: 10,
-        menuIndex: 0,
+        menuIndex: 3,
         status: 'CANCELLED',
       },
     ];
 
     for (const spec of eventSpecs) {
       const menu = menus[spec.menuIndex]!;
-      const totalPrice = Number(menu.pricePerPerson) * spec.guestCount;
+      const totalPrice = Number(menu.price);
       const event = await prisma.event.create({
         data: {
           clientName: spec.clientName,

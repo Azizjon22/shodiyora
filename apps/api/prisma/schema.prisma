@@ -40,6 +40,11 @@ enum EventStatus {
   CANCELLED
 }
 
+enum MenuPackageType {
+  FULL
+  FOOD_ONLY
+}
+
 enum MenuDishCategory {
   SALAD
   FIRST_DISH
@@ -53,7 +58,9 @@ enum MenuDishCategory {
 enum MenuMediaSection {
   HALL
   TABLE_SETUP
+  FOOD
   KORTEJ
+  ARTIST
   PHOTOGRAPHER
   OTHER
 }
@@ -175,14 +182,20 @@ model Worker {
 // ---------- Menu packages ----------
 
 model Menu {
-  id             String   @id @default(cuid())
-  name           String
-  pricePerPerson Decimal  @db.Decimal(12, 2)
-  description    String?
-  coverImageUrl  String?
-  isVip          Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String          @id @default(cuid())
+  name          String
+  // Flat price for the whole package at `guestCount` guests — not a
+  // per-person rate. A booked event's totalPrice is copied from this at
+  // creation time and never recalculated off guest count (see
+  // EventsService.create/update).
+  price         Decimal         @db.Decimal(14, 2)
+  guestCount    Int             @default(100)
+  packageType   MenuPackageType @default(FOOD_ONLY)
+  description   String?
+  coverImageUrl String?
+  isVip         Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   dishes MenuDish[]
   media  MenuMedia[]

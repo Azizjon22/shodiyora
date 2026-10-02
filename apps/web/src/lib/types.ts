@@ -5,6 +5,7 @@ import type {
   MediaType,
   MenuDishCategory,
   MenuMediaSection,
+  MenuPackageType,
   PaymentMethod,
   ProductCategory,
   ShoppingListStatus,
@@ -17,7 +18,9 @@ import type {
 export interface Menu {
   id: string;
   name: string;
-  pricePerPerson: string;
+  price: string;
+  guestCount: number;
+  packageType: MenuPackageType;
   description: string | null;
   coverImageUrl: string | null;
   isVip: boolean;

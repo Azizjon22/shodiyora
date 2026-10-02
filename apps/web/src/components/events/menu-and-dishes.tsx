@@ -110,7 +110,7 @@ export function MenuAndDishes({
           <option value="">Tanlang</option>
           {menus.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.name} — {formatSom(m.pricePerPerson)} / kishi
+              {m.name} — {formatSom(m.price)} ({m.guestCount} kishi)
             </option>
           ))}
         </Select>

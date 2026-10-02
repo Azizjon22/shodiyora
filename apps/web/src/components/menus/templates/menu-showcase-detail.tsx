@@ -2,14 +2,13 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, Play, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Camera, ChevronDown, Car, Mic2, Play, UtensilsCrossed } from "lucide-react";
 import type { Menu, MenuDish } from "@/lib/types";
 import { PresentationHeader } from "@/components/layout/presentation-header";
 import { OrnamentDivider, CornerFlourish } from "@/components/menus/showcase/ornament-divider";
 import { Reveal } from "@/components/menus/showcase/reveal";
 import { SafeImage } from "@/components/menus/showcase/safe-image";
 import { Lightbox, type LightboxItem } from "@/components/menus/showcase/lightbox";
-import { PriceCalculator } from "@/components/menus/showcase/price-calculator";
 import { ClosingCta } from "@/components/menus/showcase/closing-cta";
 import { MENU_DISH_CATEGORIES, MENU_MEDIA_SECTIONS, type MenuMediaSection } from "@shodiyora/shared";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -31,9 +30,9 @@ function tileSpans(count: number) {
   return spans;
 }
 
-export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initialGuests?: number }) {
+export function MenuShowcaseDetail({ menu }: { menu: Menu }) {
   const { t, locale } = useLocale();
-  const price = Number(menu.pricePerPerson);
+  const price = Number(menu.price);
 
   const [section, setSection] = useState<MenuMediaSection | "ALL">("ALL");
   const [broken, setBroken] = useState<Set<string>>(() => new Set());
@@ -47,6 +46,17 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
     category,
     dishes: menu.dishes.filter((d) => d.category === category),
   })).filter((c) => c.dishes.length > 0);
+
+  const includes: { icon: typeof UtensilsCrossed; label: string; section: MenuMediaSection }[] = [
+    { icon: UtensilsCrossed, label: t("presentation.incFood"), section: "FOOD" },
+    ...(menu.packageType === "FULL"
+      ? [
+          { icon: Car, label: t("presentation.incKortej"), section: "KORTEJ" as const },
+          { icon: Mic2, label: t("presentation.incArtist"), section: "ARTIST" as const },
+          { icon: Camera, label: t("presentation.incCamera"), section: "PHOTOGRAPHER" as const },
+        ]
+      : []),
+  ];
 
   // Dead links are dropped from the gallery entirely rather than shown torn.
   const media = useMemo(
@@ -73,7 +83,14 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
     });
   }
 
-  // "160 000 so'm" → big "160 000" with the currency set smaller beneath it.
+  function openIncludeMedia(sectionKey: MenuMediaSection) {
+    const items = media
+      .filter((m) => m.section === sectionKey)
+      .map((m) => ({ url: m.url, caption: m.caption, kind: m.mediaType }));
+    if (items.length > 0) setLightbox({ items, index: 0 });
+  }
+
+  // "32 000 000 so'm" → big "32 000 000" with the currency set smaller beneath it.
   const priceParts = formatSom(price, locale).split(" ");
   const somLabel = priceParts.pop();
   const priceDigits = priceParts.join(" ");
@@ -123,7 +140,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
           <div className="mt-6 animate-soft-scale [@media(max-height:620px)]:mt-3">
             <p className="font-display text-gilded text-[clamp(3rem,min(8vw,10svh),7.5rem)] font-semibold lining-nums tabular-nums leading-none">{priceDigits}</p>
             <p className="mt-2 text-sm uppercase tracking-[0.3em] text-white/70">
-              {somLabel} · {t("presentation.perGuest")}
+              {somLabel} · {t("presentation.forGuests", { count: menu.guestCount })}
             </p>
           </div>
           {menu.description && (
@@ -154,8 +171,8 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
             <a href="#menu" className={navLink}>
               {t("presentation.navMenu")}
             </a>
-            <a href="#calc" className={navLink}>
-              {t("presentation.navCalc")}
+            <a href="#package" className={navLink}>
+              {t("presentation.navIncludes")}
             </a>
             {media.length > 0 && (
               <a href="#gallery" className={navLink}>
@@ -164,7 +181,7 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
             )}
           </div>
           <span className="font-display hidden shrink-0 text-lg font-semibold lining-nums text-accent sm:inline">
-            {formatSom(price, locale)} <span className="text-sm font-normal text-muted-foreground">{t("common.perPerson")}</span>
+            {formatSom(price, locale)} <span className="text-sm font-normal text-muted-foreground">· {t("presentation.forGuests", { count: menu.guestCount })}</span>
           </span>
         </div>
       </nav>
@@ -240,15 +257,69 @@ export function MenuShowcaseDetail({ menu, initialGuests }: { menu: Menu; initia
           </section>
         )}
 
-        {/* ---------- Price calculator ---------- */}
-        <section id="calc" className="scroll-mt-32 border-y border-border/60 bg-muted/30 px-4 py-16 sm:px-6 sm:py-20">
+        {/* ---------- What's included ---------- */}
+        <section id="package" className="scroll-mt-32 border-y border-border/60 bg-muted/30 px-4 py-16 sm:px-6 sm:py-20">
           <Reveal className="mx-auto max-w-5xl 2xl:max-w-6xl">
             <div className="mb-10 text-center">
-              <h2 className="font-display text-[clamp(2.25rem,4.5vw,4rem)] font-semibold tracking-tight">{t("presentation.calcTitle")}</h2>
-              <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{t("presentation.calcSubtitle")}</p>
+              <h2 className="font-display text-[clamp(2.25rem,4.5vw,4rem)] font-semibold tracking-tight">{t("presentation.includesTitle")}</h2>
+              <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+                {t("presentation.includesSubtitle", { count: menu.guestCount })}
+              </p>
               <OrnamentDivider className="mt-5 text-accent" />
             </div>
-            <PriceCalculator pricePerPerson={price} initialGuests={initialGuests} />
+
+            <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
+              <ul className="space-y-3">
+                {includes.map(({ icon: Icon, label, section: sectionKey }) => {
+                  const sectionMedia = media.filter((m) => m.section === sectionKey);
+                  const thumb = sectionMedia[0];
+                  return (
+                    <li
+                      key={label}
+                      className="flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm"
+                    >
+                      {thumb ? (
+                        <button
+                          type="button"
+                          onClick={() => openIncludeMedia(sectionKey)}
+                          className="group relative h-14 w-14 shrink-0 overflow-hidden rounded-full ring-1 ring-accent/30 ring-offset-2 ring-offset-card transition hover:ring-accent/70"
+                          aria-label={label}
+                        >
+                          {thumb.mediaType === "PHOTO" ? (
+                            <SafeImage
+                              src={thumb.url}
+                              alt={label}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              onBroken={() => markBroken(thumb.url)}
+                            />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center bg-muted">
+                              <Play className="h-5 w-5 fill-current text-accent" />
+                            </span>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                      )}
+                      <span className="font-display text-lg font-semibold">{label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="relative overflow-hidden rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/10 via-card to-card px-4 py-6 text-center min-[400px]:p-6 sm:p-8">
+                <p className="text-xs font-medium uppercase tracking-[0.25em] text-muted-foreground">{t("presentation.includesTotal")}</p>
+                <p className="font-display text-gilded-adaptive mt-3 whitespace-nowrap text-[clamp(1.9rem,7.5vw,3.25rem)] font-semibold lining-nums tabular-nums md:text-[clamp(2rem,3.6vw,3.5rem)]">
+                  {formatSom(price, locale)}
+                </p>
+                <p className="mt-3 text-sm tabular-nums text-muted-foreground">
+                  {t("presentation.forGuests", { count: menu.guestCount })}
+                </p>
+                <p className="mt-4 text-xs text-muted-foreground/80">{t("presentation.includesNote")}</p>
+              </div>
+            </div>
           </Reveal>
         </section>
 

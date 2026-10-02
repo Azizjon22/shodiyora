@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import type { Menu } from "@/lib/types";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Textarea } from "@/components/ui/input";
+import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { UploadField } from "@/components/uploads/upload-field";
+import { MENU_GUEST_COUNTS, MENU_PACKAGE_TYPES } from "@shodiyora/shared";
+import { PACKAGE_TYPE_LABELS } from "../packages";
 import { menuApi, errorText } from "./api";
 
 /** Create a menu (menu = undefined) or edit its name, price, text, cover, VIP flag. */
@@ -20,14 +22,19 @@ export function MenuInfoModal({ open, onClose, menu }: { open: boolean; onClose:
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const name = String(form.get("name") ?? "").trim();
-    const price = Number(form.get("pricePerPerson"));
+    const price = Number(form.get("price"));
+    const guestCount = Number(form.get("guestCount"));
+    const packageType = String(form.get("packageType") ?? "");
     if (name.length < 2) return setError("Menyu nomini kiriting");
     if (!(price > 0)) return setError("Narx 0 dan katta bo'lishi kerak");
+    if (!(guestCount > 0)) return setError("Mehmonlar sonini kiriting");
 
     const cover = String(form.get("coverImageUrl") ?? "");
     const body = {
       name,
-      pricePerPerson: price,
+      price,
+      guestCount,
+      packageType,
       description: String(form.get("description") ?? "").trim(),
       isVip: form.get("isVip") === "on",
       coverImageUrl: cover || (menu ? null : undefined),
@@ -79,13 +86,36 @@ export function MenuInfoModal({ open, onClose, menu }: { open: boolean; onClose:
           <Input id="menu-name" name="name" defaultValue={menu?.name} placeholder="masalan: 200 ming menyu" required />
         </div>
         <div>
-          <Label htmlFor="menu-price">1 kishiga narx (so&apos;m)</Label>
+          <Label htmlFor="menu-package-type">Paket turi</Label>
+          <Select id="menu-package-type" name="packageType" defaultValue={menu?.packageType ?? "FULL"} required>
+            {MENU_PACKAGE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {PACKAGE_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="menu-guest-count">Mehmonlar soni</Label>
+          <Select id="menu-guest-count" name="guestCount" defaultValue={menu?.guestCount ?? 100} required>
+            {(menu && !MENU_GUEST_COUNTS.includes(menu.guestCount as (typeof MENU_GUEST_COUNTS)[number])
+              ? [...MENU_GUEST_COUNTS, menu.guestCount].sort((a, b) => a - b)
+              : MENU_GUEST_COUNTS
+            ).map((count) => (
+              <option key={count} value={count}>
+                {count} kishi
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="menu-price">Paket narxi (so&apos;m)</Label>
           <Input
             id="menu-price"
-            name="pricePerPerson"
+            name="price"
             type="number"
             min={1}
-            defaultValue={menu ? Number(menu.pricePerPerson) : undefined}
+            defaultValue={menu ? Number(menu.price) : undefined}
             required
           />
           {menu && (

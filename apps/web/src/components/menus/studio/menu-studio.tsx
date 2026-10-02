@@ -33,6 +33,7 @@ import type { Menu, MenuDish, MenuMedia } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { SafeImage } from "@/components/menus/showcase/safe-image";
 import { formatSom, cn } from "@/lib/utils";
+import { PACKAGE_TYPE_LABELS } from "@/components/menus/packages";
 import { MenuInfoModal } from "./menu-info-modal";
 import { DishModal } from "./dish-modal";
 import { MediaModal } from "./media-modal";
@@ -161,8 +162,9 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
                   )}
                 </div>
                 <p className="mt-1 text-xl font-semibold text-primary tabular-nums">
-                  {formatSom(menu.pricePerPerson)} <span className="text-sm font-normal text-muted-foreground">/ kishi</span>
+                  {formatSom(menu.price)} <span className="text-sm font-normal text-muted-foreground">· {menu.guestCount} kishi</span>
                 </p>
+                <p className="text-sm text-muted-foreground">{PACKAGE_TYPE_LABELS[menu.packageType]}</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={() => setDialog({ kind: "info" })}>
                 <Pencil className="h-4 w-4" /> Tahrirlash

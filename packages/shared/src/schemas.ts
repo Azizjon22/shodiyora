@@ -5,6 +5,7 @@ import {
   INVENTORY_CATEGORIES,
   MENU_DISH_CATEGORIES,
   MENU_MEDIA_SECTIONS,
+  MENU_PACKAGE_TYPES,
   MEDIA_TYPES,
   PAYMENT_METHODS,
   PRODUCT_CATEGORIES,
@@ -66,7 +67,9 @@ export const assignWorkerSchema = z.object({
 
 export const createMenuSchema = z.object({
   name: z.string().trim().min(2),
-  pricePerPerson: z.coerce.number().positive(),
+  price: z.coerce.number().positive(),
+  guestCount: z.coerce.number().int().positive(),
+  packageType: z.enum(MENU_PACKAGE_TYPES),
   description: z.string().optional(),
   coverImageUrl: z.string().url().optional().or(z.literal("")),
   isVip: z.boolean().optional(),

@@ -1,6 +1,9 @@
 import { Type } from 'class-transformer';
+import { MenuPackageType } from '@prisma/client';
 import {
   IsBoolean,
+  IsEnum,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -17,7 +20,15 @@ export class CreateMenuDto {
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  pricePerPerson!: number;
+  price!: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  guestCount!: number;
+
+  @IsEnum(MenuPackageType)
+  packageType!: MenuPackageType;
 
   @IsOptional()
   @IsString()

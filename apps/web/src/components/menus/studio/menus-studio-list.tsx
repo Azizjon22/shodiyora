@@ -8,6 +8,7 @@ import type { Menu } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { SafeImage } from "@/components/menus/showcase/safe-image";
 import { formatSom, cn } from "@/lib/utils";
+import { PACKAGE_TYPE_LABELS, sortMenus } from "@/components/menus/packages";
 import { MenuInfoModal } from "./menu-info-modal";
 import { ReadinessRing } from "./readiness-ring";
 import { menuReadiness, allMenuImageUrls } from "./readiness";
@@ -21,9 +22,12 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
   const [error, setError] = useState<string | undefined>();
 
   const broken = useBrokenImages(useMemo(() => menus.flatMap(allMenuImageUrls), [menus]));
-  const sorted = [...menus].sort((a, b) => Number(a.pricePerPerson) - Number(b.pricePerPerson));
+  const sorted = sortMenus(menus);
   const readiness = sorted.map((m) => menuReadiness(m, broken));
   const needAttention = readiness.filter((r) => r.percent < 85).length;
+  const prices = sorted.map((m) => Number(m.price));
+  const priceRangeMln =
+    prices.length > 0 ? `${Math.round(Math.min(...prices) / 1e6)}–${Math.round(Math.max(...prices) / 1e6)} mln` : "—";
 
   async function duplicate(menu: Menu) {
     setBusyId(menu.id);
@@ -65,7 +69,7 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: "Menyular", value: sorted.length },
-            { label: "Narx oralig'i", value: `${Number(sorted[0].pricePerPerson) / 1000}–${Number(sorted[sorted.length - 1].pricePerPerson) / 1000} ming` },
+            { label: "Narx oralig'i", value: priceRangeMln },
             { label: "Jami to'ylarda", value: Object.values(usage).reduce((s, n) => s + n, 0) },
             { label: "E'tibor kerak", value: needAttention, warn: needAttention > 0 },
           ].map((s) => (
@@ -113,7 +117,10 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
                 )}
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                   <p className="font-display text-2xl font-semibold leading-tight">{menu.name}</p>
-                  <p className="text-sm text-white/80 tabular-nums">{formatSom(menu.pricePerPerson)} / kishi</p>
+                  <p className="text-sm text-white/80 tabular-nums">
+                    {formatSom(menu.price)} · {menu.guestCount} kishi
+                  </p>
+                  <p className="text-xs text-white/70">{PACKAGE_TYPE_LABELS[menu.packageType]}</p>
                 </div>
               </Link>
 

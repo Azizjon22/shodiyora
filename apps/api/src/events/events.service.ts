@@ -66,7 +66,7 @@ export class EventsService {
     });
     if (!menu) throw new BadRequestException('Menyu topilmadi');
 
-    const totalPrice = menu.pricePerPerson.mul(dto.guestCount);
+    const totalPrice = menu.price;
 
     const event = await this.prisma.event.create({
       data: {
@@ -183,22 +183,16 @@ export class EventsService {
     const existing = await this.ensureExists(id);
     let totalPrice = existing.totalPrice;
 
-    // The per-guest price is fixed when the wedding is booked: later menu
-    // price changes must not touch it. Only switching to a different menu
-    // re-prices from that menu; a guest-count change reuses the agreed rate.
+    // The package price is fixed when the wedding is booked: later menu
+    // price changes, or a guest-count change on its own, must not touch it.
+    // Only switching to a different menu re-prices from that menu's price.
     const menuChanged = !!dto.menuId && dto.menuId !== existing.menuId;
-    const guestCount = dto.guestCount ?? existing.guestCount;
-    const guestsChanged = guestCount !== existing.guestCount;
-    if (menuChanged || guestsChanged) {
-      let perGuest = existing.totalPrice.div(existing.guestCount);
-      if (menuChanged) {
-        const menu = await this.prisma.menu.findUnique({
-          where: { id: dto.menuId },
-        });
-        if (!menu) throw new BadRequestException('Menyu topilmadi');
-        perGuest = menu.pricePerPerson;
-      }
-      totalPrice = perGuest.mul(guestCount).toDecimalPlaces(2);
+    if (menuChanged) {
+      const menu = await this.prisma.menu.findUnique({
+        where: { id: dto.menuId },
+      });
+      if (!menu) throw new BadRequestException('Menyu topilmadi');
+      totalPrice = menu.price;
     }
 
     const event = await this.prisma.event.update({
