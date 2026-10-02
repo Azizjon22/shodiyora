@@ -359,7 +359,7 @@ export class ShoppingListsService {
 
     if (role !== 'ADMIN') {
       throw new ForbiddenException(
-        "Mahsulotni faqat admin xarid qilgan deb belgilashi mumkin",
+        'Mahsulotni faqat admin xarid qilgan deb belgilashi mumkin',
       );
     }
     if (list.status !== 'APPROVED') {

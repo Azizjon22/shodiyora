@@ -15,7 +15,6 @@ import {
   ExternalLink,
   ImageIcon,
   Pencil,
-  Play,
   Plus,
   Star,
   Trash2,
@@ -132,11 +131,11 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
 
       {/* ---------- Header ---------- */}
       <div className={cn("overflow-hidden rounded-2xl border bg-card shadow-sm", menu.isVip ? "border-accent/50" : "border-border")}>
-        <div className="grid md:grid-cols-[minmax(0,420px)_1fr]">
+        <div className="grid xl:grid-cols-[minmax(0,420px)_1fr]">
           <button
             type="button"
             onClick={() => setDialog({ kind: "info" })}
-            className="group relative aspect-[16/10] overflow-hidden bg-muted md:aspect-auto md:min-h-64"
+            className="group relative aspect-[16/10] overflow-hidden bg-muted xl:aspect-auto xl:min-h-64"
             title="Muqovani almashtirish"
           >
             <SafeImage src={menu.coverImageUrl} alt={menu.name} className="absolute inset-0 h-full w-full object-cover" />
@@ -154,7 +153,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{menu.name}</h1>
+                  <h1 className="font-display text-[clamp(1.75rem,4vw,2.25rem)] font-semibold leading-tight tracking-tight [overflow-wrap:anywhere]">{menu.name}</h1>
                   {menu.isVip && (
                     <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-[#c99a52] via-[#f1d9a0] to-[#c99a52] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#24180a]">
                       <Crown className="h-3 w-3" /> VIP
@@ -233,7 +232,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
 
       {error && <p className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,300px)]">
         {/* ---------- Content ---------- */}
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -377,17 +376,16 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
                   {items.length > 0 && (
                     <div className="grid grid-cols-1 gap-3 p-4 min-[480px]:grid-cols-2 xl:grid-cols-3">
                       {items.map((item, i) => {
-                        const isBroken = item.mediaType === "PHOTO" && broken.has(item.url);
+                        const isVideo = item.mediaType === "VIDEO" || /\.(?:mp4|mov)(?:$|\?)/i.test(item.url);
+                        const isBroken = !isVideo && broken.has(item.url);
                         const isCover = item.url === menu.coverImageUrl;
                         return (
                           <div key={item.id} className={cn("overflow-hidden rounded-xl border bg-background", isBroken ? "border-destructive/50" : "border-border")}>
                             <div className="relative aspect-video bg-muted">
-                              {item.mediaType === "PHOTO" ? (
-                                <SafeImage src={item.url} alt={item.caption ?? ""} className="h-full w-full object-cover" />
+                              {isVideo ? (
+                                <video src={item.url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                               ) : (
-                                <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/30 to-accent/20">
-                                  <Play className="h-8 w-8 fill-current text-white" />
-                                </span>
+                                <SafeImage src={item.url} alt={item.caption ?? ""} className="h-full w-full object-cover" />
                               )}
                               {isBroken && (
                                 <span className="absolute inset-x-0 bottom-0 bg-destructive/90 px-3 py-1.5 text-xs font-medium text-white">
@@ -411,7 +409,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
                                 <ArrowRight className="h-4 w-4" />
                               </button>
                               <span className="flex-1" />
-                              {item.mediaType === "PHOTO" && !isCover && !isBroken && (
+                              {!isVideo && !isCover && !isBroken && (
                                 <button type="button" className={iconButton} disabled={busy} onClick={() => makeCover(item.url)} title="Muqova qilish" aria-label="Muqova qilish">
                                   <Star className="h-4 w-4" />
                                 </button>
@@ -452,7 +450,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
         </div>
 
         {/* ---------- Readiness ---------- */}
-        <aside className="order-first lg:sticky lg:top-20 lg:order-none lg:self-start">
+        <aside className="order-first xl:sticky xl:top-20 xl:order-none xl:self-start">
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-4">
               <ReadinessRing percent={readiness.percent} size={76} />

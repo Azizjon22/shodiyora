@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { MenuPackageType } from '@prisma/client';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 import {
   IsBoolean,
   IsEnum,
@@ -10,7 +11,6 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class CreateMenuDto {
   @IsString()
@@ -35,7 +35,7 @@ export class CreateMenuDto {
   description?: string;
 
   @IsOptional()
-  @IsUrlOrPath()
+  @IsMediaUrl()
   coverImageUrl?: string;
 
   @IsOptional()

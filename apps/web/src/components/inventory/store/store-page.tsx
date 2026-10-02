@@ -199,11 +199,11 @@ export function StorePage({
               !s.tone && "cursor-default border-border",
             )}
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{s.label}</p>
               <p
                 className={cn(
-                  "font-display mt-0.5 text-3xl font-semibold leading-none lining-nums tabular-nums",
+                  "font-display mt-0.5 text-[clamp(1.5rem,4vw,1.875rem)] font-semibold leading-none lining-nums tabular-nums",
                   s.tone === "warn" && "text-accent",
                   s.tone === "danger" && "text-destructive",
                 )}

@@ -16,6 +16,10 @@ import {
 } from "./enums";
 
 const phoneRegex = /^\+?[0-9]{9,15}$/;
+const localUpload =
+  /^\/uploads\/(?:menus|workers|inventory|branding)\/[0-9a-f-]{36}\.(?:jpg|png|webp|mp4|mov)$/;
+const mediaUrl = z.union([z.string().url(), z.string().regex(localUpload)]);
+const optionalMediaUrl = z.union([mediaUrl, z.literal("")]).optional();
 
 export const staffLoginSchema = z.object({
   phone: z.string().regex(phoneRegex, "Telefon raqami noto'g'ri"),
@@ -28,7 +32,7 @@ export const workerRegisterSchema = z.object({
   phone: z.string().regex(phoneRegex, "Telefon raqami noto'g'ri"),
   position: z.enum(WORKER_POSITIONS),
   gender: z.enum(WORKER_GENDERS, { message: "Jinsni tanlang" }),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: optionalMediaUrl,
   pin: z
     .string()
     .regex(/^[0-9]{4}$/, "PIN 4 ta raqamdan iborat bo'lishi kerak")
@@ -71,7 +75,7 @@ export const createMenuSchema = z.object({
   guestCount: z.coerce.number().int().positive(),
   packageType: z.enum(MENU_PACKAGE_TYPES),
   description: z.string().optional(),
-  coverImageUrl: z.string().url().optional().or(z.literal("")),
+  coverImageUrl: optionalMediaUrl,
   isVip: z.boolean().optional(),
 });
 export type CreateMenuInput = z.infer<typeof createMenuSchema>;
@@ -80,7 +84,7 @@ export const createMenuDishSchema = z.object({
   category: z.enum(MENU_DISH_CATEGORIES),
   name: z.string().trim().min(2),
   description: z.string().trim().optional(),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: optionalMediaUrl,
   order: z.coerce.number().int().optional(),
 });
 export type CreateMenuDishInput = z.infer<typeof createMenuDishSchema>;
@@ -88,7 +92,7 @@ export type CreateMenuDishInput = z.infer<typeof createMenuDishSchema>;
 export const createMenuMediaSchema = z.object({
   section: z.enum(MENU_MEDIA_SECTIONS),
   mediaType: z.enum(MEDIA_TYPES),
-  url: z.string().url(),
+  url: mediaUrl,
   caption: z.string().optional(),
   order: z.coerce.number().int().optional(),
 });
@@ -98,7 +102,7 @@ export const createInventoryItemSchema = z.object({
   name: z.string().trim().min(2),
   category: z.enum(INVENTORY_CATEGORIES).optional(),
   productCategory: z.enum(PRODUCT_CATEGORIES).optional(),
-  photoUrl: z.string().url().optional().or(z.literal("")),
+  photoUrl: optionalMediaUrl,
   unit: z.enum(UNITS),
   quantity: z.coerce.number().min(0).optional(),
   minThreshold: z.coerce.number().min(0).optional(),

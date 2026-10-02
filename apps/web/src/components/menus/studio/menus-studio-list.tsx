@@ -73,9 +73,9 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
             { label: "Jami to'ylarda", value: Object.values(usage).reduce((s, n) => s + n, 0) },
             { label: "E'tibor kerak", value: needAttention, warn: needAttention > 0 },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-card px-4 py-3">
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className={cn("mt-1 text-xl font-semibold tabular-nums", s.warn && "text-accent")}>{s.value}</p>
+            <div key={s.label} className="min-w-0 rounded-xl border border-border bg-card px-3 py-3 sm:px-4">
+              <p className="truncate text-xs text-muted-foreground">{s.label}</p>
+              <p className={cn("mt-1 break-words text-[clamp(0.95rem,2.4vw,1.25rem)] font-semibold tabular-nums", s.warn && "text-accent")}>{s.value}</p>
             </div>
           ))}
         </div>

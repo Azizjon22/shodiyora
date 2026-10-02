@@ -1,5 +1,6 @@
 import { MenuDishCategory } from '@prisma/client';
 import { Type } from 'class-transformer';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 import {
   IsEnum,
   IsInt,
@@ -7,7 +8,6 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
 
 export class CreateMenuDishDto {
   @IsEnum(MenuDishCategory)
@@ -22,7 +22,7 @@ export class CreateMenuDishDto {
   description?: string;
 
   @IsOptional()
-  @IsUrlOrPath()
+  @IsMediaUrl()
   photoUrl?: string;
 
   @IsOptional()

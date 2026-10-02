@@ -6,7 +6,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 
 export class UpdateWorkerDto {
   @IsOptional()
@@ -28,7 +28,7 @@ export class UpdateWorkerDto {
   gender?: WorkerGender;
 
   @IsOptional()
-  @IsUrlOrPath()
+  @IsMediaUrl()
   photoUrl?: string;
 
   @IsOptional()

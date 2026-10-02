@@ -12,6 +12,7 @@ import { SafeImage } from "@/components/menus/showcase/safe-image";
 import { ClosingCta } from "@/components/menus/showcase/closing-cta";
 import { sortMenus } from "@/components/menus/packages";
 import { useLocale } from "@/components/i18n/locale-provider";
+import type { HeroMediaKind } from "@/lib/brand-shared";
 import { formatSom, cn } from "@/lib/utils";
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
@@ -38,12 +39,19 @@ function photoFallbacks(menu: Menu) {
   return menu.media.filter((m) => m.mediaType === "PHOTO").map((m) => m.url);
 }
 
-export function MenuShowcaseList({ menus }: { menus: Menu[] }) {
+export function MenuShowcaseList({
+  menus,
+  hero,
+}: {
+  menus: Menu[];
+  hero?: { url: string | null; kind: HeroMediaKind | null };
+}) {
   const { t, locale } = useLocale();
 
   const sorted = sortMenus(menus);
   const prices = sorted.map((m) => Number(m.price));
   const backdrop = sorted.find((m) => m.isVip) ?? sorted[sorted.length - 1];
+  const customHero = !!hero?.url;
 
   const groupDefs: { type: MenuPackageType; title: string; hint: string }[] = [
     { type: "FULL", title: t("presentation.packageFull"), hint: t("presentation.packageFullHint") },
@@ -59,22 +67,44 @@ export function MenuShowcaseList({ menus }: { menus: Menu[] }) {
 
       {/* ---------- Hero ---------- */}
       <section className="relative isolate overflow-hidden bg-[#0d0a0b] text-white">
-        {backdrop && (
-          <div className="absolute inset-0 -z-20 animate-ken-burns">
-            <SafeImage
-              src={backdrop.coverImageUrl}
-              fallbacks={sorted.map((m) => m.coverImageUrl).filter((u): u is string => !!u)}
-              alt=""
-              className="h-full w-full object-cover opacity-45 blur-[2px]"
+        {hero?.url && hero.kind === "VIDEO" ? (
+          <div className="absolute inset-0 -z-20">
+            <video
+              src={hero.url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover"
             />
           </div>
+        ) : (
+          (hero?.url || backdrop) && (
+            <div className={cn("absolute inset-0 -z-20", !hero?.url && "animate-ken-burns")}>
+              <SafeImage
+                src={hero?.url || backdrop?.coverImageUrl}
+                fallbacks={sorted.map((m) => m.coverImageUrl).filter((u): u is string => !!u)}
+                alt=""
+                className={cn("h-full w-full object-cover", !hero?.url && "opacity-45 blur-[2px]")}
+              />
+            </div>
+          )
         )}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0d0a0b]/70 via-[#0d0a0b]/60 to-[#0d0a0b]" />
-        <OrnamentalPattern id="list-hero-ornament" className="-z-10 text-[#d4a85c] opacity-[0.05]" />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(212,120,150,0.22),transparent)]" />
+        {!customHero && (
+          <>
+            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0d0a0b]/70 via-[#0d0a0b]/60 to-[#0d0a0b]" />
+            <OrnamentalPattern id="list-hero-ornament" className="-z-10 text-[#d4a85c] opacity-[0.05]" />
+            <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_60%_at_50%_0%,rgba(212,120,150,0.22),transparent)]" />
+          </>
+        )}
 
-        <div className="mx-auto max-w-4xl px-4 pb-24 pt-16 text-center sm:px-6 sm:pb-32 sm:pt-24 2xl:max-w-5xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.4em] text-[#e9cf98] animate-fade-up">
+        <div
+          className={cn(
+            "mx-auto max-w-4xl px-4 pb-24 pt-16 text-center sm:px-6 sm:pb-32 sm:pt-24 2xl:max-w-5xl",
+            customHero && "[text-shadow:0_2px_18px_rgba(0,0,0,0.55)]",
+          )}
+        >
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#e9cf98] animate-fade-up sm:tracking-[0.32em]">
             {t("common.brand")} · {t("presentation.listEyebrow")}
           </p>
           <h1 className="font-display mt-5 text-[clamp(2.6rem,min(8vw,12svh),7rem)] font-semibold leading-[0.95] tracking-tight animate-fade-up">

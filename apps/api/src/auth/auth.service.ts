@@ -322,7 +322,9 @@ export class AuthService {
       throw new UnauthorizedException("Joriy PIN noto'g'ri");
     }
     if (dto.currentPin === dto.newPin) {
-      throw new BadRequestException('Yangi PIN avvalgisidan farq qilishi kerak');
+      throw new BadRequestException(
+        'Yangi PIN avvalgisidan farq qilishi kerak',
+      );
     }
 
     const pinHash = await bcrypt.hash(dto.newPin, 10);

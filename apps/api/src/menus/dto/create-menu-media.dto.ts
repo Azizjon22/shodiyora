@@ -1,7 +1,7 @@
 import { MediaType, MenuMediaSection } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { IsUrlOrPath } from '../../common/validators/is-url-or-path.validator';
+import { IsMediaUrl } from '../../common/validators/is-media-url';
 
 export class CreateMenuMediaDto {
   @IsEnum(MenuMediaSection)
@@ -10,7 +10,7 @@ export class CreateMenuMediaDto {
   @IsEnum(MediaType)
   mediaType!: MediaType;
 
-  @IsUrlOrPath()
+  @IsMediaUrl()
   url!: string;
 
   @IsOptional()
