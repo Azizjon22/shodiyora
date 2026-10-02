@@ -4,15 +4,10 @@ import { useTransition } from "react";
 import { EVENT_STATUSES } from "@shodiyora/shared";
 import { Select } from "@/components/ui/input";
 import { updateEventStatusAction } from "@/lib/actions/events.actions";
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Kutilmoqda",
-  CONFIRMED: "Tasdiqlangan",
-  COMPLETED: "Yakunlangan",
-  CANCELLED: "Bekor qilingan",
-};
+import { useT } from "@/components/i18n/locale-provider";
 
 export function StatusSelect({ eventId, status }: { eventId: string; status: string }) {
+  const t = useT();
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -29,7 +24,7 @@ export function StatusSelect({ eventId, status }: { eventId: string; status: str
     >
       {EVENT_STATUSES.map((s) => (
         <option key={s} value={s}>
-          {STATUS_LABEL[s]}
+          {t(`eventStatus.${s}`)}
         </option>
       ))}
     </Select>

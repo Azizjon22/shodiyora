@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { EVENT_EXPENSE_CATEGORIES, EVENT_EXPENSE_CATEGORY_LABELS_UZ, type EventExpenseCategory } from "@shodiyora/shared";
+import { EVENT_EXPENSE_CATEGORIES, type EventExpenseCategory } from "@shodiyora/shared";
 import { addExpenseAction, type FormActionState } from "@/lib/actions/events.actions";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { useT } from "@/components/i18n/locale-provider";
 
 const initialState: FormActionState = undefined;
 
@@ -17,6 +18,7 @@ function ExpenseRow({
   category: EventExpenseCategory;
   suggestedAmount?: number;
 }) {
+  const t = useT();
   const action = addExpenseAction.bind(null, eventId);
   const [state, formAction, isPending] = useActionState(action, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -36,24 +38,24 @@ function ExpenseRow({
       className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2.5"
     >
       <input type="hidden" name="category" value={category} />
-      <span className="w-36 shrink-0 text-sm font-medium">{EVENT_EXPENSE_CATEGORY_LABELS_UZ[category]}</span>
+      <span className="w-36 shrink-0 text-sm font-medium">{t(`expenseCategories.${category}`)}</span>
       <Input
         type="number"
         name="amount"
         min={1}
-        placeholder="Summa"
+        placeholder={t("events.amountPlaceholder")}
         defaultValue={suggestedAmount}
         className="h-9 min-w-28 flex-1"
         required
       />
       <Input
         name="note"
-        placeholder="Izoh (ixtiyoriy)"
-        defaultValue={suggestedAmount ? "Bozorlik ro'yxatlari bo'yicha" : undefined}
+        placeholder={t("events.notesOptional")}
+        defaultValue={suggestedAmount ? t("events.fromShoppingLists") : undefined}
         className="h-9 min-w-28 flex-1"
       />
-      <SubmitButton pendingText="Qo'shilmoqda..." size="sm" variant="outline" className="shrink-0">
-        Qo&apos;shish
+      <SubmitButton pendingText={t("events.addingPending")} size="sm" variant="outline" className="shrink-0">
+        {t("common.add")}
       </SubmitButton>
       {state?.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
     </form>

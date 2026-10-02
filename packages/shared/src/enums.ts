@@ -53,6 +53,9 @@ export type MenuMediaSection = (typeof MENU_MEDIA_SECTIONS)[number];
 export const MEDIA_TYPES = ["PHOTO", "VIDEO"] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
+export const MEDIA_PROCESSING_STATUSES = ["READY", "PROCESSING", "FAILED"] as const;
+export type MediaProcessingStatus = (typeof MEDIA_PROCESSING_STATUSES)[number];
+
 export const UNITS = ["KG", "LITER", "DONA"] as const;
 export type Unit = (typeof UNITS)[number];
 

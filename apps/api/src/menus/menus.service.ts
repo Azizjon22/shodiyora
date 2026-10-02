@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { CreateMenuDishDto } from './dto/create-menu-dish.dto';
@@ -18,6 +19,7 @@ export class MenusService {
   constructor(
     private prisma: PrismaService,
     private auditLog: AuditLogService,
+    private uploads: UploadsService,
   ) {}
 
   findAll() {
@@ -247,6 +249,28 @@ export class MenusService {
     const media = await this.prisma.menuMedia.create({
       data: { ...dto, menuId, order: dto.order ?? (last._max.order ?? -1) + 1 },
     });
+
+    if (dto.mediaType === 'VIDEO') {
+      const started = await this.uploads.maybeTranscodeVideo(
+        dto.url,
+        async (result) => {
+          await this.prisma.menuMedia.update({
+            where: { id: media.id },
+            data: result.ok
+              ? { url: result.url, processingStatus: 'READY' }
+              : { processingStatus: 'FAILED' },
+          });
+        },
+      );
+      if (started) {
+        await this.prisma.menuMedia.update({
+          where: { id: media.id },
+          data: { processingStatus: 'PROCESSING' },
+        });
+        media.processingStatus = 'PROCESSING';
+      }
+    }
+
     await this.auditLog.record({
       actorId,
       actorName,
@@ -266,11 +290,34 @@ export class MenusService {
     actorName: string,
   ) {
     const menu = await this.ensureExists(menuId);
-    await this.findMediaOrThrow(menuId, mediaId);
+    const existing = await this.findMediaOrThrow(menuId, mediaId);
     const media = await this.prisma.menuMedia.update({
       where: { id: mediaId },
       data: dto,
     });
+
+    const newMediaType = dto.mediaType ?? existing.mediaType;
+    if (dto.url && newMediaType === 'VIDEO') {
+      const started = await this.uploads.maybeTranscodeVideo(
+        dto.url,
+        async (result) => {
+          await this.prisma.menuMedia.update({
+            where: { id: mediaId },
+            data: result.ok
+              ? { url: result.url, processingStatus: 'READY' }
+              : { processingStatus: 'FAILED' },
+          });
+        },
+      );
+      if (started) {
+        await this.prisma.menuMedia.update({
+          where: { id: mediaId },
+          data: { processingStatus: 'PROCESSING' },
+        });
+        media.processingStatus = 'PROCESSING';
+      }
+    }
+
     await this.auditLog.record({
       actorId,
       actorName,

@@ -6,6 +6,7 @@ import type { MenuDishCategory } from "@shodiyora/shared";
 import type { Menu } from "@/lib/types";
 import { Input, Label, Select } from "@/components/ui/input";
 import { formatSom, cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 function DishChoice({
   name,
@@ -22,6 +23,7 @@ function DishChoice({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const t = useT();
   const custom = value !== "" && !options.includes(value);
   const [typing, setTyping] = useState(custom || options.length === 0);
 
@@ -63,14 +65,14 @@ function DishChoice({
             typing ? "border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground",
           )}
         >
-          <PenLine className="h-3.5 w-3.5" /> Boshqa
+          <PenLine className="h-3.5 w-3.5" /> {t("events.customOption")}
         </button>
       </div>
       {typing && (
         <Input
           value={custom ? value : ""}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Taom nomini yozing"
+          placeholder={t("events.dishNamePlaceholder")}
           className="mt-2"
           autoFocus={options.length > 0}
         />
@@ -96,6 +98,7 @@ export function MenuAndDishes({
   defaultSecond?: string | null;
   canSetDishes: boolean;
 }) {
+  const t = useT();
   const [menuId, setMenuId] = useState(defaultMenuId);
   const [first, setFirst] = useState(defaultFirst ?? "");
   const [second, setSecond] = useState(defaultSecond ?? "");
@@ -105,12 +108,12 @@ export function MenuAndDishes({
   return (
     <div className="space-y-3">
       <div>
-        <Label htmlFor="menuId">Menyu</Label>
+        <Label htmlFor="menuId">{t("events.menuLabel")}</Label>
         <Select id="menuId" name="menuId" value={menuId} onChange={(e) => setMenuId(e.target.value)} required>
-          <option value="">Tanlang</option>
+          <option value="">{t("events.selectPlaceholder")}</option>
           {menus.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.name} — {formatSom(m.price)} ({m.guestCount} kishi)
+              {m.name} — {formatSom(m.price)} ({t("menuStudio.guestsCount", { count: m.guestCount })})
             </option>
           ))}
         </Select>
@@ -124,7 +127,7 @@ export function MenuAndDishes({
               <DishChoice
                 key={`first-${menuId}`}
                 name="firstDish"
-                label="1-ovqat"
+                label={t("events.firstDish")}
                 icon={<Soup className="h-4 w-4 text-accent" />}
                 options={optionsFor("FIRST_DISH")}
                 value={first}
@@ -133,7 +136,7 @@ export function MenuAndDishes({
               <DishChoice
                 key={`second-${menuId}`}
                 name="secondDish"
-                label="2-ovqat"
+                label={t("events.secondDish")}
                 icon={<UtensilsCrossed className="h-4 w-4 text-accent" />}
                 options={optionsFor("SECOND_DISH")}
                 value={second}
@@ -142,10 +145,10 @@ export function MenuAndDishes({
             </div>
           ) : (
             <p className="rounded-xl border border-dashed border-border px-3 py-2.5 text-sm text-muted-foreground">
-              Menyuni tanlang — keyin 1-ovqat va 2-ovqatni belgilaysiz.
+              {t("events.selectMenuFirst")}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">Oshpaz bozorlikni shu taomlar va mehmonlar soniga qarab yozadi.</p>
+          <p className="text-xs text-muted-foreground">{t("events.chefShopsHint")}</p>
         </>
       )}
     </div>

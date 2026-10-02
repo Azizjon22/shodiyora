@@ -84,20 +84,20 @@ export function Lightbox({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-50 flex flex-col bg-black/95 animate-soft-scale"
+        className="fixed inset-0 z-50 flex flex-col bg-black/90 backdrop-blur-xl animate-soft-scale"
         role="dialog"
         aria-modal="true"
         aria-label={item.caption ?? undefined}
       >
-        <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <p className="min-w-0 truncate font-display text-lg text-white sm:text-xl">
+        <div className="relative flex items-center justify-center px-16 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-20">
+          <p className="min-w-0 max-w-full truncate text-center font-display text-2xl text-white sm:text-3xl">
             {item.caption}
-            {many && <span className="ml-2 text-sm tabular-nums text-white/50">{index + 1} / {items.length}</span>}
+            {many && <span className="ml-2.5 text-sm tabular-nums text-white/50">{index + 1} / {items.length}</span>}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#1a1214] text-white"
+            className="absolute right-4 top-[max(0.75rem,env(safe-area-inset-top))] flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-[#1a1214] text-white"
             aria-label={t("presentation.close")}
           >
             <X className="h-5 w-5" />
@@ -107,10 +107,10 @@ export function Lightbox({
         <div
           ref={scrollerRef}
           onScroll={onScroll}
-          className="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
+          className="no-scrollbar flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
         >
           {items.map((slide, i) => (
-            <div key={`${slide.url}-${i}`} className="h-full w-full shrink-0 snap-center overflow-y-auto overscroll-y-contain">
+            <div key={`${slide.url}-${i}`} className="no-scrollbar h-full w-full shrink-0 snap-center overflow-y-auto overscroll-y-contain">
               <div className="flex min-h-full items-center justify-center px-3 py-3 sm:px-8">
                 {slide.kind === "VIDEO" ? (
                   <video

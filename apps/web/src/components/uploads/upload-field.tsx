@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ImageDropzone } from "./image-dropzone";
+import { readMediaDimensions } from "@/lib/media-dimensions";
 
 interface Props {
   name: string;
@@ -19,6 +20,13 @@ interface Props {
   browse?: boolean;
   /** Shown under the control, for example "JPG, PNG, WebP, MP4". */
   formats?: string;
+  /**
+   * Below this, a warning (not a block) suggests a sharper source — this
+   * slot shows the file full-bleed/large, where a low-res upload looks
+   * visibly blurry after the browser scales it up.
+   */
+  minWidth?: number;
+  minHeight?: number;
 }
 
 export function UploadField({
@@ -33,12 +41,15 @@ export function UploadField({
   onChange,
   browse,
   formats,
+  minWidth,
+  minHeight,
 }: Props) {
   const [url, setUrl] = useState(defaultValue ?? "");
   const [localPreview, setLocalPreview] = useState<string | undefined>();
   const [pickedKind, setPickedKind] = useState<"image" | "video" | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [warning, setWarning] = useState<string | undefined>();
 
   async function handleFile(file: File) {
     const contentType = contentTypeOf(file);
@@ -50,8 +61,19 @@ export function UploadField({
       return;
     }
     setError(undefined);
+    setWarning(undefined);
     setPickedKind(contentType.startsWith("video/") ? "video" : "image");
     setLocalPreview(URL.createObjectURL(file));
+
+    if (minWidth && minHeight) {
+      const dims = await readMediaDimensions(file);
+      if (dims && (dims.width < minWidth || dims.height < minHeight)) {
+        setWarning(
+          `Diqqat: bu fayl ${dims.width}x${dims.height} o'lchamda — katta ekranda xira ko'rinishi mumkin. Kamida ${minWidth}x${minHeight} tavsiya etiladi.`,
+        );
+      }
+    }
+
     setUploading(true);
     try {
       const presignRes = await fetch("/api/proxy/uploads/presign", {
@@ -90,6 +112,7 @@ export function UploadField({
         previewUrl={url || localPreview}
         uploading={uploading}
         error={error}
+        warning={warning}
         browse={browse}
         formats={formats}
         onFileSelected={handleFile}
@@ -98,6 +121,7 @@ export function UploadField({
           setPickedKind(null);
           onChange?.("");
           setLocalPreview(undefined);
+          setWarning(undefined);
         }}
       />
     </div>

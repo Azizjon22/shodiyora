@@ -8,7 +8,8 @@ import type { Menu } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { SafeImage } from "@/components/menus/showcase/safe-image";
 import { formatSom, cn } from "@/lib/utils";
-import { PACKAGE_TYPE_LABELS, sortMenus } from "@/components/menus/packages";
+import { packageTypeLabel, sortMenus } from "@/components/menus/packages";
+import { useT } from "@/components/i18n/locale-provider";
 import { MenuInfoModal } from "./menu-info-modal";
 import { ReadinessRing } from "./readiness-ring";
 import { menuReadiness, allMenuImageUrls } from "./readiness";
@@ -16,6 +17,7 @@ import { useBrokenImages } from "./use-broken-images";
 import { menuApi, errorText } from "./api";
 
 export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record<string, number> }) {
+  const t = useT();
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -23,11 +25,16 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
 
   const broken = useBrokenImages(useMemo(() => menus.flatMap(allMenuImageUrls), [menus]));
   const sorted = sortMenus(menus);
-  const readiness = sorted.map((m) => menuReadiness(m, broken));
+  const readiness = sorted.map((m) => menuReadiness(m, broken, t));
   const needAttention = readiness.filter((r) => r.percent < 85).length;
   const prices = sorted.map((m) => Number(m.price));
   const priceRangeMln =
-    prices.length > 0 ? `${Math.round(Math.min(...prices) / 1e6)}–${Math.round(Math.max(...prices) / 1e6)} mln` : "—";
+    prices.length > 0
+      ? t("menuStudio.priceRangeValue", {
+          min: Math.round(Math.min(...prices) / 1e6),
+          max: Math.round(Math.max(...prices) / 1e6),
+        })
+      : "—";
 
   async function duplicate(menu: Menu) {
     setBusyId(menu.id);
@@ -36,7 +43,7 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
       const copy = await menuApi<{ id: string }>(`/${menu.id}/duplicate`, "POST");
       router.push(`/dashboard/menus/${copy.id}`);
     } catch (err) {
-      setError(errorText(err));
+      setError(errorText(err, t("common.genericError")));
       setBusyId(null);
     }
   }
@@ -45,11 +52,8 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
     <div className="space-y-6 animate-fade-up">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Menyular</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Har bir menyu mijozga taqdimotda shu ko&apos;rinishda chiqadi. Foiz — menyu taqdimotga qanchalik tayyor ekanini
-            ko&apos;rsatadi.
-          </p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t("menus.title")}</h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("menuStudio.listSubtitle")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -57,10 +61,10 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
             target="_blank"
             className="inline-flex h-10 items-center gap-2 rounded-md border border-input px-4 text-sm font-medium transition hover:bg-muted"
           >
-            <ExternalLink className="h-4 w-4" /> Taqdimotni ochish
+            <ExternalLink className="h-4 w-4" /> {t("menuStudio.openShowcase")}
           </Link>
           <Button type="button" onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4" /> Yangi menyu
+            <Plus className="h-4 w-4" /> {t("menuStudio.newMenu")}
           </Button>
         </div>
       </div>
@@ -68,10 +72,10 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
       {sorted.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Menyular", value: sorted.length },
-            { label: "Narx oralig'i", value: priceRangeMln },
-            { label: "Jami to'ylarda", value: Object.values(usage).reduce((s, n) => s + n, 0) },
-            { label: "E'tibor kerak", value: needAttention, warn: needAttention > 0 },
+            { label: t("menus.title"), value: sorted.length },
+            { label: t("menuStudio.priceRange"), value: priceRangeMln },
+            { label: t("menuStudio.totalEvents"), value: Object.values(usage).reduce((s, n) => s + n, 0) },
+            { label: t("menuStudio.needsAttention"), value: needAttention, warn: needAttention > 0 },
           ].map((s) => (
             <div key={s.label} className="min-w-0 rounded-xl border border-border bg-card px-3 py-3 sm:px-4">
               <p className="truncate text-xs text-muted-foreground">{s.label}</p>
@@ -112,15 +116,15 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
                 )}
                 {(!menu.coverImageUrl || broken.has(menu.coverImageUrl)) && (
                   <span className="absolute right-3 top-3 rounded-full bg-destructive/90 px-2.5 py-1 text-[11px] font-medium text-white">
-                    {menu.coverImageUrl ? "Muqova ochilmayapti" : "Muqova yo'q"}
+                    {menu.coverImageUrl ? t("menuStudio.coverBroken") : t("menuStudio.coverMissing")}
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                   <p className="font-display text-2xl font-semibold leading-tight">{menu.name}</p>
                   <p className="text-sm text-white/80 tabular-nums">
-                    {formatSom(menu.price)} · {menu.guestCount} kishi
+                    {formatSom(menu.price)} · {t("menuStudio.guestsCount", { count: menu.guestCount })}
                   </p>
-                  <p className="text-xs text-white/70">{PACKAGE_TYPE_LABELS[menu.packageType]}</p>
+                  <p className="text-xs text-white/70">{packageTypeLabel(t, menu.packageType)}</p>
                 </div>
               </Link>
 
@@ -129,7 +133,7 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
                   <ReadinessRing percent={r.percent} />
                   <div className="min-w-0 flex-1 space-y-1">
                     {issues.length === 0 ? (
-                      <p className="text-sm font-medium text-success">Taqdimotga tayyor</p>
+                      <p className="text-sm font-medium text-success">{t("menuStudio.readyForShowcase")}</p>
                     ) : (
                       issues.map((c) => (
                         <p key={c.key} className="flex items-start gap-1.5 text-xs text-muted-foreground">
@@ -143,15 +147,15 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div className="rounded-lg bg-muted/60 px-2 py-2">
                     <UtensilsCrossed className="mx-auto mb-1 h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-semibold tabular-nums">{menu.dishes.length}</span> taom
+                    {t("menuStudio.dishesCountChip", { count: menu.dishes.length })}
                   </div>
                   <div className="rounded-lg bg-muted/60 px-2 py-2">
                     <ImageIcon className="mx-auto mb-1 h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-semibold tabular-nums">{photos}</span> rasm
+                    {t("menuStudio.photosCountChip", { count: photos })}
                   </div>
                   <div className="rounded-lg bg-muted/60 px-2 py-2">
                     <CalendarHeart className="mx-auto mb-1 h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-semibold tabular-nums">{used}</span> to&apos;y
+                    {t("menuStudio.eventsCountChip", { count: used })}
                   </div>
                 </div>
 
@@ -160,24 +164,24 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
                     href={`/dashboard/menus/${menu.id}`}
                     className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:brightness-95"
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Tahrirlash
+                    <Pencil className="h-3.5 w-3.5" /> {t("common.edit")}
                   </Link>
                   <button
                     type="button"
                     onClick={() => duplicate(menu)}
                     disabled={busyId !== null}
-                    title="Nusxa olish — yangi narx darajasi uchun"
+                    title={t("menuStudio.duplicateTitle")}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
-                    aria-label="Nusxa olish"
+                    aria-label={t("menuStudio.duplicateAria")}
                   >
                     <Copy className={cn("h-4 w-4", busyId === menu.id && "animate-pulse")} />
                   </button>
                   <Link
                     href={`/showcase/${menu.id}`}
                     target="_blank"
-                    title="Taqdimotda ko'rish"
+                    title={t("menuStudio.viewInShowcase")}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                    aria-label="Taqdimotda ko'rish"
+                    aria-label={t("menuStudio.viewInShowcase")}
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Link>
@@ -195,7 +199,7 @@ export function MenusStudioList({ menus, usage }: { menus: Menu[]; usage: Record
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Plus className="h-6 w-6" />
           </span>
-          <span className="text-sm font-medium">Yangi menyu qo&apos;shish</span>
+          <span className="text-sm font-medium">{t("menuStudio.addMenuCard")}</span>
         </button>
       </div>
 

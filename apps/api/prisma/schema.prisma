@@ -70,6 +70,15 @@ enum MediaType {
   VIDEO
 }
 
+// A freshly uploaded HEVC (.mov) video is unplayable in most browsers —
+// PROCESSING covers the window where it's being transcoded to H.264 in
+// the background; READY is the only state the public showcase ever plays.
+enum MediaProcessingStatus {
+  READY
+  PROCESSING
+  FAILED
+}
+
 enum Unit {
   KG
   LITER
@@ -219,14 +228,15 @@ model MenuDish {
 }
 
 model MenuMedia {
-  id        String           @id @default(cuid())
-  menuId    String
-  menu      Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  section   MenuMediaSection
-  mediaType MediaType
-  url       String
-  caption   String?
-  order     Int              @default(0)
+  id               String                @id @default(cuid())
+  menuId           String
+  menu             Menu                  @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  section          MenuMediaSection
+  mediaType        MediaType
+  url              String
+  caption          String?
+  order            Int                   @default(0)
+  processingStatus MediaProcessingStatus @default(READY)
 
   @@index([menuId])
   @@map("menu_media")
@@ -434,12 +444,13 @@ model AuditLog {
 /// Single-row, app-wide branding shown on every screen (sidebar, login,
 /// client presentation). Editable by SUPER_ADMIN from the Profil page.
 model AppSettings {
-  id            String   @id @default("app")
-  brandName     String   @default("Shodiyora")
-  logoUrl       String?
-  heroMediaUrl  String?
-  heroMediaKind String?
-  updatedAt     DateTime @updatedAt
+  id              String                 @id @default("app")
+  brandName       String                 @default("Shodiyora")
+  logoUrl         String?
+  heroMediaUrl    String?
+  heroMediaKind   String?
+  heroMediaStatus MediaProcessingStatus?
+  updatedAt       DateTime               @updatedAt
 
   @@map("app_settings")
 }

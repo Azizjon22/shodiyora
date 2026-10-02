@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   PayloadTooLargeException,
   UnauthorizedException,
@@ -10,9 +11,10 @@ import { JwtService } from '@nestjs/jwt';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createReadStream } from 'node:fs';
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { VideoTranscodeService } from './video-transcode.service';
 
 const ALLOWED_CONTENT_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -33,7 +35,7 @@ const EXTENSION_CONTENT_TYPES: Record<string, string> = {
 const FOLDERS = ['workers', 'menus', 'inventory', 'branding'] as const;
 type UploadFolder = (typeof FOLDERS)[number];
 
-const MAX_BYTES = 80 * 1024 * 1024;
+const MAX_BYTES = 150 * 1024 * 1024;
 
 interface UploadToken {
   purpose: 'upload';
@@ -43,11 +45,13 @@ interface UploadToken {
 
 @Injectable()
 export class UploadsService {
+  private readonly logger = new Logger(UploadsService.name);
   private client: S3Client | null = null;
 
   constructor(
     private config: ConfigService,
     private jwt: JwtService,
+    private transcode: VideoTranscodeService,
   ) {}
 
   /** Empty S3 settings mean the demo disk folder. MinIO fills the same variables later. */
@@ -147,7 +151,7 @@ export class UploadsService {
     }
     if (body.length === 0) throw new BadRequestException("Fayl bo'sh");
     if (body.length > MAX_BYTES)
-      throw new PayloadTooLargeException('Fayl 80 MB dan katta');
+      throw new PayloadTooLargeException('Fayl 150 MB dan katta');
 
     const absolute = this.assertKey(payload.key);
     await mkdir(path.dirname(absolute), { recursive: true });
@@ -168,6 +172,49 @@ export class UploadsService {
       throw new NotFoundException('Fayl topilmadi');
     }
     return { stream: createReadStream(absolute), type };
+  }
+
+  /**
+   * Fire-and-forget: if `publicUrl` is a local video that isn't H.264 (e.g.
+   * an iPhone's HEVC .mov, unplayable in most browsers), transcodes it to
+   * H.264 MP4 in the background and calls `onDone` once it settles. Returns
+   * true if transcoding started — the caller should mark its row PROCESSING
+   * — or false when nothing needed to happen (not a local upload, or
+   * already H.264), in which case the caller should leave it READY.
+   */
+  async maybeTranscodeVideo(
+    publicUrl: string,
+    onDone: (
+      result: { ok: true; url: string } | { ok: false },
+    ) => Promise<void>,
+  ): Promise<boolean> {
+    const match = /^\/uploads\/(.+)$/.exec(publicUrl);
+    if (!match) return false; // S3/external URL — nothing we can transcode locally
+
+    const inputPath = this.assertKey(match[1]);
+    const probe = await this.transcode.probe(inputPath);
+    if (!probe || !this.transcode.needsProcessing(probe)) return false;
+
+    // Always a fresh name — the input may already be a .mp4 (e.g. H.264 but
+    // under-resolution), and ffmpeg refuses to write over its own input.
+    const folder = match[1].split('/')[0];
+    const newKey = `${folder}/${randomUUID()}.mp4`;
+    const outputPath = this.assertKey(newKey);
+
+    this.transcode
+      .transcodeToH264(inputPath, outputPath, probe)
+      .then(async () => {
+        await unlink(inputPath).catch(() => {});
+        await onDone({ ok: true, url: `/uploads/${newKey}` });
+      })
+      .catch(async (error: unknown) => {
+        this.logger.error(
+          `Transcode failed for ${inputPath}: ${String(error)}`,
+        );
+        await onDone({ ok: false });
+      });
+
+    return true;
   }
 
   private s3(): S3Client {

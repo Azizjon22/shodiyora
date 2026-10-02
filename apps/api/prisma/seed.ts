@@ -16,7 +16,8 @@ function daysAgo(days: number, hour = 18) {
 
 async function main() {
   const superAdminPhone = process.env.SEED_SUPER_ADMIN_PHONE ?? '+998900000000';
-  const superAdminPassword = process.env.SEED_SUPER_ADMIN_PASSWORD ?? 'Shodiyora2024!';
+  const superAdminPassword =
+    process.env.SEED_SUPER_ADMIN_PASSWORD ?? 'Shodiyora2024!';
 
   const passwordHash = await bcrypt.hash(superAdminPassword, 10);
   const adminHash = await bcrypt.hash('Admin2024!', 10);
@@ -89,7 +90,8 @@ async function main() {
       price: 32000000,
       guestCount: 100,
       packageType: 'FULL',
-      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 100 kishilik to'y uchun.",
+      description:
+        "To'yxona taomlari, kortej, san'atkor va kamerachi — 100 kishilik to'y uchun.",
       isVip: false,
       cover: coverImages[0],
     },
@@ -98,7 +100,8 @@ async function main() {
       price: 38000000,
       guestCount: 150,
       packageType: 'FULL',
-      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 150 kishilik to'y uchun.",
+      description:
+        "To'yxona taomlari, kortej, san'atkor va kamerachi — 150 kishilik to'y uchun.",
       isVip: false,
       cover: coverImages[1],
     },
@@ -107,7 +110,8 @@ async function main() {
       price: 46000000,
       guestCount: 200,
       packageType: 'FULL',
-      description: "To'yxona taomlari, kortej, san'atkor va kamerachi — 200 kishilik to'y uchun.",
+      description:
+        "To'yxona taomlari, kortej, san'atkor va kamerachi — 200 kishilik to'y uchun.",
       isVip: true,
       cover: coverImages[2],
     },
@@ -143,86 +147,353 @@ async function main() {
   const dishTemplates: {
     category: Prisma.MenuDishCreateManyInput['category'];
     name: string;
-    description: string;
     photoUrl: string;
   }[] = [
+    // Холодные закуски
     {
-      category: 'SALAD',
-      name: 'Achchiq-chuchuk',
-      description: "Pomidor, piyoz, ko'katlar",
-      photoUrl: 'https://images.unsplash.com/photo-1660991016747-b083fe0b0db4?w=600&q=80',
+      category: 'OTHER',
+      name: 'Мясное ассорти (казы, язык говяжий, рулет арча, индейка)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=600&q=80',
     },
     {
-      category: 'SALAD',
-      name: 'Olivye',
-      description: 'Klassik olivye salati',
-      photoUrl: 'https://images.unsplash.com/photo-1757715375767-35ddb5ca9118?w=600&q=80',
+      category: 'OTHER',
+      name: 'Корабельный суши',
+      photoUrl:
+        'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=80',
     },
     {
-      category: 'SALAD',
-      name: 'Smuzi salat',
-      description: "Yangi sabzavotlar aralashmasi",
-      photoUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+      category: 'OTHER',
+      name: 'Селёдка по-русски',
+      photoUrl:
+        'https://images.unsplash.com/photo-1623858947406-d65cfe9b464b?w=600&q=80',
     },
+    {
+      category: 'OTHER',
+      name: 'Сырная тарелка (мраморный, янтарный, голландский, брынза, мед ассорти)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1668094497457-29f4bd775c95?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Овощное ассорти (св. помидоры, св. огурцы, болгарский перец, стручковый перец, зелень)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1610415946035-bad6fc9f5b8e?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Маринованное ассорти (грибы)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1583329947086-fce348672081?w=600&q=80',
+    },
+    // Горячие закуски
+    {
+      category: 'OTHER',
+      name: 'Самса с мясом',
+      photoUrl:
+        'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Куриные крылышки',
+      photoUrl:
+        'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Буреке с соусом',
+      photoUrl:
+        'https://images.unsplash.com/photo-1617806501736-fc7cab7c05bf?w=600&q=80',
+    },
+    // Хлеб
+    {
+      category: 'OTHER',
+      name: 'Хлебное ассорти',
+      photoUrl:
+        'https://images.unsplash.com/photo-1566698629409-787a68fc5724?w=600&q=80',
+    },
+    // Горячие блюда
     {
       category: 'FIRST_DISH',
-      name: "Lag'mon",
-      description: "Uy qog'ozli lag'mon",
-      photoUrl: 'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&q=80',
-    },
-    {
-      category: 'FIRST_DISH',
-      name: 'Mastava',
-      description: "An'anaviy mastava",
-      photoUrl: 'https://images.unsplash.com/photo-1665593998976-d957f2827fe7?w=600&q=80',
+      name: 'Фрикадельки с лапшой',
+      photoUrl:
+        'https://images.unsplash.com/photo-1608500219063-e5164085cd6f?w=600&q=80',
     },
     {
       category: 'SECOND_DISH',
-      name: 'Osh',
-      description: "To'y oshi",
-      photoUrl: 'https://images.unsplash.com/photo-1634324092526-91f5e878b72f?w=600&q=80',
+      name: 'Фирменное блюдо «Икбол»',
+      photoUrl:
+        'https://images.unsplash.com/photo-1678684279246-96e6afb970f2?w=600&q=80',
+    },
+    // Салаты
+    {
+      category: 'SALAD',
+      name: 'Салат Цезарь',
+      photoUrl:
+        'https://images.unsplash.com/photo-1746211108786-ca20c8f80ecd?w=600&q=80',
     },
     {
-      category: 'SECOND_DISH',
-      name: "Qo'y kabob",
-      description: "Cho'g'da pishirilgan kabob",
-      photoUrl: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+      category: 'SALAD',
+      name: 'Салат Мужской каприз',
+      photoUrl:
+        'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=600&q=80',
     },
     {
-      category: 'SECOND_DISH',
-      name: 'Tovuq qovurma',
-      description: 'Ziravorli tovuq',
-      photoUrl: 'https://images.unsplash.com/photo-1727280376746-b89107a5b0df?w=600&q=80',
+      category: 'SALAD',
+      name: 'Салат Японский',
+      photoUrl:
+        'https://images.unsplash.com/photo-1641919055844-9e622d21cf7c?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Салат Икбол',
+      photoUrl:
+        'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
+    },
+    // Десерты
+    {
+      category: 'DESSERT',
+      name: 'Тарталетки (пирожное)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1620980776848-84ac10194945?w=600&q=80',
+    },
+    // Фрукты
+    {
+      category: 'FRUIT',
+      name: 'Фруктовая нарезка (цитрусы)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1511688878353-3a2f5be94cd7?w=600&q=80',
     },
     {
       category: 'FRUIT',
-      name: 'Meva assorti',
-      description: "Mavsumiy mevalar",
-      photoUrl: 'https://images.unsplash.com/photo-1641642399576-487909d0ddbc?w=600&q=80',
+      name: 'Красивая нарезка: арбуз и дыни',
+      photoUrl:
+        'https://images.unsplash.com/photo-1595475207225-428b62bda831?w=600&q=80',
     },
+    // Напитки в ассортименте (без ограничений)
     {
-      category: 'DESSERT',
-      name: 'Napoleon',
-      description: 'Klassik tort',
-      photoUrl: 'https://images.unsplash.com/photo-1651484396889-5de94b4d2a8b?w=600&q=80',
-    },
-    {
-      category: 'DESSERT',
-      name: 'Chak-chak',
-      description: "Asalli shirinlik",
-      photoUrl: 'https://images.unsplash.com/photo-1778448806228-36ce0660a8ef?w=600&q=80',
+      category: 'DRINK',
+      name: 'Сок в ассортименте',
+      photoUrl:
+        'https://images.unsplash.com/photo-1603569283847-aa295f0d016a?w=600&q=80',
     },
     {
       category: 'DRINK',
-      name: 'Kompot',
-      description: "Uy kompoti",
-      photoUrl: 'https://images.unsplash.com/photo-1560526860-1f0e56046c85?w=600&q=80',
+      name: 'Мохито в ассортименте',
+      photoUrl:
+        'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80',
     },
     {
       category: 'DRINK',
-      name: 'Choy / Qahva',
-      description: 'Issiq ichimliklar',
-      photoUrl: 'https://images.unsplash.com/photo-1498604636225-6b87a314baa0?w=600&q=80',
+      name: 'Минеральная вода (с газом)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Минеральная вода (без газа)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Напитки холодные (Fanta, Coca-Cola, Pepsi)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1674176508097-463b009c6004?w=600&q=80',
+    },
+  ];
+
+  // VIP paket uchun kengaytirilgan ro'yxat — baliq/ikra/quritilgan mevalar
+  // qo'shiladi, tovuq qanotlari+bureke o'rniga jule, zaytun qo'shiladi.
+  const dishTemplatesVip: typeof dishTemplates = [
+    // Холодные закуски
+    {
+      category: 'OTHER',
+      name: 'Мясное ассорти (казы, язык говяжий, рулет арча, индейка)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Рыбный ассорти (скумбрия, сёмга, масленый)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1716816211582-ef70b1cd2e70?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'КФС ассорти',
+      photoUrl:
+        'https://images.unsplash.com/photo-1602619025673-46cf8479d258?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Икра тарталетки (красный и чёрный икра)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1780134758247-f780bcb9dca5?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Корабельный суши',
+      photoUrl:
+        'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Селёдка по-русски',
+      photoUrl:
+        'https://images.unsplash.com/photo-1623858947406-d65cfe9b464b?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Сырная тарелка (мраморный, янтарный, голландский, брынза, мед ассорти)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1668094497457-29f4bd775c95?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Овощное ассорти (св. помидоры, св. огурцы, болгарский перец, стручковый перец, зелень)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1610415946035-bad6fc9f5b8e?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Маринованное ассорти (грибы)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1583329947086-fce348672081?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Лаваш ассорти (сыр и брынза)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1626028937276-825810a384b1?w=600&q=80',
+    },
+    // Горячие закуски
+    {
+      category: 'OTHER',
+      name: 'Самса с мясом',
+      photoUrl:
+        'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Жюле куриный',
+      photoUrl:
+        'https://images.unsplash.com/photo-1723476662512-6abc972f1167?w=600&q=80',
+    },
+    // Горячие блюда
+    {
+      category: 'FIRST_DISH',
+      name: 'Фрикадельки с лапшой',
+      photoUrl:
+        'https://images.unsplash.com/photo-1608500219063-e5164085cd6f?w=600&q=80',
+    },
+    {
+      category: 'SECOND_DISH',
+      name: 'Фирменное блюдо «Икбол»',
+      photoUrl:
+        'https://images.unsplash.com/photo-1678684279246-96e6afb970f2?w=600&q=80',
+    },
+    // Салаты
+    {
+      category: 'SALAD',
+      name: 'Салат Цезарь',
+      photoUrl:
+        'https://images.unsplash.com/photo-1746211108786-ca20c8f80ecd?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Салат Мужской каприз',
+      photoUrl:
+        'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Салат Японский',
+      photoUrl:
+        'https://images.unsplash.com/photo-1641919055844-9e622d21cf7c?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Салат Икбол',
+      photoUrl:
+        'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
+    },
+    {
+      category: 'SALAD',
+      name: 'Чёрные и Зелёный оливки',
+      photoUrl:
+        'https://images.unsplash.com/photo-1652282565092-874e3a9c67b1?w=600&q=80',
+    },
+    // Десерты
+    {
+      category: 'DESSERT',
+      name: 'Тарталетки (пирожное)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1620980776848-84ac10194945?w=600&q=80',
+    },
+    // Хлеб
+    {
+      category: 'OTHER',
+      name: 'Хлебное ассорти',
+      photoUrl:
+        'https://images.unsplash.com/photo-1566698629409-787a68fc5724?w=600&q=80',
+    },
+    // Сухофрукты
+    {
+      category: 'OTHER',
+      name: 'Фисташки (писта)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1788463821455-bfa2bdf3b8aa?w=600&q=80',
+    },
+    {
+      category: 'OTHER',
+      name: 'Миндаль (бодом)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1642337841034-249c5a21623c?w=600&q=80',
+    },
+    // Фрукты
+    {
+      category: 'FRUIT',
+      name: 'Фруктовая нарезка (цитрусы)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1511688878353-3a2f5be94cd7?w=600&q=80',
+    },
+    {
+      category: 'FRUIT',
+      name: 'Красивая нарезка: арбуз и дыни',
+      photoUrl:
+        'https://images.unsplash.com/photo-1595475207225-428b62bda831?w=600&q=80',
+    },
+    // Напитки в ассортименте (без ограничений)
+    {
+      category: 'DRINK',
+      name: 'Сок в ассортименте',
+      photoUrl:
+        'https://images.unsplash.com/photo-1603569283847-aa295f0d016a?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Мохито в ассортименте',
+      photoUrl:
+        'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Минеральная вода (с газом)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Минеральная вода (без газа)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80',
+    },
+    {
+      category: 'DRINK',
+      name: 'Напитки холодные (Fanta, Coca-Cola, Pepsi)',
+      photoUrl:
+        'https://images.unsplash.com/photo-1674176508097-463b009c6004?w=600&q=80',
     },
   ];
 
@@ -255,27 +526,59 @@ async function main() {
       });
     }
 
-    const dishCount = await prisma.menuDish.count({ where: { menuId: menu.id } });
+    const dishCount = await prisma.menuDish.count({
+      where: { menuId: menu.id },
+    });
     if (dishCount === 0) {
+      const templates = def.isVip ? dishTemplatesVip : dishTemplates;
       await prisma.menuDish.createMany({
-        data: dishTemplates.map((d, i) => ({
+        data: templates.map((d, i) => ({
           menuId: menu!.id,
           category: d.category,
           name: d.name,
-          description: d.description,
           photoUrl: d.photoUrl,
           order: i,
         })),
       });
     }
 
-    const mediaCount = await prisma.menuMedia.count({ where: { menuId: menu.id } });
+    const mediaCount = await prisma.menuMedia.count({
+      where: { menuId: menu.id },
+    });
     if (mediaCount === 0) {
       const mediaItems: Prisma.MenuMediaCreateManyInput[] = [
-        { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[0], caption: 'Asosiy zal', order: 0 },
-        { menuId: menu.id, section: 'HALL', mediaType: 'PHOTO', url: hallPhotos[1], caption: 'Zal panoramasi', order: 1 },
-        { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[0], caption: 'Stol bezagi', order: 0 },
-        { menuId: menu.id, section: 'TABLE_SETUP', mediaType: 'PHOTO', url: tablePhotos[1], caption: 'Servirovka', order: 1 },
+        {
+          menuId: menu.id,
+          section: 'HALL',
+          mediaType: 'PHOTO',
+          url: hallPhotos[0],
+          caption: 'Asosiy zal',
+          order: 0,
+        },
+        {
+          menuId: menu.id,
+          section: 'HALL',
+          mediaType: 'PHOTO',
+          url: hallPhotos[1],
+          caption: 'Zal panoramasi',
+          order: 1,
+        },
+        {
+          menuId: menu.id,
+          section: 'TABLE_SETUP',
+          mediaType: 'PHOTO',
+          url: tablePhotos[0],
+          caption: 'Stol bezagi',
+          order: 0,
+        },
+        {
+          menuId: menu.id,
+          section: 'TABLE_SETUP',
+          mediaType: 'PHOTO',
+          url: tablePhotos[1],
+          caption: 'Servirovka',
+          order: 1,
+        },
       ];
       // Kortej and cameraman photos only make sense for the full package —
       // food-only packages don't include those services.
@@ -313,37 +616,223 @@ async function main() {
     quantity: number;
     minThreshold: number;
   }[] = [
-    { name: 'Kartoshka', unit: 'KG', productCategory: 'VEGETABLE', quantity: 80, minThreshold: 20 },
-    { name: 'Piyoz', unit: 'KG', productCategory: 'VEGETABLE', quantity: 45, minThreshold: 15 },
-    { name: 'Sabzi', unit: 'KG', productCategory: 'VEGETABLE', quantity: 30, minThreshold: 10 },
-    { name: 'Pomidor', unit: 'KG', productCategory: 'VEGETABLE', quantity: 8, minThreshold: 12 },
-    { name: 'Bodring', unit: 'KG', productCategory: 'VEGETABLE', quantity: 5, minThreshold: 10 },
-    { name: "Qalampir (bulg'or)", unit: 'KG', productCategory: 'VEGETABLE', quantity: 12, minThreshold: 5 },
-    { name: 'Karam', unit: 'KG', productCategory: 'VEGETABLE', quantity: 18, minThreshold: 5 },
-    { name: 'Olma', unit: 'KG', productCategory: 'FRUIT', quantity: 25, minThreshold: 8 },
-    { name: 'Uzum', unit: 'KG', productCategory: 'FRUIT', quantity: 6, minThreshold: 8 },
-    { name: 'Banan', unit: 'KG', productCategory: 'FRUIT', quantity: 15, minThreshold: 5 },
-    { name: 'Anor', unit: 'KG', productCategory: 'FRUIT', quantity: 10, minThreshold: 4 },
-    { name: 'Limon', unit: 'KG', productCategory: 'FRUIT', quantity: 4, minThreshold: 3 },
-    { name: "Mol go'shti", unit: 'KG', productCategory: 'MEAT', quantity: 40, minThreshold: 15 },
-    { name: "Qo'y go'shti", unit: 'KG', productCategory: 'MEAT', quantity: 22, minThreshold: 10 },
-    { name: "Tovuq go'shti", unit: 'KG', productCategory: 'MEAT', quantity: 35, minThreshold: 12 },
-    { name: 'Qiyma', unit: 'KG', productCategory: 'MEAT', quantity: 14, minThreshold: 8 },
-    { name: 'Sut', unit: 'LITER', productCategory: 'DAIRY', quantity: 20, minThreshold: 10 },
-    { name: 'Qatiq', unit: 'LITER', productCategory: 'DAIRY', quantity: 12, minThreshold: 8 },
-    { name: 'Tvorog', unit: 'KG', productCategory: 'DAIRY', quantity: 7, minThreshold: 5 },
-    { name: "Sariyog'", unit: 'KG', productCategory: 'DAIRY', quantity: 5, minThreshold: 3 },
-    { name: 'Ukrop', unit: 'DONA', productCategory: 'GREENS', quantity: 30, minThreshold: 10 },
-    { name: 'Jambil', unit: 'DONA', productCategory: 'GREENS', quantity: 20, minThreshold: 8 },
-    { name: 'Rayhon', unit: 'DONA', productCategory: 'GREENS', quantity: 15, minThreshold: 8 },
-    { name: 'Petrushka', unit: 'DONA', productCategory: 'GREENS', quantity: 18, minThreshold: 8 },
-    { name: 'Guruch', unit: 'KG', productCategory: 'GRAIN', quantity: 100, minThreshold: 30 },
-    { name: 'Un', unit: 'KG', productCategory: 'GRAIN', quantity: 50, minThreshold: 20 },
-    { name: 'Makaron', unit: 'KG', productCategory: 'GRAIN', quantity: 20, minThreshold: 8 },
-    { name: "O'simlik yog'i", unit: 'LITER', productCategory: 'OIL', quantity: 25, minThreshold: 10 },
-    { name: 'Tuz', unit: 'KG', productCategory: 'SPICE', quantity: 15, minThreshold: 5 },
-    { name: 'Qora murch', unit: 'KG', productCategory: 'SPICE', quantity: 2, minThreshold: 1 },
-    { name: 'Zira', unit: 'KG', productCategory: 'SPICE', quantity: 1.5, minThreshold: 0.5 },
+    {
+      name: 'Kartoshka',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 80,
+      minThreshold: 20,
+    },
+    {
+      name: 'Piyoz',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 45,
+      minThreshold: 15,
+    },
+    {
+      name: 'Sabzi',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 30,
+      minThreshold: 10,
+    },
+    {
+      name: 'Pomidor',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 8,
+      minThreshold: 12,
+    },
+    {
+      name: 'Bodring',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 5,
+      minThreshold: 10,
+    },
+    {
+      name: "Qalampir (bulg'or)",
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 12,
+      minThreshold: 5,
+    },
+    {
+      name: 'Karam',
+      unit: 'KG',
+      productCategory: 'VEGETABLE',
+      quantity: 18,
+      minThreshold: 5,
+    },
+    {
+      name: 'Olma',
+      unit: 'KG',
+      productCategory: 'FRUIT',
+      quantity: 25,
+      minThreshold: 8,
+    },
+    {
+      name: 'Uzum',
+      unit: 'KG',
+      productCategory: 'FRUIT',
+      quantity: 6,
+      minThreshold: 8,
+    },
+    {
+      name: 'Banan',
+      unit: 'KG',
+      productCategory: 'FRUIT',
+      quantity: 15,
+      minThreshold: 5,
+    },
+    {
+      name: 'Anor',
+      unit: 'KG',
+      productCategory: 'FRUIT',
+      quantity: 10,
+      minThreshold: 4,
+    },
+    {
+      name: 'Limon',
+      unit: 'KG',
+      productCategory: 'FRUIT',
+      quantity: 4,
+      minThreshold: 3,
+    },
+    {
+      name: "Mol go'shti",
+      unit: 'KG',
+      productCategory: 'MEAT',
+      quantity: 40,
+      minThreshold: 15,
+    },
+    {
+      name: "Qo'y go'shti",
+      unit: 'KG',
+      productCategory: 'MEAT',
+      quantity: 22,
+      minThreshold: 10,
+    },
+    {
+      name: "Tovuq go'shti",
+      unit: 'KG',
+      productCategory: 'MEAT',
+      quantity: 35,
+      minThreshold: 12,
+    },
+    {
+      name: 'Qiyma',
+      unit: 'KG',
+      productCategory: 'MEAT',
+      quantity: 14,
+      minThreshold: 8,
+    },
+    {
+      name: 'Sut',
+      unit: 'LITER',
+      productCategory: 'DAIRY',
+      quantity: 20,
+      minThreshold: 10,
+    },
+    {
+      name: 'Qatiq',
+      unit: 'LITER',
+      productCategory: 'DAIRY',
+      quantity: 12,
+      minThreshold: 8,
+    },
+    {
+      name: 'Tvorog',
+      unit: 'KG',
+      productCategory: 'DAIRY',
+      quantity: 7,
+      minThreshold: 5,
+    },
+    {
+      name: "Sariyog'",
+      unit: 'KG',
+      productCategory: 'DAIRY',
+      quantity: 5,
+      minThreshold: 3,
+    },
+    {
+      name: 'Ukrop',
+      unit: 'DONA',
+      productCategory: 'GREENS',
+      quantity: 30,
+      minThreshold: 10,
+    },
+    {
+      name: 'Jambil',
+      unit: 'DONA',
+      productCategory: 'GREENS',
+      quantity: 20,
+      minThreshold: 8,
+    },
+    {
+      name: 'Rayhon',
+      unit: 'DONA',
+      productCategory: 'GREENS',
+      quantity: 15,
+      minThreshold: 8,
+    },
+    {
+      name: 'Petrushka',
+      unit: 'DONA',
+      productCategory: 'GREENS',
+      quantity: 18,
+      minThreshold: 8,
+    },
+    {
+      name: 'Guruch',
+      unit: 'KG',
+      productCategory: 'GRAIN',
+      quantity: 100,
+      minThreshold: 30,
+    },
+    {
+      name: 'Un',
+      unit: 'KG',
+      productCategory: 'GRAIN',
+      quantity: 50,
+      minThreshold: 20,
+    },
+    {
+      name: 'Makaron',
+      unit: 'KG',
+      productCategory: 'GRAIN',
+      quantity: 20,
+      minThreshold: 8,
+    },
+    {
+      name: "O'simlik yog'i",
+      unit: 'LITER',
+      productCategory: 'OIL',
+      quantity: 25,
+      minThreshold: 10,
+    },
+    {
+      name: 'Tuz',
+      unit: 'KG',
+      productCategory: 'SPICE',
+      quantity: 15,
+      minThreshold: 5,
+    },
+    {
+      name: 'Qora murch',
+      unit: 'KG',
+      productCategory: 'SPICE',
+      quantity: 2,
+      minThreshold: 1,
+    },
+    {
+      name: 'Zira',
+      unit: 'KG',
+      productCategory: 'SPICE',
+      quantity: 1.5,
+      minThreshold: 0.5,
+    },
   ];
 
   for (const item of productCatalog) {
@@ -389,7 +878,7 @@ async function main() {
       },
     });
   }
-  console.log('Ombor (mahsulot + idish) to\'ldirildi.');
+  console.log("Ombor (mahsulot + idish) to'ldirildi.");
 
   const workerDefs: {
     fullName: string;
@@ -398,15 +887,62 @@ async function main() {
     status: Prisma.WorkerCreateInput['status'];
     withPin?: boolean;
   }[] = [
-    { fullName: 'Aziz Rahimov', phone: '+998903010101', position: 'WAITER_MALE', status: 'APPROVED' },
-    { fullName: 'Sardor Aliyev', phone: '+998903010102', position: 'WAITER_MALE', status: 'APPROVED' },
-    { fullName: 'Bekzod Yusupov', phone: '+998903010103', position: 'WAITER_MALE', status: 'APPROVED' },
-    { fullName: 'Madina Nazarova', phone: '+998903020201', position: 'WAITER_FEMALE', status: 'APPROVED' },
-    { fullName: 'Nilufar Saidova', phone: '+998903020202', position: 'WAITER_FEMALE', status: 'APPROVED' },
-    { fullName: 'Dilshoda Ergasheva', phone: '+998903020203', position: 'WAITER_FEMALE', status: 'PENDING' },
-    { fullName: 'Olim Chef', phone: '+998903030301', position: 'CHEF', status: 'APPROVED', withPin: true },
-    { fullName: 'Karim Oshpaz', phone: '+998903030302', position: 'CHEF', status: 'APPROVED', withPin: true },
-    { fullName: 'Shoxrux Yangi', phone: '+998903040401', position: 'OTHER', status: 'PENDING' },
+    {
+      fullName: 'Aziz Rahimov',
+      phone: '+998903010101',
+      position: 'WAITER_MALE',
+      status: 'APPROVED',
+    },
+    {
+      fullName: 'Sardor Aliyev',
+      phone: '+998903010102',
+      position: 'WAITER_MALE',
+      status: 'APPROVED',
+    },
+    {
+      fullName: 'Bekzod Yusupov',
+      phone: '+998903010103',
+      position: 'WAITER_MALE',
+      status: 'APPROVED',
+    },
+    {
+      fullName: 'Madina Nazarova',
+      phone: '+998903020201',
+      position: 'WAITER_FEMALE',
+      status: 'APPROVED',
+    },
+    {
+      fullName: 'Nilufar Saidova',
+      phone: '+998903020202',
+      position: 'WAITER_FEMALE',
+      status: 'APPROVED',
+    },
+    {
+      fullName: 'Dilshoda Ergasheva',
+      phone: '+998903020203',
+      position: 'WAITER_FEMALE',
+      status: 'PENDING',
+    },
+    {
+      fullName: 'Olim Chef',
+      phone: '+998903030301',
+      position: 'CHEF',
+      status: 'APPROVED',
+      withPin: true,
+    },
+    {
+      fullName: 'Karim Oshpaz',
+      phone: '+998903030302',
+      position: 'CHEF',
+      status: 'APPROVED',
+      withPin: true,
+    },
+    {
+      fullName: 'Shoxrux Yangi',
+      phone: '+998903040401',
+      position: 'OTHER',
+      status: 'PENDING',
+    },
   ];
 
   const workers = [];
@@ -420,7 +956,8 @@ async function main() {
         status: w.status,
         pinHash: w.withPin ? pinHash : null,
         approvedById: w.status === 'APPROVED' ? superAdmin.id : null,
-        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
+        photoUrl:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
       },
       update: {
         status: w.status,
@@ -437,10 +974,14 @@ async function main() {
   });
 
   if (demoMarker) {
-    console.log('Demo to\'ylar allaqachon mavjud — qayta yaratilmadi.');
+    console.log("Demo to'ylar allaqachon mavjud — qayta yaratilmadi.");
   } else {
-    const approvedWaiters = workers.filter((w) => w.status === 'APPROVED' && w.position !== 'CHEF');
-    const chefs = workers.filter((w) => w.position === 'CHEF' && w.status === 'APPROVED');
+    const approvedWaiters = workers.filter(
+      (w) => w.status === 'APPROVED' && w.position !== 'CHEF',
+    );
+    const chefs = workers.filter(
+      (w) => w.position === 'CHEF' && w.status === 'APPROVED',
+    );
 
     const eventSpecs: {
       clientName: string;
@@ -451,8 +992,16 @@ async function main() {
       menuIndex: number;
       status: Prisma.EventCreateInput['status'];
       notes?: string;
-      payments?: { amount: number; daysOffset: number; method: 'CASH' | 'CARD' | 'TRANSFER' }[];
-      expenses?: { category: Prisma.EventExpenseCreateInput['category']; amount: number; note?: string }[];
+      payments?: {
+        amount: number;
+        daysOffset: number;
+        method: 'CASH' | 'CARD' | 'TRANSFER';
+      }[];
+      expenses?: {
+        category: Prisma.EventExpenseCreateInput['category'];
+        amount: number;
+        note?: string;
+      }[];
     }[] = [
       {
         clientName: 'Demo: Karimovlar oilasi',
@@ -462,7 +1011,7 @@ async function main() {
         tableCapacity: 10,
         menuIndex: 2,
         status: 'COMPLETED',
-        notes: 'Klassik to\'y, kechki dasturxon',
+        notes: "Klassik to'y, kechki dasturxon",
         payments: [
           { amount: 15000000, daysOffset: -60, method: 'TRANSFER' },
           { amount: 25000000, daysOffset: -10, method: 'CASH' },
@@ -476,7 +1025,7 @@ async function main() {
         ],
       },
       {
-        clientName: 'Demo: Rahimovlar to\'yi',
+        clientName: "Demo: Rahimovlar to'yi",
         clientPhone: '+998907001002',
         eventDate: daysAgo(28),
         guestCount: 280,
@@ -535,16 +1084,18 @@ async function main() {
         ],
       },
       {
-        clientName: 'Demo: Ertangi to\'y — Saidovlar',
+        clientName: "Demo: Ertangi to'y — Saidovlar",
         clientPhone: '+998907001005',
         eventDate: daysFromNow(1),
         guestCount: 220,
         tableCapacity: 10,
         menuIndex: 4,
         status: 'CONFIRMED',
-        notes: 'Ertaga — dashboardda ko\'rinadi',
+        notes: "Ertaga — dashboardda ko'rinadi",
         payments: [{ amount: 18000000, daysOffset: -7, method: 'CARD' }],
-        expenses: [{ category: 'SHOPPING', amount: 2000000, note: 'Oldindan bozorlik' }],
+        expenses: [
+          { category: 'SHOPPING', amount: 2000000, note: 'Oldindan bozorlik' },
+        ],
       },
       {
         clientName: 'Demo: Kelgusi hafta — Nazarovlar',
@@ -618,7 +1169,7 @@ async function main() {
             paymentDate: payDate,
             method: p.method,
             createdById: admin.id,
-            note: 'Demo to\'lov',
+            note: "Demo to'lov",
           },
         });
       }
@@ -635,11 +1186,13 @@ async function main() {
         });
       }
     }
-    console.log(`${eventSpecs.length} ta demo to'y + to'lov/xarajat yaratildi.`);
+    console.log(
+      `${eventSpecs.length} ta demo to'y + to'lov/xarajat yaratildi.`,
+    );
 
     const chef = chefs[0];
     const tomorrowEvent = await prisma.event.findFirst({
-      where: { clientName: 'Demo: Ertangi to\'y — Saidovlar' },
+      where: { clientName: "Demo: Ertangi to'y — Saidovlar" },
     });
     if (chef && tomorrowEvent) {
       const existingList = await prisma.shoppingList.findFirst({
@@ -677,15 +1230,33 @@ async function main() {
             reviewedAt: daysAgo(46),
             items: {
               create: [
-                { name: 'Kartoshka', quantity: 40, unit: 'KG', unitPrice: 4000, isPurchased: true },
-                { name: 'Piyoz', quantity: 20, unit: 'KG', unitPrice: 3000, isPurchased: true },
-                { name: "Qo'y go'shti", quantity: 35, unit: 'KG', unitPrice: 95000, isPurchased: true },
+                {
+                  name: 'Kartoshka',
+                  quantity: 40,
+                  unit: 'KG',
+                  unitPrice: 4000,
+                  isPurchased: true,
+                },
+                {
+                  name: 'Piyoz',
+                  quantity: 20,
+                  unit: 'KG',
+                  unitPrice: 3000,
+                  isPurchased: true,
+                },
+                {
+                  name: "Qo'y go'shti",
+                  quantity: 35,
+                  unit: 'KG',
+                  unitPrice: 95000,
+                  isPurchased: true,
+                },
               ],
             },
           },
         });
       }
-      console.log('Bozorlik ro\'yxatlari yaratildi.');
+      console.log("Bozorlik ro'yxatlari yaratildi.");
     }
   }
 

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { CheckCheck, ClipboardList, SearchCheck, ShoppingCart, Wallet } from "lucide-react";
 import type { ProductCatalogItem, ShoppingList } from "@/lib/types";
-import { SHOPPING_LIST_STATUS_UZ } from "@/lib/shopping-list-status";
+import { shoppingListStatusMeta } from "@/lib/shopping-list-status";
 import { formatDate, formatDateTime, formatSom, cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 import { listProgress, stageOf, type Stage } from "./helpers";
 import { ListDetail } from "./list-detail";
 
@@ -15,8 +16,9 @@ const STAGES: { key: Stage; label: string; hint: string; icon: React.ReactNode }
 ];
 
 function ListCard({ list, selected, onSelect }: { list: ShoppingList; selected: boolean; onSelect: () => void }) {
+  const t = useT();
   const { total, bought, spent } = listProgress(list);
-  const status = SHOPPING_LIST_STATUS_UZ[list.status];
+  const status = shoppingListStatusMeta(t, list.status);
   return (
     <button
       type="button"

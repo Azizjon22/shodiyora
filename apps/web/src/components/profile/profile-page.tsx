@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ImageIcon, KeyRound, Phone, RotateCcw, ShieldCheck } from "lucide-react";
 import type { StaffRole } from "@shodiyora/shared";
@@ -24,15 +24,16 @@ function initials(name: string) {
 }
 
 function PasswordCard({ justChanged }: { justChanged: boolean }) {
+  const t = useT();
   const [state, formAction, isPending] = useActionState(changeStaffPasswordAction, undefined);
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="flex items-center gap-2 font-semibold">
-        <KeyRound className="h-4 w-4 text-muted-foreground" /> Parolni o&apos;zgartirish
+        <KeyRound className="h-4 w-4 text-muted-foreground" /> {t("profile.changePassword")}
       </h2>
       {justChanged && (
         <p className="mt-3 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-2 text-sm text-success">
-          <CheckCircle2 className="h-4 w-4" /> Parol yangilandi.
+          <CheckCircle2 className="h-4 w-4" /> {t("profile.passwordUpdated")}
         </p>
       )}
       <form
@@ -45,20 +46,20 @@ function PasswordCard({ justChanged }: { justChanged: boolean }) {
       >
         <input type="hidden" name="redirectTo" value="/dashboard/profile?password=ok" />
         <div>
-          <Label htmlFor="currentPassword">Joriy parol</Label>
+          <Label htmlFor="currentPassword">{t("profile.currentPassword")}</Label>
           <PasswordInput id="currentPassword" name="currentPassword" autoComplete="current-password" required />
         </div>
         <div>
-          <Label htmlFor="newPassword">Yangi parol</Label>
+          <Label htmlFor="newPassword">{t("profile.newPassword")}</Label>
           <PasswordInput id="newPassword" name="newPassword" autoComplete="new-password" minLength={6} required />
         </div>
         <div>
-          <Label htmlFor="confirmPassword">Takrorlang</Label>
+          <Label htmlFor="confirmPassword">{t("profile.confirmPassword")}</Label>
           <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" minLength={6} required />
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
           <Button type="submit" variant="outline" disabled={isPending}>
-            {isPending ? "Saqlanmoqda..." : "Parolni yangilash"}
+            {isPending ? t("common.saving") : t("profile.updatePassword")}
           </Button>
           {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
         </div>
@@ -73,6 +74,7 @@ function heroKind(url: string | null): HeroMediaKind | null {
 }
 
 function BrandCard({ brand }: { brand: Brand }) {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState(brand.brandName);
   const [logoUrl, setLogoUrl] = useState<string | null>(brand.logoUrl);
@@ -87,8 +89,24 @@ function BrandCard({ brand }: { brand: Brand }) {
   const validName = trimmed.length >= 2 && trimmed.length <= 40;
   const dirty = trimmed !== brand.brandName || logoUrl !== brand.logoUrl || heroUrl !== brand.heroMediaUrl;
 
+  // A just-uploaded hero video transcodes in the background — poll until it
+  // lands, then swap the preview from the (still-processing) raw upload to
+  // the final playable URL the server settled on.
+  const wasProcessing = useRef(false);
+  useEffect(() => {
+    if (brand.heroMediaStatus === "PROCESSING") {
+      wasProcessing.current = true;
+      const id = setInterval(() => router.refresh(), 4000);
+      return () => clearInterval(id);
+    }
+    if (wasProcessing.current) {
+      wasProcessing.current = false;
+      setHeroUrl(brand.heroMediaUrl);
+    }
+  }, [brand.heroMediaStatus, brand.heroMediaUrl, router]);
+
   async function save() {
-    if (!validName) return setError("Nom 2 dan 40 belgigacha bo'lishi kerak");
+    if (!validName) return setError(t("profile.nameLengthError"));
     setBusy(true);
     setError(undefined);
     setSaved(false);
@@ -105,12 +123,12 @@ function BrandCard({ brand }: { brand: Brand }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error((Array.isArray(data?.message) ? data.message[0] : data?.message) ?? "Saqlab bo'lmadi");
+        throw new Error((Array.isArray(data?.message) ? data.message[0] : data?.message) ?? t("profile.saveFailed"));
       }
       setSaved(true);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+      setError(err instanceof Error ? err.message : t("common.genericError"));
     } finally {
       setBusy(false);
     }
@@ -121,21 +139,27 @@ function BrandCard({ brand }: { brand: Brand }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="flex items-center gap-2 font-semibold">
-            <ImageIcon className="h-4 w-4 text-muted-foreground" /> Sayt nomi, logo va fon
+            <ImageIcon className="h-4 w-4 text-muted-foreground" /> {t("profile.brandCardTitle")}
           </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Nom va logo butun loyihada. Orqa fon faqat «To&apos;y menyu paketlari» sahifasida. Video ovozsiz aylanadi.
-          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{t("profile.brandCardSubtitle")}</p>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-          <ShieldCheck className="h-3.5 w-3.5" /> Faqat super admin
+          <ShieldCheck className="h-3.5 w-3.5" /> {t("profile.superAdminOnly")}
         </span>
       </div>
 
       <div className="mt-5 max-w-md">
-        <Label htmlFor="brandName">Sayt nomi</Label>
-        <Input id="brandName" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="masalan: Shodiyora" />
-        <p className={cn("mt-1 text-xs", validName ? "text-muted-foreground" : "text-destructive")}>{trimmed.length}/40 belgi</p>
+        <Label htmlFor="brandName">{t("profile.siteName")}</Label>
+        <Input
+          id="brandName"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={40}
+          placeholder={t("profile.siteNamePlaceholder")}
+        />
+        <p className={cn("mt-1 text-xs", validName ? "text-muted-foreground" : "text-destructive")}>
+          {t("profile.charsCount", { count: trimmed.length })}
+        </p>
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-2">
@@ -152,14 +176,14 @@ function BrandCard({ brand }: { brand: Brand }) {
                   setLogoKey((k) => k + 1);
                 }}
               >
-                <RotateCcw className="h-4 w-4" /> Harfli logoga qaytarish
+                <RotateCcw className="h-4 w-4" /> {t("profile.revertToLetterLogo")}
               </Button>
             )}
           </div>
           <UploadField
             key={logoKey}
             name="logoUpload"
-            label="Logo"
+            label={t("profile.logo")}
             folder="branding"
             aspect="square"
             browse
@@ -171,7 +195,7 @@ function BrandCard({ brand }: { brand: Brand }) {
 
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <p className="text-sm font-medium">To&apos;y menyu paketlari — orqa fon</p>
+            <p className="text-sm font-medium">{t("profile.heroFieldTitle")}</p>
             {heroUrl && (
               <Button
                 type="button"
@@ -182,32 +206,38 @@ function BrandCard({ brand }: { brand: Brand }) {
                   setHeroKey((k) => k + 1);
                 }}
               >
-                <RotateCcw className="h-4 w-4" /> Menyudagi rasmga qaytarish
+                <RotateCcw className="h-4 w-4" /> {t("profile.revertToMenuPhoto")}
               </Button>
             )}
           </div>
           <UploadField
             key={heroKey}
             name="heroUpload"
-            label="Orqa fon"
+            label={t("profile.heroField")}
             folder="branding"
             kind={heroKind(heroUrl) === "VIDEO" ? "video" : "image"}
             accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,.mov"
             aspect="video"
             browse
             formats="JPG, PNG, WebP, MP4, MOV"
+            minWidth={1920}
+            minHeight={1080}
             defaultValue={heroUrl}
             onChange={(url) => setHeroUrl(url || null)}
           />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Rasm yoki video. MP4 va MOV sahifa ochilganda ovozsiz, takrorlanib turadi.
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("profile.heroHint")}</p>
+          {brand.heroMediaStatus === "PROCESSING" && (
+            <p className="mt-1.5 text-xs text-accent">{t("profile.heroProcessing")}</p>
+          )}
+          {brand.heroMediaStatus === "FAILED" && (
+            <p className="mt-1.5 text-xs text-destructive">{t("profile.heroFailed")}</p>
+          )}
         </div>
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         <Button type="button" onClick={save} disabled={busy || !dirty || !validName}>
-          {busy ? "Saqlanmoqda..." : "Saqlash"}
+          {busy ? t("common.saving") : t("common.save")}
         </Button>
         {dirty && (
           <Button
@@ -223,12 +253,12 @@ function BrandCard({ brand }: { brand: Brand }) {
             }}
             disabled={busy}
           >
-            Bekor qilish
+            {t("common.cancel")}
           </Button>
         )}
         {saved && !dirty && (
           <span className="flex items-center gap-1.5 text-sm text-success">
-            <CheckCircle2 className="h-4 w-4" /> Saqlandi
+            <CheckCircle2 className="h-4 w-4" /> {t("profile.saved")}
           </span>
         )}
         {error && <span className="text-sm text-destructive">{error}</span>}
@@ -251,7 +281,7 @@ export function ProfilePage({
   const t = useT();
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-fade-up">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">Profil</h1>
+      <h1 className="font-display text-3xl font-semibold tracking-tight">{t("profile.title")}</h1>
 
       <section className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
         <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-xl font-semibold text-primary">

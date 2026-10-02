@@ -19,7 +19,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { UploadsService } from './uploads.service';
 import { PresignDto, StaffPresignDto } from './dto/presign.dto';
 
-const MAX_BYTES = 80 * 1024 * 1024;
+const MAX_BYTES = 150 * 1024 * 1024;
 
 @Controller('uploads')
 export class UploadsController {
@@ -80,7 +80,7 @@ function readLimited(req: Request, maxBytes: number): Promise<Buffer> {
   if (Buffer.isBuffer(req.body)) {
     if (req.body.length > maxBytes) {
       return Promise.reject(
-        new PayloadTooLargeException('Fayl 80 MB dan katta'),
+        new PayloadTooLargeException('Fayl 150 MB dan katta'),
       );
     }
     return Promise.resolve(req.body);
@@ -96,11 +96,16 @@ function readLimited(req: Request, maxBytes: number): Promise<Buffer> {
       reject(error);
     };
     req.on('data', (chunk: Buffer | string) => {
+      // Once oversized, stop buffering (stay memory-safe) but let the
+      // stream keep draining instead of destroying the socket — killing
+      // it here would tear down the connection before Nest gets a chance
+      // to send the 413 response, surfacing as a raw ECONNRESET/500 to
+      // the client instead of a clean error.
+      if (settled) return;
       const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
       total += buf.length;
       if (total > maxBytes) {
-        fail(new PayloadTooLargeException('Fayl 80 MB dan katta'));
-        req.destroy();
+        fail(new PayloadTooLargeException('Fayl 150 MB dan katta'));
         return;
       }
       chunks.push(buf);

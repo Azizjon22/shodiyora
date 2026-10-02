@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { MENU_DISH_CATEGORIES, MENU_DISH_CATEGORY_LABELS_UZ, type MenuDishCategory } from "@shodiyora/shared";
+import { MENU_DISH_CATEGORIES, type MenuDishCategory } from "@shodiyora/shared";
 import type { MenuDish } from "@/lib/types";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { UploadField } from "@/components/uploads/upload-field";
+import { useT } from "@/components/i18n/locale-provider";
 import { menuApi, errorText } from "./api";
 
 export function DishModal({
@@ -24,6 +25,7 @@ export function DishModal({
   dish?: MenuDish;
   category?: MenuDishCategory;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
   // A ref, not state: the button click and the submit run in the same tick.
@@ -34,7 +36,7 @@ export function DishModal({
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const name = String(form.get("name") ?? "").trim();
-    if (name.length < 2) return setError("Taom nomini kiriting");
+    if (name.length < 2) return setError(t("menuStudio.dishNameRequired"));
     const photo = String(form.get("photoUrl") ?? "");
     const body = {
       category: form.get("category"),
@@ -53,7 +55,7 @@ export function DishModal({
       if (again.current && !dish) setFormKey((k) => k + 1);
       else onClose();
     } catch (err) {
-      setError(errorText(err));
+      setError(errorText(err, t("common.genericError")));
     } finally {
       setBusy(false);
     }
@@ -65,50 +67,57 @@ export function DishModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={dish ? "Taomni tahrirlash" : "Taom qo'shish"}
+      title={dish ? t("menuStudio.editDish") : t("menuStudio.addDish")}
       size="lg"
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
-            Bekor qilish
+            {t("common.cancel")}
           </Button>
           {!dish && (
             <Button type="submit" form="dish-form" variant="outline" disabled={busy} onClick={() => (again.current = true)}>
-              Saqlab, yana qo&apos;shish
+              {t("menuStudio.saveAndAddAnother")}
             </Button>
           )}
           <Button type="submit" form="dish-form" disabled={busy} onClick={() => (again.current = false)}>
-            {busy ? "Saqlanmoqda..." : "Saqlash"}
+            {busy ? t("common.saving") : t("common.save")}
           </Button>
         </>
       }
     >
       <form key={formKey} id="dish-form" onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-[220px_1fr]">
         <div className="sm:row-span-3">
-          <UploadField name="photoUrl" label="Rasm" folder="menus" aspect="square" defaultValue={dish?.photoUrl} />
+          <UploadField name="photoUrl" label={t("menuStudio.photo")} folder="menus" aspect="square" defaultValue={dish?.photoUrl} />
         </div>
         <div>
-          <Label htmlFor="dish-category">Turkum</Label>
+          <Label htmlFor="dish-category">{t("menuStudio.category")}</Label>
           <Select id="dish-category" name="category" defaultValue={defaultCategory}>
             {MENU_DISH_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {MENU_DISH_CATEGORY_LABELS_UZ[c]}
+                {t(`dishCategories.${c}`)}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label htmlFor="dish-name">Taom nomi</Label>
-          <Input id="dish-name" name="name" defaultValue={dish?.name} placeholder="masalan: Olivye" autoFocus required />
+          <Label htmlFor="dish-name">{t("menuStudio.dishName")}</Label>
+          <Input
+            id="dish-name"
+            name="name"
+            defaultValue={dish?.name}
+            placeholder={t("menuStudio.dishNamePlaceholder")}
+            autoFocus
+            required
+          />
         </div>
         <div>
-          <Label htmlFor="dish-description">Qisqa tavsif (ixtiyoriy)</Label>
+          <Label htmlFor="dish-description">{t("menuStudio.shortDescription")}</Label>
           <Textarea
             id="dish-description"
             name="description"
             rows={3}
             defaultValue={dish?.description ?? ""}
-            placeholder="masalan: Klassik olivye salati"
+            placeholder={t("menuStudio.shortDescriptionPlaceholder")}
           />
         </div>
         {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}

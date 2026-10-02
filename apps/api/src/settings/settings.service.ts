@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 
 const ID = 'app';
@@ -10,6 +11,7 @@ export class SettingsService {
   constructor(
     private prisma: PrismaService,
     private auditLog: AuditLogService,
+    private uploads: UploadsService,
   ) {}
 
   /** Always returns a row — created with defaults on first read. */
@@ -24,6 +26,7 @@ export class SettingsService {
       logoUrl: row.logoUrl,
       heroMediaUrl: row.heroMediaUrl,
       heroMediaKind: row.heroMediaKind,
+      heroMediaStatus: row.heroMediaStatus,
       updatedAt: row.updatedAt,
     };
   }
@@ -39,6 +42,14 @@ export class SettingsService {
         : heroMediaUrl === undefined
           ? undefined
           : (dto.heroMediaKind ?? null);
+    // A new URL starts READY; the video-transcode check below may bump it to
+    // PROCESSING once the row exists. Clearing the hero resets it to null.
+    const heroMediaStatus =
+      heroMediaUrl === null
+        ? null
+        : heroMediaUrl === undefined
+          ? undefined
+          : 'READY';
     const row = await this.prisma.appSettings.upsert({
       where: { id: ID },
       create: {
@@ -47,14 +58,37 @@ export class SettingsService {
         logoUrl: dto.logoUrl ?? null,
         heroMediaUrl: heroMediaUrl ?? null,
         heroMediaKind: heroMediaKind ?? null,
+        heroMediaStatus: heroMediaStatus ?? null,
       },
       update: {
         brandName: brandName || undefined,
         logoUrl: dto.logoUrl,
         heroMediaUrl,
         heroMediaKind,
+        heroMediaStatus,
       },
     });
+
+    if (heroMediaUrl && heroMediaKind === 'VIDEO') {
+      const started = await this.uploads.maybeTranscodeVideo(
+        heroMediaUrl,
+        async (result) => {
+          await this.prisma.appSettings.update({
+            where: { id: ID },
+            data: result.ok
+              ? { heroMediaUrl: result.url, heroMediaStatus: 'READY' }
+              : { heroMediaStatus: 'FAILED' },
+          });
+        },
+      );
+      if (started) {
+        await this.prisma.appSettings.update({
+          where: { id: ID },
+          data: { heroMediaStatus: 'PROCESSING' },
+        });
+        row.heroMediaStatus = 'PROCESSING';
+      }
+    }
 
     const changes: string[] = [];
     if (brandName && brandName !== before.brandName)
@@ -84,6 +118,7 @@ export class SettingsService {
       logoUrl: row.logoUrl,
       heroMediaUrl: row.heroMediaUrl,
       heroMediaKind: row.heroMediaKind,
+      heroMediaStatus: row.heroMediaStatus,
       updatedAt: row.updatedAt,
     };
   }

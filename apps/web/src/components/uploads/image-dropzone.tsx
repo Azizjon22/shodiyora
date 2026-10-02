@@ -11,6 +11,7 @@ interface Props {
   previewUrl?: string;
   uploading?: boolean;
   error?: string;
+  warning?: string;
   onFileSelected: (file: File) => void;
   onClear?: () => void;
   className?: string;
@@ -28,6 +29,7 @@ export function ImageDropzone({
   previewUrl,
   uploading,
   error,
+  warning,
   onFileSelected,
   onClear,
   className,
@@ -153,6 +155,7 @@ export function ImageDropzone({
         </div>
       )}
       {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {!error && warning && <p className="mt-1 text-xs text-accent">{warning}</p>}
     </div>
   );
 }

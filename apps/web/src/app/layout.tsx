@@ -52,14 +52,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-theme="light"
       suppressHydrationWarning
     >
-      <head>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <BrandProvider brand={brand}>
+          <LocaleProvider locale={locale} dictionary={dictionary}>
+            {children}
+          </LocaleProvider>
+        </BrandProvider>
         {/* Must run before hydration paints, or the page flashes the wrong
-            theme for a frame. Placing a plain <script> directly in JSX
-            makes React log a (harmless but noisy) warning; next/script's
-            beforeInteractive strategy is Next's documented replacement —
-            and per this Next version's own hydration error, it has to
-            stay inside <head> (a bare <html> child isn't valid HTML for
-            a <script>, which Next 16 now enforces at dev time). */}
+            theme for a frame. Per next/script's own API reference, a
+            beforeInteractive Script belongs inside <body> after {children}
+            — Next hoists it into the built HTML's <head> regardless; both
+            <head> and a bare <html> child are Next 16 rendering no-ops. */}
         <Script
           id="theme-init"
           strategy="beforeInteractive"
@@ -68,13 +71,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               "(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}else{document.documentElement.setAttribute('data-theme','light');}}catch(e){document.documentElement.setAttribute('data-theme','light');}})();",
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        <BrandProvider brand={brand}>
-          <LocaleProvider locale={locale} dictionary={dictionary}>
-            {children}
-          </LocaleProvider>
-        </BrandProvider>
       </body>
     </html>
   );

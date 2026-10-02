@@ -6,6 +6,7 @@ import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/inpu
 import { MenuAndDishes } from "@/components/events/menu-and-dishes";
 import { Button } from "@/components/ui/button";
 import type { Menu } from "@/lib/types";
+import { useT } from "@/components/i18n/locale-provider";
 
 const initialState: FormActionState = undefined;
 
@@ -18,6 +19,7 @@ export function CreateEventForm({
   defaultDate?: string;
   canSetDishes: boolean;
 }) {
+  const t = useT();
   const [state, formAction, isPending] = useActionState(createEventAction, initialState);
   const defaultDateTime = defaultDate ? `${defaultDate}T18:00` : undefined;
 
@@ -35,29 +37,29 @@ export function CreateEventForm({
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <Label htmlFor="clientName">Mijoz ismi</Label>
+          <Label htmlFor="clientName">{t("events.clientName")}</Label>
           <Input id="clientName" name="clientName" required />
         </div>
         <div>
-          <Label htmlFor="clientPhone">Mijoz telefoni</Label>
+          <Label htmlFor="clientPhone">{t("events.clientPhone")}</Label>
           <Input id="clientPhone" name="clientPhone" placeholder="+998901234567" required />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-          <Label htmlFor="eventDate">Sana va vaqt</Label>
+          <Label htmlFor="eventDate">{t("events.dateTime")}</Label>
           <Input id="eventDate" name="eventDate" type="datetime-local" defaultValue={defaultDateTime} required />
         </div>
         <div>
-          <Label htmlFor="guestCount">Mehmonlar soni</Label>
+          <Label htmlFor="guestCount">{t("events.guestCountLabel")}</Label>
           <Input id="guestCount" name="guestCount" type="number" min={1} required />
         </div>
         <div>
-          <Label htmlFor="tableCapacity">Stol turi</Label>
+          <Label htmlFor="tableCapacity">{t("events.tableType")}</Label>
           <Select id="tableCapacity" name="tableCapacity" required>
-            <option value="10">10 kishilik</option>
-            <option value="12">12 kishilik</option>
+            <option value="10">{t("events.seatsOption", { count: 10 })}</option>
+            <option value="12">{t("events.seatsOption", { count: 12 })}</option>
           </Select>
         </div>
       </div>
@@ -65,13 +67,13 @@ export function CreateEventForm({
       <MenuAndDishes menus={menus} canSetDishes={canSetDishes} />
 
       <div>
-        <Label htmlFor="notes">Izoh (ixtiyoriy)</Label>
+        <Label htmlFor="notes">{t("events.notesOptional")}</Label>
         <Textarea id="notes" name="notes" rows={3} />
       </div>
 
       <FieldError>{state?.error}</FieldError>
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Yaratilmoqda..." : <>To&apos;yni yaratish</>}
+        {isPending ? t("events.creating") : t("events.createSubmit")}
       </Button>
     </form>
   );

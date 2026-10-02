@@ -58,9 +58,13 @@ export function MenuShowcaseDetail({ menu }: { menu: Menu }) {
       : []),
   ];
 
-  // Dead links are dropped from the gallery entirely rather than shown torn.
+  // Dead photo links and videos still transcoding (or that failed to) are
+  // dropped from the gallery entirely rather than shown as a blank tile.
   const media = useMemo(
-    () => menu.media.filter((m) => m.mediaType === "VIDEO" || !broken.has(m.url)),
+    () =>
+      menu.media.filter((m) =>
+        m.mediaType === "VIDEO" ? m.processingStatus === "READY" : !broken.has(m.url),
+      ),
     [menu.media, broken],
   );
   const sectionsPresent = MENU_MEDIA_SECTIONS.filter((s) => media.some((m) => m.section === s));

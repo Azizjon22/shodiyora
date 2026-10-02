@@ -402,6 +402,16 @@ body {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
+/* Swipeable panes (e.g. the showcase lightbox) scroll by drag/arrow buttons —
+   the native scrollbar track is just visual noise on top of a photo. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /*
  * Big screens (Full HD TVs, 2K/4K monitors in the hall): grow the root size
  * so the whole rem-based presentation scales up proportionally instead of

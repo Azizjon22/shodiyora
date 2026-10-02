@@ -6,9 +6,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn, formatTime, toDateParam } from "@/lib/utils";
-import { UZ_MONTHS } from "@/lib/utils";
-
-const WEEKDAYS_UZ = ["Dush", "Sesh", "Chor", "Pay", "Jum", "Shan", "Yak"];
+import { useLocale } from "@/components/i18n/locale-provider";
 
 interface CalendarEvent {
   id: string;
@@ -43,6 +41,7 @@ function buildMonthGrid(year: number, month: number) {
 type Filter = "all" | "free" | "booked";
 
 export function EventsCalendar({ events, readOnly = false }: { events: CalendarEvent[]; readOnly?: boolean }) {
+  const { t, dictionary } = useLocale();
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [filter, setFilter] = useState<Filter>("all");
@@ -71,19 +70,19 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
             type="button"
             variant="outline"
             size="sm"
-            aria-label="Oldingi oy"
+            aria-label={t("events.prevMonth")}
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <p className="min-w-36 text-center font-semibold">
-            {UZ_MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+            {dictionary.months[cursor.getMonth()]} {cursor.getFullYear()}
           </p>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            aria-label="Keyingi oy"
+            aria-label={t("events.nextMonth")}
             onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
           >
             <ChevronRight className="h-4 w-4" />
@@ -92,9 +91,9 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
         <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted p-1 text-xs font-medium">
           {(
             [
-              ["all", "Barchasi"],
-              ["free", "Bo'sh kunlar"],
-              ["booked", "Band kunlar"],
+              ["all", t("common.all")],
+              ["free", t("events.freeDays")],
+              ["booked", t("events.bookedDays")],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -113,7 +112,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium text-muted-foreground sm:gap-1.5 sm:text-xs">
-          {WEEKDAYS_UZ.map((w) => (
+          {dictionary.weekdaysShort.map((w) => (
             <div key={w} className="truncate py-1">
               <span className="@min-[640px]:hidden">{w.slice(0, 2)}</span>
               <span className="hidden @min-[640px]:inline">{w}</span>
@@ -164,7 +163,9 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
                     );
                   })}
                 {inMonth && dayEvents.length > 2 && (
-                  <span className="text-[10px] text-muted-foreground">+{dayEvents.length - 2} ta</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t("events.moreCount", { count: dayEvents.length - 2 })}
+                  </span>
                 )}
                 {inMonth && !readOnly && (
                   <Link
@@ -172,7 +173,7 @@ export function EventsCalendar({ events, readOnly = false }: { events: CalendarE
                     className="mt-auto flex min-w-0 items-center gap-0.5 text-[10px] text-muted-foreground hover:text-primary"
                   >
                     <Plus className="h-3 w-3 shrink-0" />
-                    <span className="truncate">to&apos;y</span>
+                    <span className="truncate">{t("events.addEventWord")}</span>
                   </Link>
                 )}
               </div>

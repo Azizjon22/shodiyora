@@ -5,8 +5,8 @@ import { PAYMENT_METHODS } from "@shodiyora/shared";
 import { addPaymentAction, addRefundAction, type FormActionState } from "@/lib/actions/events.actions";
 import { Input, Select, Label, FieldError } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/i18n/locale-provider";
 
-export const METHOD_LABEL: Record<string, string> = { CASH: "Naqd", CARD: "Karta", TRANSFER: "O'tkazma" };
 const initialState: FormActionState = undefined;
 
 /**
@@ -14,6 +14,7 @@ const initialState: FormActionState = undefined;
  * server-side refusal (e.g. "exceeds the remaining balance") keeps the input.
  */
 export function PaymentForm({ eventId, mode = "payment" }: { eventId: string; mode?: "payment" | "refund" }) {
+  const t = useT();
   const refund = mode === "refund";
   const action = (refund ? addRefundAction : addPaymentAction).bind(null, eventId);
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -38,25 +39,25 @@ export function PaymentForm({ eventId, mode = "payment" }: { eventId: string; mo
       className="flex flex-col gap-3 sm:flex-row sm:items-end"
     >
       <div className="flex-1">
-        <Label htmlFor={`${mode}-amount`}>{refund ? "Qaytariladigan summa" : "Summa (so'm)"}</Label>
+        <Label htmlFor={`${mode}-amount`}>{refund ? t("events.refundAmount") : t("events.amountSom")}</Label>
         <Input id={`${mode}-amount`} name="amount" type="number" min={1} required />
       </div>
       <div>
-        <Label htmlFor={`${mode}-method`}>Usul</Label>
+        <Label htmlFor={`${mode}-method`}>{t("events.method")}</Label>
         <Select id={`${mode}-method`} name="method" className="sm:w-36">
           {PAYMENT_METHODS.map((m) => (
             <option key={m} value={m}>
-              {METHOD_LABEL[m]}
+              {t(`paymentMethods.${m}`)}
             </option>
           ))}
         </Select>
       </div>
       <div className="flex-1">
-        <Label htmlFor={`${mode}-note`}>Izoh</Label>
-        <Input id={`${mode}-note`} name="note" placeholder={refund ? "masalan: to'y bekor qilindi, zaklad qaytarildi" : undefined} />
+        <Label htmlFor={`${mode}-note`}>{t("events.note")}</Label>
+        <Input id={`${mode}-note`} name="note" placeholder={refund ? t("events.refundNotePlaceholder") : undefined} />
       </div>
       <Button type="submit" variant={refund ? "destructive" : "primary"} disabled={isPending}>
-        {isPending ? "Saqlanmoqda..." : refund ? "Pulni qaytarish" : "To'lov qo'shish"}
+        {isPending ? t("common.saving") : refund ? t("events.refundSubmit") : t("events.paymentSubmit")}
       </Button>
       <FieldError>{state?.error}</FieldError>
     </form>
