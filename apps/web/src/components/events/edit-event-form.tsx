@@ -57,7 +57,7 @@ export function EditEventForm({ event, menus, canSetDishes }: { event: EventDeta
         </div>
         <div>
           <Label htmlFor="guestCount">{t("events.guestCountLabel")}</Label>
-          <Input id="guestCount" name="guestCount" type="number" min={1} defaultValue={event.guestCount} required />
+          <Input id="guestCount" name="guestCount" type="number" min={1} max={400} defaultValue={event.guestCount} required />
         </div>
         <div>
           <Label htmlFor="tableCapacity">{t("events.tableType")}</Label>

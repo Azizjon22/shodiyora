@@ -18,3 +18,6 @@ export const DEFAULT_BRAND: Brand = {
   heroMediaKind: null,
   heroMediaStatus: null,
 };
+
+/** Built-in emblem shown whenever no custom logo is uploaded (logoUrl null). */
+export const DEFAULT_LOGO_URL = "/brand/logo-mark.png";

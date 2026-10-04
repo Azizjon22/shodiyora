@@ -13,7 +13,10 @@ export function DeleteEventButton({ eventId, clientName }: { eventId: string; cl
   function handleClick() {
     const confirmed = window.confirm(t("events.deleteConfirm", { name: clientName }));
     if (!confirmed) return;
-    startTransition(() => deleteEventAction(eventId));
+    startTransition(async () => {
+      const result = await deleteEventAction(eventId);
+      if (result?.error) window.alert(result.error);
+    });
   }
 
   return (

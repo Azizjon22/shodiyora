@@ -140,7 +140,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
 
       {/* ---------- Header ---------- */}
       <div className={cn("overflow-hidden rounded-2xl border bg-card shadow-sm", menu.isVip ? "border-accent/50" : "border-border")}>
-        <div className="grid xl:grid-cols-[minmax(0,420px)_1fr]">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
           <button
             type="button"
             onClick={() => setDialog({ kind: "info" })}
@@ -250,7 +250,7 @@ export function MenuStudio({ menu, usedInEvents, canDelete }: { menu: Menu; used
 
       {error && <p className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,300px)]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,300px)]">
         {/* ---------- Content ---------- */}
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

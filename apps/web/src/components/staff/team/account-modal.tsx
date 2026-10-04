@@ -96,7 +96,7 @@ export function AccountModal({ account, isSelf, onClose }: { account?: StaffUser
       <div className="space-y-4">
         <div>
           <p className="mb-2 text-sm font-medium">Rol</p>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {(Object.keys(ROLE_META) as StaffRole[]).map((r) => {
               const meta = ROLE_META[r];
               const on = role === r;
@@ -124,7 +124,7 @@ export function AccountModal({ account, isSelf, onClose }: { account?: StaffUser
           </div>
           {isSelf && <p className="mt-1.5 text-xs text-muted-foreground">O&apos;z rolingizni o&apos;zgartira olmaysiz.</p>}
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="acc-name">Ism-familiya</Label>
             <Input id="acc-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="masalan: Dilnoza Karimova" />

@@ -126,13 +126,13 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
           );
         })}
         {isSuperAdmin && (
-          <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 xl:col-span-1">
+          <div className="@container col-span-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 xl:col-span-1">
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Shu oy bozorlik</p>
-              <p className="font-display mt-0.5 break-words text-[clamp(1.15rem,3vw,1.5rem)] font-semibold leading-tight lining-nums tabular-nums">{formatSom(monthSpent)}</p>
+              <p className="font-display mt-0.5 whitespace-nowrap text-[clamp(1.125rem,10cqi,1.5rem)] font-semibold leading-tight lining-nums tabular-nums">{formatSom(monthSpent)}</p>
               <p className="mt-1 text-[11px] text-muted-foreground">sotib olingan mahsulotlar</p>
             </div>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+            <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent @[240px]:flex">
               <Wallet className="h-5 w-5" />
             </span>
           </div>
@@ -148,7 +148,7 @@ export function CenterPage({ lists, catalog, isSuperAdmin }: { lists: ShoppingLi
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
           <div className={cn("min-w-0 space-y-2.5 xl:sticky xl:top-20 xl:self-start", mobileDetail && "hidden xl:block")}>
             {visible.map((l) => (
               <ListCard

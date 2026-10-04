@@ -65,7 +65,14 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
               <Pencil className="h-4 w-4" /> {t("common.edit")}
             </LinkButton>
           )}
-          {canDelete && <DeleteEventButton eventId={event.id} clientName={event.clientName} />}
+          {/* Once confirmed, or once any money is on it, a wedding stays in the books. */}
+          {canDelete &&
+            event.status !== "CONFIRMED" &&
+            event.status !== "COMPLETED" &&
+            (event.payments ?? []).length === 0 &&
+            (event.expenses ?? []).length === 0 && (
+              <DeleteEventButton eventId={event.id} clientName={event.clientName} />
+            )}
           <StatusSelect eventId={event.id} status={event.status} />
         </div>
       </div>

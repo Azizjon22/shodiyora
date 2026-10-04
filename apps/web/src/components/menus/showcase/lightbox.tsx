@@ -113,16 +113,7 @@ export function Lightbox({
             <div key={`${slide.url}-${i}`} className="no-scrollbar h-full w-full shrink-0 snap-center overflow-y-auto overscroll-y-contain">
               <div className="flex min-h-full items-center justify-center px-3 py-3 sm:px-8">
                 {slide.kind === "VIDEO" ? (
-                  <video
-                    key={slide.url}
-                    src={slide.url}
-                    controls
-                    autoPlay={i === index}
-                    muted
-                    loop
-                    playsInline
-                    className="w-full rounded-lg xl:max-h-[70vh]"
-                  />
+                  <SlideVideo key={slide.url} src={slide.url} active={i === index} />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -159,5 +150,37 @@ export function Lightbox({
         )}
       </div>
     </Portal>
+  );
+}
+
+/**
+ * Only the slide in view plays and buffers; swiping away pauses it, and the
+ * others fetch just their first frame instead of the whole file.
+ */
+function SlideVideo({ src, active }: { src: string; active: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    if (active) {
+      // Autoplay can be refused (e.g. low-power mode); controls stay usable.
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [active]);
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      controls
+      muted
+      loop
+      playsInline
+      preload={active ? "auto" : "metadata"}
+      className="w-full rounded-lg xl:max-h-[70vh]"
+    />
   );
 }

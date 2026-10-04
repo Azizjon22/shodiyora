@@ -224,7 +224,7 @@ export const uz = {
     filterByDate: "Sana bo'yicha qidirish",
     noResultsForDate: "Bu sanada to'y topilmadi.",
     deleteConfirm:
-      "{name} uchun to'y buyurtmasini butunlay o'chirmoqchimisiz? Barcha to'lovlar va bozorlik ro'yxatlari ham o'chadi. Bu amalni qaytarib bo'lmaydi.",
+      "{name} uchun to'y buyurtmasini butunlay o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi. Tasdiqlangan yoki to'lov yozilgan to'y o'chirilmaydi — uni bekor qilish mumkin.",
     unassignAria: "Ishchini olib tashlash",
     clientName: "Mijoz ismi",
     clientPhone: "Mijoz telefoni",

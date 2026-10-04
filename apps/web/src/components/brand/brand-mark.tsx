@@ -1,11 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { DEFAULT_LOGO_URL } from "@/lib/brand-shared";
 import { useBrand } from "./brand-provider";
 
 /**
  * The project's logo: the uploaded image when there is one, otherwise the
- * brand name's first letter on the primary circle. Size comes from className.
+ * built-in Shodiyora emblem. Size comes from className.
  */
 export function BrandMark({
   className,
@@ -18,24 +19,21 @@ export function BrandMark({
   name?: string;
 }) {
   const brand = useBrand();
-  const src = logoUrl === undefined ? brand.logoUrl : logoUrl;
+  const custom = logoUrl === undefined ? brand.logoUrl : logoUrl;
   const label = name ?? brand.brandName;
 
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={label} className={cn("block shrink-0 rounded-full bg-card object-cover", className)} />
-    );
-  }
   return (
-    <span
-      aria-hidden="true"
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={custom ?? DEFAULT_LOGO_URL}
+      alt={label}
       className={cn(
-        "font-display flex shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground",
+        "block shrink-0 rounded-full bg-card",
+        // The built-in emblem carries its own margin so its wide base stays
+        // inside the circle; uploaded square logos fill it edge to edge.
+        custom ? "object-cover" : "object-contain",
         className,
       )}
-    >
-      {(label.trim()[0] ?? "S").toUpperCase()}
-    </span>
+    />
   );
 }

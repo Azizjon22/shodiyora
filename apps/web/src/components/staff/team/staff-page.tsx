@@ -85,7 +85,7 @@ function CreateChefModal({ onClose }: { onClose: () => void }) {
         </>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="chef-name">Ism-familiya</Label>
           <Input id="chef-name" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
@@ -267,7 +267,7 @@ export function StaffPage({ staff, chefs, currentUserId }: { staff: StaffUserSum
               <p className="font-display mt-0.5 text-[clamp(1.5rem,4vw,1.875rem)] font-semibold leading-none lining-nums tabular-nums">{s.value}</p>
               <p className="mt-1 text-[11px] text-muted-foreground">{s.hint}</p>
             </div>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">{s.icon}</span>
+            <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground sm:flex">{s.icon}</span>
           </div>
         ))}
       </div>
@@ -313,7 +313,7 @@ export function StaffPage({ staff, chefs, currentUserId }: { staff: StaffUserSum
       </div>
 
       {tab === "accounts" ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((a) => (
             <AccountCard
               key={a.id}
@@ -344,7 +344,7 @@ export function StaffPage({ staff, chefs, currentUserId }: { staff: StaffUserSum
           {chefs.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">Hali oshpaz qo&apos;shilmagan.</div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {chefs.map((c) => {
               const active = c.status === "APPROVED";
               return (

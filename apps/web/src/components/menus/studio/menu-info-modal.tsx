@@ -78,7 +78,7 @@ export function MenuInfoModal({ open, onClose, menu }: { open: boolean; onClose:
         </>
       }
     >
-      <form id="menu-info-form" onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-[260px_1fr]">
+      <form id="menu-info-form" onSubmit={onSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-[260px_minmax(0,1fr)]">
         <div className="sm:row-span-2">
           <UploadField
             name="coverImageUrl"

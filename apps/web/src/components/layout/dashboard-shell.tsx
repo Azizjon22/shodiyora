@@ -15,6 +15,32 @@ import { BrandMark } from "@/components/brand/brand-mark";
 
 const COLLAPSE_KEY = "nav-collapsed";
 
+type NavMode = "full" | "rail" | "auto";
+
+const NAV_CLASSES: Record<NavMode, { group: string; title: string; link: string; label: string; badge: string }> = {
+  full: {
+    group: "mb-4",
+    title: "block",
+    link: "gap-3 px-3 py-2.5 text-sm",
+    label: "truncate",
+    badge: "ml-auto h-5 min-w-5 text-[11px]",
+  },
+  rail: {
+    group: "mb-3",
+    title: "hidden",
+    link: "flex-col justify-center gap-1 px-1 py-2 text-center text-[10px] leading-tight",
+    label: "line-clamp-2 break-words",
+    badge: "absolute right-1 top-1 h-4 min-w-4 text-[10px]",
+  },
+  auto: {
+    group: "mb-3 xl:mb-4",
+    title: "hidden xl:block",
+    link: "flex-col justify-center gap-1 px-1 py-2 text-center text-[10px] leading-tight xl:flex-row xl:justify-start xl:gap-3 xl:px-3 xl:py-2.5 xl:text-left xl:text-sm",
+    label: "line-clamp-2 break-words xl:line-clamp-none xl:truncate",
+    badge: "absolute right-1 top-1 h-4 min-w-4 text-[10px] xl:static xl:ml-auto xl:h-5 xl:min-w-5 xl:text-[11px]",
+  },
+};
+
 export function DashboardShell({
   fullName,
   role,
@@ -65,75 +91,83 @@ export function DashboardShell({
     });
   }
 
-  const navContent = (compact: boolean) => (
-    <>
-      {NAV_GROUPS.map((group) => {
-        const groupItems = items.filter((item) => item.group === group.id);
-        if (groupItems.length === 0) return null;
-        return (
-          <div key={group.id} className={cn("mb-4", compact && "mb-3")}>
-            {!compact && (
-              <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
+  // "full" = labelled list (mobile drawer, wide desktop); "rail" = icon over a
+  // short label (user-collapsed); "auto" = rail on tablets and small laptops
+  // (md..xl) where a 260px sidebar would squeeze the page, full from xl up.
+  const navContent = (mode: NavMode) => {
+    const c = NAV_CLASSES[mode];
+    return (
+      <>
+        {NAV_GROUPS.map((group) => {
+          const groupItems = items.filter((item) => item.group === group.id);
+          if (groupItems.length === 0) return null;
+          return (
+            <div key={group.id} className={c.group}>
+              <p className={cn("mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80", c.title)}>
                 {t(group.labelKey)}
               </p>
-            )}
-            <div className="flex flex-col gap-0.5">
-              {groupItems.map((item) => {
-                const active = isNavActive(pathname, item.href);
-                const Icon = item.icon;
-                const showBadge = item.href === "/dashboard/shopping-lists" && pendingShoppingListsCount > 0;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    title={compact ? t(item.labelKey) : undefined}
-                    className={cn(
-                      "group relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all",
-                      compact ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
-                      active
-                        ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                        : "text-foreground/70 hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "opacity-100" : "opacity-80")} />
-                    {!compact && <span className="truncate">{t(item.labelKey)}</span>}
-                    {showBadge && (
-                      <span
-                        className={cn(
-                          "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold",
-                          compact && "absolute -right-0.5 -top-0.5 h-4 min-w-4 text-[10px]",
-                          !compact && "ml-auto",
-                          active
-                            ? "bg-primary-foreground/20 text-primary-foreground"
-                            : "bg-destructive text-destructive-foreground",
-                        )}
-                      >
-                        {pendingShoppingListsCount}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+              <div className="flex flex-col gap-0.5">
+                {groupItems.map((item) => {
+                  const active = isNavActive(pathname, item.href);
+                  const Icon = item.icon;
+                  const showBadge = item.href === "/dashboard/shopping-lists" && pendingShoppingListsCount > 0;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      title={mode === "full" ? undefined : t(item.labelKey)}
+                      className={cn(
+                        "group relative flex items-center rounded-xl font-medium transition-all",
+                        c.link,
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                          : "text-foreground/70 hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "opacity-100" : "opacity-80")} />
+                      <span className={cn("max-w-full", c.label)}>{t(item.labelKey)}</span>
+                      {showBadge && (
+                        <span
+                          className={cn(
+                            "flex items-center justify-center rounded-full px-1 font-semibold",
+                            c.badge,
+                            active
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-destructive text-destructive-foreground",
+                          )}
+                        >
+                          {pendingShoppingListsCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </>
-  );
+          );
+        })}
+      </>
+    );
+  };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Desktop sidebar */}
+    <div className="flex min-h-svh bg-background">
+      {/* Desktop sidebar: a rail on tablets (md..xl), full width from xl unless collapsed */}
       <aside
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border/70 bg-card lg:flex",
-          collapsed ? "w-[76px]" : "w-[260px]",
+          "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-border/70 bg-card md:flex",
+          collapsed ? "w-[88px]" : "w-[88px] xl:w-[260px]",
         )}
       >
-        <div className={cn("flex h-16 items-center gap-2.5 border-b border-border/60", collapsed ? "justify-center px-2" : "px-4")}>
+        <div
+          className={cn(
+            "flex h-16 items-center gap-2.5 border-b border-border/60",
+            collapsed ? "justify-center px-2" : "justify-center px-2 xl:justify-start xl:px-4",
+          )}
+        >
           <BrandMark className="h-9 w-9 shrink-0 text-lg shadow-sm shadow-primary/25" />
           {!collapsed && (
-            <div className="min-w-0 flex-1">
+            <div className="hidden min-w-0 flex-1 xl:block">
               <p className="font-display truncate text-lg font-semibold leading-tight tracking-tight">
                 {t("common.brand")}
               </p>
@@ -142,9 +176,12 @@ export function DashboardShell({
           )}
         </div>
 
-        <nav className={cn("flex-1 overflow-y-auto py-4", collapsed ? "px-2" : "px-3")}>{navContent(collapsed)}</nav>
+        <nav className={cn("flex-1 overflow-y-auto py-4", collapsed ? "px-2" : "px-2 xl:px-3")}>
+          {navContent(collapsed ? "rail" : "auto")}
+        </nav>
 
-        <div className={cn("border-t border-border/60 p-3", collapsed && "flex justify-center")}>
+        {/* Collapsing only makes sense where the full sidebar is shown. */}
+        <div className="hidden border-t border-border/60 p-3 xl:block">
           <button
             type="button"
             onClick={toggleCollapsed}
@@ -160,7 +197,7 @@ export function DashboardShell({
       {/* Mobile drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(280px,88vw)] flex-col border-r border-border bg-card shadow-xl transition-transform lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(280px,88vw)] flex-col border-r border-border bg-card shadow-xl transition-transform md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -169,27 +206,32 @@ export function DashboardShell({
             <BrandMark className="h-9 w-9 text-lg" />
             <span className="font-display text-lg font-semibold">{t("common.brand")}</span>
           </span>
-          <button type="button" onClick={() => setMobileOpen(false)} aria-label={t("common.close")}>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label={t("common.close")}
+            className="-mr-2 flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4">{navContent(false)}</nav>
+        <nav className="flex-1 overflow-y-auto px-3 py-4">{navContent("full")}</nav>
       </aside>
 
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] md:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label={t("common.closeMenu")}
         />
       )}
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="flex min-h-svh min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/70 bg-card/85 px-3 backdrop-blur-md sm:gap-3 sm:px-6">
           <button
             type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-foreground hover:bg-muted lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-foreground hover:bg-muted md:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label={t("common.openMenu")}
           >
@@ -257,7 +299,7 @@ export function DashboardShell({
         </header>
 
         {/* Mobile bottom nav — top destinations */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border/80 bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border/80 bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
           {items.slice(0, 5).map((item) => {
             const active = isNavActive(pathname, item.href);
             const Icon = item.icon;
@@ -277,7 +319,7 @@ export function DashboardShell({
           })}
         </nav>
 
-        <main className="@container/main flex-1 bg-[radial-gradient(ellipse_at_top,var(--surface-glow),transparent_50%)] p-4 pb-24 sm:p-6 lg:pb-6">
+        <main className="@container/main min-w-0 flex-1 bg-[radial-gradient(ellipse_at_top,var(--surface-glow),transparent_50%)] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:p-6 sm:pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6">
           {children}
         </main>
       </div>

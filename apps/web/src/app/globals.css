@@ -327,6 +327,20 @@ body {
   transform: none;
 }
 
+/*
+ * iOS/iPadOS Safari zooms the whole page into any focused field whose text is
+ * under 16px, and the layout stays zoomed after blur. On touch screens lift
+ * the small form fields to 16px; larger ones (price inputs etc.) are untouched.
+ * Unlayered on purpose so it wins over the text-* utilities.
+ */
+@media (pointer: coarse) {
+  :is(input, select, textarea):is(.text-xs, .text-sm, [class*="text-[1"]),
+  input[type="date"],
+  input[type="time"] {
+    font-size: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;

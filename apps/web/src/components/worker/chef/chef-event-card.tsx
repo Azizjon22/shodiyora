@@ -116,7 +116,14 @@ export function ChefEventCard({
           {courses.map(({ c, dishes }) => (
             <div key={c}>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">{MENU_DISH_CATEGORY_LABELS_UZ[c]}</p>
-              <p className="mt-0.5 text-sm">{dishes.map((d) => d.name).join(" · ")}</p>
+              <ol className="mt-1 space-y-1 text-sm">
+                {dishes.map((d, i) => (
+                  <li key={d.id} className="flex gap-2">
+                    <span className="w-5 shrink-0 text-right tabular-nums text-muted-foreground">{i + 1}.</span>
+                    <span className="min-w-0">{d.name}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
           ))}
         </div>

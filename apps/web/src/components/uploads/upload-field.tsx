@@ -124,6 +124,13 @@ export function UploadField({
           setWarning(undefined);
         }}
       />
+      {/* Phone videos (HEVC .mov) often show a black preview here; the server
+          converts them for every browser, so the upload did work. */}
+      {url && previewKind === "video" && !uploading && !error && (
+        <p className="mt-1.5 text-xs text-success">
+          Video yuklandi — barcha qurilmalar uchun tayyorlanmoqda (1–2 daqiqa). Saqlashingiz mumkin.
+        </p>
+      )}
     </div>
   );
 }

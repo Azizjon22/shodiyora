@@ -95,7 +95,7 @@ export function ImageDropzone({
                 <img src={previewUrl} alt="" className="h-full w-full object-cover" onError={() => setBrokenUrl(previewUrl)} />
               )
             ) : (
-              <video src={previewUrl} className="h-full w-full object-cover" muted playsInline />
+              <video src={previewUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
             )}
             {!uploading && (
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">

@@ -214,7 +214,7 @@ export function StorePage({
             </div>
             <span
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex",
                 s.tone === "warn"
                   ? "bg-accent/15 text-accent"
                   : s.tone === "danger"
@@ -278,7 +278,7 @@ export function StorePage({
         </section>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
           {/* ---------- Toolbar ---------- */}
           <div className="space-y-3 rounded-2xl border border-border bg-card p-3 sm:p-4">

@@ -46,12 +46,19 @@ export const workerLoginSchema = z.object({
 });
 export type WorkerLoginInput = z.infer<typeof workerLoginSchema>;
 
+/** The hall seats at most this many guests. */
+export const MAX_EVENT_GUESTS = 400;
+
 export const createEventSchema = z.object({
   clientName: z.string().trim().min(2),
   clientPhone: z.string().regex(phoneRegex, "Telefon raqami noto'g'ri"),
   eventDate: z.coerce.date(),
   tableCapacity: z.union([z.literal(10), z.literal(12)]),
-  guestCount: z.coerce.number().int().positive(),
+  guestCount: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(MAX_EVENT_GUESTS, `Mehmonlar soni ${MAX_EVENT_GUESTS} tadan oshmasligi kerak`),
   menuId: z.string().min(1),
   notes: z.string().optional(),
 });

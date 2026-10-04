@@ -103,7 +103,10 @@ export function StatTile({
 
 export function WeekPlan({ week, t, weekdays }: { week: WeekDay[]; t: T; weekdays: string[] }) {
   return (
-    <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 @min-[1180px]/main:mx-0 @min-[1180px]/main:grid @min-[1180px]/main:grid-cols-7 @min-[1180px]/main:overflow-visible @min-[1180px]/main:px-0 @min-[1180px]/main:pb-0">
+    // Laid out by the card's own width, not the viewport: beside the sidebar a
+    // tablet has far less room than its screen width suggests.
+    <div className="@container">
+    <div className="-mx-4 flex snap-x gap-2 overflow-x-auto scroll-px-4 px-4 pb-1 sm:-mx-5 sm:scroll-px-5 sm:px-5 @[640px]:mx-0 @[640px]:grid @[640px]:grid-cols-7 @[640px]:overflow-visible @[640px]:px-0 @[640px]:pb-0">
       {week.map((day, i) => {
         const date = parseDayKey(day.date);
         const tag = i === 0 ? t("dashboard.today") : i === 1 ? t("dashboard.tomorrow") : null;
@@ -111,7 +114,7 @@ export function WeekPlan({ week, t, weekdays }: { week: WeekDay[]; t: T; weekday
           <div
             key={day.date}
             className={cn(
-              "flex min-h-36 w-[8.5rem] shrink-0 snap-start flex-col rounded-xl border p-2.5 @min-[1180px]/main:w-auto @min-[1180px]/main:min-w-0",
+              "flex min-h-40 w-[132px] min-w-0 shrink-0 snap-start flex-col rounded-xl border p-2.5 @[640px]:w-auto",
               i === 0 ? "border-primary/50 bg-primary/5" : "border-border bg-background/40",
             )}
           >
@@ -149,6 +152,7 @@ export function WeekPlan({ week, t, weekdays }: { week: WeekDay[]; t: T; weekday
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

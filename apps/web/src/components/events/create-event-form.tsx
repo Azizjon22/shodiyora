@@ -53,7 +53,7 @@ export function CreateEventForm({
         </div>
         <div>
           <Label htmlFor="guestCount">{t("events.guestCountLabel")}</Label>
-          <Input id="guestCount" name="guestCount" type="number" min={1} required />
+          <Input id="guestCount" name="guestCount" type="number" min={1} max={400} required />
         </div>
         <div>
           <Label htmlFor="tableCapacity">{t("events.tableType")}</Label>

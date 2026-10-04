@@ -62,8 +62,8 @@ export function MenuShowcaseList({
     .filter((g) => g.menus.length > 0);
 
   return (
-    <div className="presentation-root min-h-screen bg-background text-foreground">
-      <PresentationHeader />
+    <div className="presentation-root min-h-svh bg-background text-foreground">
+      <PresentationHeader wide />
 
       {/* ---------- Hero ---------- */}
       <section className="relative isolate overflow-hidden bg-[#0d0a0b] text-white">
@@ -89,6 +89,14 @@ export function MenuShowcaseList({
               />
             </div>
           )
+        )}
+        {customHero && (
+          // Uploaded footage is often bright (daylight, fountains): darken only
+          // behind the text so the video stays vivid at the edges.
+          <>
+            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/40 via-black/10 to-black/55" />
+            <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_55%_at_50%_45%,rgba(0,0,0,0.5),transparent_75%)]" />
+          </>
         )}
         {!customHero && (
           <>

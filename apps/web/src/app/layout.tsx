@@ -5,6 +5,7 @@ import Script from "next/script";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { BrandProvider } from "@/components/brand/brand-provider";
 import { getBrand } from "@/lib/brand";
+import { DEFAULT_LOGO_URL } from "@/lib/brand-shared";
 import { getDictionary } from "@/i18n/get-dictionary";
 import type { Locale } from "@/i18n/types";
 import "./globals.css";
@@ -28,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${brandName} | To'yxona boshqaruv tizimi`,
     description: `${brandName} to'yxonasi uchun admin panel: to'y buyurtmalari, menyular, ombor va ishchilar.`,
     manifest: "/manifest.webmanifest",
-    icons: logoUrl ? { icon: logoUrl, apple: logoUrl } : { icon: "/icon.svg", apple: "/icon.svg" },
+    icons: { icon: logoUrl ?? DEFAULT_LOGO_URL, apple: logoUrl ?? DEFAULT_LOGO_URL },
   };
 }
 

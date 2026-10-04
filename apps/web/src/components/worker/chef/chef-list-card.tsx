@@ -6,7 +6,6 @@ import { Check, ChevronDown, PencilLine, X } from "lucide-react";
 import type { ShoppingList } from "@/lib/types";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ItemQuantity } from "@/components/shopping-lists/item-quantity";
-import { ShoppingListPdfButton } from "@/components/shopping-lists/shopping-list-pdf-button";
 import { formatDate, formatDateTime, cn } from "@/lib/utils";
 import { LIST_STEPS, listStepIndex } from "./types";
 
@@ -34,7 +33,6 @@ export function ChefListCard({ list, compact }: { list: ShoppingList; compact?: 
               {formatDateTime(list.createdAt)}
             </p>
           </div>
-          <ShoppingListPdfButton list={list} />
         </div>
 
         <ol className="mt-4 grid grid-cols-4 gap-1">
