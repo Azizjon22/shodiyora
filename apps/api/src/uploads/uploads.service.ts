@@ -10,7 +10,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { createReadStream } from 'node:fs';
 import { mkdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -171,7 +170,7 @@ export class UploadsService {
       if (error instanceof NotFoundException) throw error;
       throw new NotFoundException('Fayl topilmadi');
     }
-    return { stream: createReadStream(absolute), type };
+    return { absolute, type };
   }
 
   /**

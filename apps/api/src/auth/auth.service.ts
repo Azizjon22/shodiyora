@@ -116,7 +116,9 @@ export class AuthService {
     const worker = await this.prisma.worker.findUnique({
       where: { phone: dto.phone },
     });
-    if (!worker || !worker.pinHash) {
+    // Only chefs have an account to sign in to. Waiters are on the roster so
+    // they can be assigned to weddings, nothing more.
+    if (!worker || !worker.pinHash || worker.position !== 'CHEF') {
       throw new UnauthorizedException("Login yoki PIN noto'g'ri");
     }
     if (worker.status !== 'APPROVED') {
@@ -208,6 +210,7 @@ export class AuthService {
     if (
       !worker ||
       worker.status !== 'APPROVED' ||
+      worker.position !== 'CHEF' ||
       worker.tokenVersion !== payload.tokenVersion
     ) {
       throw new UnauthorizedException('Hisob faol emas');

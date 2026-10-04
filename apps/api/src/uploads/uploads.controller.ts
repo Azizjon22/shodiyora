@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -7,17 +8,17 @@ import {
   Put,
   Query,
   Req,
-  StreamableFile,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import type { Request } from 'express';
+import { SkipThrottle } from '@nestjs/throttler';
+import type { Request, Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { SkipMustChange } from '../common/decorators/skip-must-change.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UploadsService } from './uploads.service';
-import { PresignDto, StaffPresignDto } from './dto/presign.dto';
+import { StaffPresignDto } from './dto/presign.dto';
 
 const MAX_BYTES = 150 * 1024 * 1024;
 
@@ -25,13 +26,8 @@ const MAX_BYTES = 150 * 1024 * 1024;
 export class UploadsController {
   constructor(private uploads: UploadsService) {}
 
-  @Public()
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  @Post('worker-photo-presign')
-  presignWorkerPhoto(@Body() dto: PresignDto) {
-    return this.uploads.presign('workers', dto.contentType);
-  }
-
+  // Uploading is for logged-in SUPER_ADMIN and ADMIN only: there is no
+  // anonymous upload route, so nobody outside can fill the disk.
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Post('presign')
@@ -59,12 +55,28 @@ export class UploadsController {
   @SkipMustChange()
   @SkipThrottle()
   @Get('files/*')
-  async serve(@Req() req: Request) {
+  async serve(@Req() req: Request, @Res() res: Response) {
     const opened = await this.uploads.openLocal(keyFromRequest(req));
-    return new StreamableFile(opened.stream, {
-      type: opened.type,
-      disposition: 'inline',
-    });
+    // sendFile answers Range requests (206 Partial Content) and conditional
+    // GETs: videos start at once and can be scrubbed, and iOS Safari refuses
+    // to play video from a server without Range support.
+    res.sendFile(
+      opened.absolute,
+      {
+        headers: {
+          'Content-Type': opened.type,
+          'Content-Disposition': 'inline',
+        },
+        acceptRanges: true,
+        lastModified: true,
+        maxAge: '1h',
+      },
+      (err?: Error & { code?: string }) => {
+        // A viewer skipping ahead aborts the previous range; that is normal.
+        if (err && err.code !== 'ECONNABORTED' && !res.headersSent)
+          res.status(404).end();
+      },
+    );
   }
 }
 
@@ -77,6 +89,11 @@ function keyFromRequest(req: Request): string {
 }
 
 function readLimited(req: Request, maxBytes: number): Promise<Buffer> {
+  // A JSON or form content type means the body parser has already consumed
+  // the stream; waiting for "end" here would hang the request forever.
+  if (!Buffer.isBuffer(req.body) && req.readableEnded) {
+    return Promise.reject(new BadRequestException('Fayl turi mos kelmaydi'));
+  }
   if (Buffer.isBuffer(req.body)) {
     if (req.body.length > maxBytes) {
       return Promise.reject(

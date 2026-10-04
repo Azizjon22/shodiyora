@@ -42,6 +42,8 @@ async function bootstrap() {
     }),
   );
 
+  // Runs onModuleDestroy on SIGTERM so background ffmpeg jobs stop with the API.
+  app.enableShutdownHooks();
   await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

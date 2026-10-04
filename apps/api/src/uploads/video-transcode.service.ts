@@ -79,6 +79,10 @@ export class VideoTranscodeService {
       'fast',
       '-crf',
       '23',
+      // 8-bit 4:2:0 is the only H.264 flavour every browser and phone plays;
+      // without this an iPhone's 10-bit HDR clip stays 10-bit and won't play.
+      '-pix_fmt',
+      'yuv420p',
       '-c:a',
       'aac',
       '-movflags',

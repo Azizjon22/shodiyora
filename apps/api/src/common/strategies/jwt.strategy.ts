@@ -44,10 +44,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (
         !worker ||
         worker.status !== 'APPROVED' ||
+        worker.position !== 'CHEF' ||
         worker.tokenVersion !== payload.tokenVersion
       ) {
         throw new UnauthorizedException('Sessiya endi amal qilmaydi');
       }
+      return { ...payload, position: worker.position };
     }
     return payload;
   }

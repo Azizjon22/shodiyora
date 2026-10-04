@@ -21,7 +21,7 @@ import { UpdateEventStatusDto } from './dto/update-event-status.dto';
 import { AssignWorkerDto } from './dto/assign-worker.dto';
 import { FindEventsQuery } from './dto/find-events.query';
 import { ADMIN_VISIBLE_STATUSES } from '../shopping-lists/shopping-lists.service';
-import { WorkerGuard } from '../common/guards/worker.guard';
+import { ChefGuard, StaffOrChefGuard } from '../common/guards/chef.guard';
 
 // ADMIN still needs to see which shopping lists were written for a wedding
 // (they manage procurement) — but only the ones SUPER_ADMIN has sent on —
@@ -83,12 +83,13 @@ export class EventsController {
 
   // No @Roles(): reachable by workers too, so chefs can pick which wedding
   // their shopping list is for. Returns no financial data.
+  @UseGuards(StaffOrChefGuard)
   @Get('upcoming')
   upcoming() {
     return this.events.upcomingForPicker();
   }
 
-  @UseGuards(WorkerGuard)
+  @UseGuards(ChefGuard)
   @Get('chef-agenda')
   chefAgenda(@CurrentUser() user: AuthPayload) {
     return this.events.chefAgenda(user.sub);

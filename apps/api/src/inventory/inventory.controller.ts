@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { StaffOrChefGuard } from '../common/guards/chef.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthPayload } from '../common/types/auth-payload';
 import { InventoryService } from './inventory.service';
@@ -23,8 +24,9 @@ import { StockCountDto } from './dto/stock-count.dto';
 export class InventoryController {
   constructor(private inventory: InventoryService) {}
 
-  // Open to any authenticated user (staff or worker) — chefs browse this
-  // to build shopping lists from photo cards with the right unit per item.
+  // Staff and chefs only — chefs browse this to build shopping lists from
+  // photo cards with the right unit per item. Waiters have no use for it.
+  @UseGuards(StaffOrChefGuard)
   @Get('catalog')
   catalog() {
     return this.inventory.productCatalog();
