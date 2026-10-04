@@ -238,6 +238,7 @@ export const uz = {
     saveChanges: "O'zgarishlarni saqlash",
     amountPlaceholder: "Summa",
     fromShoppingLists: "Bozorlik ro'yxatlari bo'yicha",
+    fromStock: "Ombordan olingan mahsulotlar",
     addingPending: "Qo'shilmoqda...",
     refundAmount: "Qaytariladigan summa",
     amountSom: "Summa (so'm)",
@@ -495,6 +496,7 @@ export const uz = {
   },
   expenseCategories: {
     SHOPPING: "Bozorlik",
+    STOCK: "Ombor mahsulotlari",
     CAMERAMAN: "Kamerachi",
     ARTIST: "San'atkor",
     KORTEJ: "Kortej",

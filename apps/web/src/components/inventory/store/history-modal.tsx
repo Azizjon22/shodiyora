@@ -34,7 +34,8 @@ export function TxnRow({ txn, unit, showItem }: { txn: InventoryTxn; unit: Inven
           </p>
         )}
         <p className="text-[11px] text-muted-foreground/80">
-          {formatDateTime(txn.createdAt)} · {txn.createdBy.fullName}
+          {formatDateTime(txn.createdAt)}
+          {txn.createdBy && ` · ${txn.createdBy.fullName}`}
         </p>
       </div>
     </li>

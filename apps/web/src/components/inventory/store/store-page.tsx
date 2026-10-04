@@ -278,36 +278,51 @@ export function StorePage({
         </section>
       )}
 
+      {/* ---------- The two halves of the store ---------- */}
+      <div className="grid grid-cols-2 gap-3">
+        {(
+          [
+            ["PRODUCT", "Oziq-ovqatlar", `${products.length} xil mahsulot`, "To'yga olinadi, narxi bilan yuritiladi"],
+            ["DISHWARE", "Idish-tovoqlar", `${dishware.length} xil idish`, "Sanab yuritiladi: sinsa kamayadi, yangisi qo'shiladi"],
+          ] as const
+        ).map(([key, title, count, hint]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => {
+              setTab(key);
+              setSection("ALL");
+            }}
+            aria-pressed={tab === key}
+            className={cn(
+              "group flex items-center gap-3 rounded-2xl border p-3 text-left transition duration-300 sm:p-4",
+              tab === key
+                ? "border-primary bg-primary/10 shadow-md shadow-primary/10 ring-1 ring-primary"
+                : "border-border bg-card hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-md",
+            )}
+          >
+            <span
+              className={cn(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition",
+                tab === key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:text-foreground",
+              )}
+            >
+              {key === "PRODUCT" ? <ProductCategoryIcon category="FRUIT" className="h-5 w-5" /> : <UtensilsCrossed className="h-5 w-5" />}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold sm:text-base">{title}</span>
+              <span className="block text-xs text-muted-foreground">{count}</span>
+              <span className="mt-0.5 hidden text-xs text-muted-foreground sm:block">{hint}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-4">
           {/* ---------- Toolbar ---------- */}
           <div className="space-y-3 rounded-2xl border border-border bg-card p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-xl bg-muted p-1">
-                {(
-                  [
-                    ["PRODUCT", `Mahsulotlar (${products.length})`],
-                    ["DISHWARE", `Idish-tovoq (${dishware.length})`],
-                  ] as const
-                ).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setTab(key);
-                      setSection("ALL");
-                    }}
-                    className={cn(
-                      "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                      tab === key
-                        ? "bg-card text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
               <div className="relative min-w-0 flex-1 basis-48">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -570,6 +585,7 @@ export function StorePage({
           item={dialog.item}
           initialMode={dialog.mode}
           events={events}
+          canSeePrices={role === "SUPER_ADMIN"}
           onClose={() => setDialog(null)}
         />
       )}

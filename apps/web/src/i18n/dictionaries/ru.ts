@@ -240,6 +240,7 @@ export const ru: Dictionary = {
     saveChanges: "Сохранить изменения",
     amountPlaceholder: "Сумма",
     fromShoppingLists: "По спискам покупок",
+    fromStock: "Продукты, взятые со склада",
     addingPending: "Добавление...",
     refundAmount: "Сумма возврата",
     amountSom: "Сумма (сум)",
@@ -496,6 +497,7 @@ export const ru: Dictionary = {
   },
   expenseCategories: {
     SHOPPING: "Закупки",
+    STOCK: "Продукты со склада",
     CAMERAMAN: "Оператор",
     ARTIST: "Артист",
     KORTEJ: "Кортеж",

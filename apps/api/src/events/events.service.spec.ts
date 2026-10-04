@@ -81,7 +81,7 @@ describe('EventsService', () => {
         id: 'e1',
         clientName: 'T',
         status,
-        _count: { payments: 0, expenses: 0 },
+        _count: { payments: 0, expenses: 0, stockUsages: 0 },
       });
       await expect(service.remove('e1', 'u1', 'Admin')).rejects.toBeInstanceOf(
         BadRequestException,
@@ -96,7 +96,7 @@ describe('EventsService', () => {
       id: 'e1',
       clientName: 'T',
       status: 'PENDING',
-      _count: { payments: 1, expenses: 0 },
+      _count: { payments: 1, expenses: 0, stockUsages: 0 },
     });
     await expect(service.remove('e1', 'u1', 'Admin')).rejects.toBeInstanceOf(
       BadRequestException,
@@ -110,7 +110,7 @@ describe('EventsService', () => {
       id: 'e1',
       clientName: 'T',
       status: 'PENDING',
-      _count: { payments: 0, expenses: 0 },
+      _count: { payments: 0, expenses: 0, stockUsages: 0 },
     });
     await service.remove('e1', 'u1', 'Admin');
     expect(prisma.event.delete).toHaveBeenCalled();

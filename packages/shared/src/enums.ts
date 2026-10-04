@@ -93,6 +93,7 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const EVENT_EXPENSE_CATEGORIES = [
   "SHOPPING",
+  "STOCK",
   "CAMERAMAN",
   "ARTIST",
   "KORTEJ",
@@ -171,6 +172,7 @@ export const PRODUCT_CATEGORY_LABELS_UZ: Record<ProductCategory, string> = {
 
 export const EVENT_EXPENSE_CATEGORY_LABELS_UZ: Record<EventExpenseCategory, string> = {
   SHOPPING: "Bozorlik",
+  STOCK: "Ombor mahsulotlari",
   CAMERAMAN: "Kamerachi",
   ARTIST: "San'atkor",
   KORTEJ: "Kortej",
@@ -216,6 +218,7 @@ export const MENU_MEDIA_SECTION_LABELS_RU: Record<MenuMediaSection, string> = {
 
 export const EVENT_EXPENSE_CATEGORY_LABELS_RU: Record<EventExpenseCategory, string> = {
   SHOPPING: "Закупки",
+  STOCK: "Продукты со склада",
   CAMERAMAN: "Оператор",
   ARTIST: "Артист",
   KORTEJ: "Кортеж",

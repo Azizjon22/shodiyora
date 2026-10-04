@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
 import { DeleteIconButton } from "@/components/ui/delete-icon-button";
 import { formatDateTime, formatSom } from "@/lib/utils";
+import { UNIT_LABELS_UZ } from "@shodiyora/shared";
 import { StatusSelect } from "@/components/events/status-select";
 import { UnassignButton } from "@/components/events/unassign-button";
 import { PaymentForm } from "@/components/events/payment-form";
@@ -17,6 +18,7 @@ import { ShoppingListEditor } from "@/components/shopping-lists/shopping-list-ed
 import { ItemQuantity } from "@/components/shopping-lists/item-quantity";
 import { shoppingListStatusMeta, isShoppingListEditable } from "@/lib/shopping-list-status";
 import { removeExpenseAction } from "@/lib/actions/events.actions";
+import { StockReturnButton } from "@/components/events/stock-return-button";
 import { getLocale } from "@/i18n/locale";
 import { getDictionary, translate } from "@/i18n/get-dictionary";
 
@@ -48,6 +50,15 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
     0,
   );
   const hasShoppingExpense = (event.expenses ?? []).some((x) => x.category === "SHOPPING");
+  // What chefs took from the store for this wedding (super admin only).
+  const stockUsages = event.stockUsages ?? [];
+  const stockTotal = stockUsages.reduce((sum, u) => sum + u.items.reduce((s, i) => s + Number(i.totalCost ?? 0), 0), 0);
+  const stockUnpriced = stockUsages.reduce((n, u) => n + u.items.filter((i) => i.totalCost === null).length, 0);
+  const hasStockExpense = (event.expenses ?? []).some((x) => x.category === "STOCK");
+  const suggestedAmounts = {
+    ...(!hasShoppingExpense && shoppingTotal > 0 ? { SHOPPING: shoppingTotal } : {}),
+    ...(!hasStockExpense && stockTotal > 0 ? { STOCK: stockTotal } : {}),
+  };
   const received = (event.payments ?? []).filter((p) => p.type !== "REFUND").reduce((s, p) => s + Number(p.amount), 0);
   const refunded = (event.payments ?? []).filter((p) => p.type === "REFUND").reduce((s, p) => s + Number(p.amount), 0);
   const kept = received - refunded;
@@ -312,6 +323,54 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
         </Card>
       )}
 
+      {canSeeFinancials && stockUsages.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ombordan olingan mahsulotlar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {stockUsages.map((usage) => (
+              <div key={usage.id} className="rounded-md border border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium">
+                    {usage.worker.fullName}
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">{formatDateTime(usage.createdAt, locale)}</span>
+                  </p>
+                  <StockReturnButton usageId={usage.id} />
+                </div>
+                <ul className="mt-2 divide-y divide-border text-sm">
+                  {usage.items.map((item) => (
+                    <li key={item.id} className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="min-w-0 truncate">
+                        {item.name}{" "}
+                        <span className="text-muted-foreground">
+                          — {Number(item.quantity)} {UNIT_LABELS_UZ[item.unit]}
+                        </span>
+                      </span>
+                      <span className={item.totalCost === null ? "shrink-0 text-xs text-muted-foreground" : "shrink-0 font-medium tabular-nums"}>
+                        {item.totalCost === null ? "narx kiritilmagan" : formatSom(item.totalCost, locale)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div className="rounded-md bg-muted p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Ombordan jami</span>
+                <span className="text-lg font-semibold">{formatSom(stockTotal, locale)}</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {stockUnpriced > 0 && `${stockUnpriced} ta mahsulotning ombordagi narxi kiritilmagan — ular jamiga qo'shilmagan. `}
+                {hasStockExpense
+                  ? "Xarajatlarda «Ombor mahsulotlari» qatori bor."
+                  : "Bu summa xarajatga o'zi yozilmaydi: pastdagi «Ombor mahsulotlari» qatoridan kiriting."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {canSeeFinancials && (
         <Card>
           <CardHeader>
@@ -343,7 +402,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
             </div>
             <ExpenseForm
               eventId={event.id}
-              suggestedAmounts={!hasShoppingExpense && shoppingTotal > 0 ? { SHOPPING: shoppingTotal } : undefined}
+              suggestedAmounts={Object.keys(suggestedAmounts).length > 0 ? suggestedAmounts : undefined}
             />
           </CardContent>
         </Card>

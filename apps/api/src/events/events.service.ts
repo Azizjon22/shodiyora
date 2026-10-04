@@ -45,6 +45,14 @@ const eventDetailInclude = {
     },
     orderBy: { createdAt: 'desc' as const },
   },
+  // What chefs took from the store for this wedding, with what it cost.
+  stockUsages: {
+    include: {
+      items: { orderBy: { name: 'asc' as const } },
+      worker: { select: { id: true, fullName: true } },
+    },
+    orderBy: { createdAt: 'desc' as const },
+  },
 };
 
 const STATUS_LABEL_UZ: Record<string, string> = {
@@ -312,7 +320,11 @@ export class EventsService {
   async remove(id: string, actorId: string, actorName: string) {
     const existing = await this.prisma.event.findUnique({
       where: { id },
-      include: { _count: { select: { payments: true, expenses: true } } },
+      include: {
+        _count: {
+          select: { payments: true, expenses: true, stockUsages: true },
+        },
+      },
     });
     if (!existing) throw new NotFoundException("To'y buyurtmasi topilmadi");
     // Deleting would take the wedding's payments and expenses with it. Once
@@ -326,6 +338,11 @@ export class EventsService {
     if (existing._count.payments > 0 || existing._count.expenses > 0) {
       throw new BadRequestException(
         "Bu to'yga to'lov yoki xarajat yozilgan — uni o'chirib bo'lmaydi, kerak bo'lsa bekor qiling",
+      );
+    }
+    if (existing._count.stockUsages > 0) {
+      throw new BadRequestException(
+        "Bu to'y uchun ombordan mahsulot olingan — uni o'chirib bo'lmaydi, kerak bo'lsa bekor qiling",
       );
     }
     await this.prisma.event.delete({ where: { id } });

@@ -24,11 +24,14 @@ export function StockModal({
   item,
   initialMode,
   events,
+  canSeePrices,
   onClose,
 }: {
   item: InventoryItem;
   initialMode: StockMode;
   events: UpcomingEvent[];
+  /** Prices are the super admin's alone. */
+  canSeePrices: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -36,6 +39,11 @@ export function StockModal({
   const [amount, setAmount] = useState(initialMode === "COUNT" ? String(Number(item.quantity)) : "");
   const [eventId, setEventId] = useState("");
   const [note, setNote] = useState("");
+  // Price lots, oldest first; the newest one's price is the going price.
+  const lots = item.lots ?? [];
+  const lastPrice = lots.length > 0 ? lots[lots.length - 1].unitPrice : null;
+  const [price, setPrice] = useState(lastPrice ? String(Number(lastPrice)) : "");
+  const [lotPrices, setLotPrices] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -64,7 +72,13 @@ export function StockModal({
       if (mode === "COUNT") {
         await inventoryApi(`/${item.id}/count`, "POST", { actual: value, note: fullNote || undefined });
       } else {
-        await inventoryApi(`/${item.id}/transactions`, "POST", { type: mode, quantity: value, note: fullNote || undefined });
+        const unitPrice = Number(price.replace(/\s/g, "").replace(",", "."));
+        await inventoryApi(`/${item.id}/transactions`, "POST", {
+          type: mode,
+          quantity: value,
+          note: fullNote || undefined,
+          ...(mode === "IN" && canSeePrices && unitPrice > 0 ? { unitPrice } : {}),
+        });
       }
       onClose();
       router.refresh();
@@ -76,6 +90,24 @@ export function StockModal({
   }
 
   const noChange = mode === "COUNT" && valid && after === current;
+  const typedPrice = Number(price.replace(/\s/g, "").replace(",", "."));
+  const priceChanged = lastPrice !== null && typedPrice > 0 && typedPrice !== Number(lastPrice);
+
+  async function saveLotPrice(lotId: string) {
+    const unitPrice = Number((lotPrices[lotId] ?? "").replace(/\s/g, "").replace(",", "."));
+    if (!(unitPrice > 0)) return;
+    setBusy(true);
+    setError(undefined);
+    try {
+      await inventoryApi(`/lots/${lotId}`, "PATCH", { unitPrice });
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <Modal
@@ -152,6 +184,27 @@ export function StockModal({
         )}
       </div>
 
+      {mode === "IN" && canSeePrices && !dishware && (
+        <div className="mt-4">
+          <Label htmlFor="stock-price">1 {unit} narxi, so&apos;m</Label>
+          <Input
+            id="stock-price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            inputMode="decimal"
+            placeholder="masalan: 15000"
+            className="tabular-nums"
+          />
+          <p className={cn("mt-1 text-xs", priceChanged ? "text-accent" : "text-muted-foreground")}>
+            {priceChanged
+              ? `Narx o'zgargan (oldin ${Number(lastPrice).toLocaleString("ru-RU")} so'm): bu kirim alohida partiya bo'lib turadi, avval eski narxdagisi sarflanadi.`
+              : lastPrice !== null
+                ? `Oxirgi narx: ${Number(lastPrice).toLocaleString("ru-RU")} so'm. Narx o'zgargan bo'lsa, yangisini yozing.`
+                : "Narx kiritilsa, to'yga olinganda tannarxi hisoblanadi."}
+          </p>
+        </div>
+      )}
+
       {mode === "OUT" && !dishware && events.length > 0 && (
         <div className="mt-4">
           <Label htmlFor="stock-event">Qaysi to&apos;y uchun? (ixtiyoriy)</Label>
@@ -189,6 +242,42 @@ export function StockModal({
         </span>
       </div>
       {noChange && <p className="mt-2 text-center text-xs text-muted-foreground">Sanoq hisob bilan bir xil — o&apos;zgarish yo&apos;q.</p>}
+
+      {canSeePrices && !dishware && lots.length > 0 && (
+        <div className="mt-5 rounded-xl border border-border p-3">
+          <p className="text-sm font-semibold">Narx bo&apos;yicha qoldiq</p>
+          <p className="mb-2 text-xs text-muted-foreground">Yuqoridagisi birinchi sarflanadi.</p>
+          <ul className="space-y-1.5">
+            {lots.map((lot) => (
+              <li key={lot.id} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="w-24 shrink-0 font-medium tabular-nums">{qty(lot.quantity, item.unit)}</span>
+                {lot.unitPrice !== null ? (
+                  <>
+                    <span className="text-muted-foreground tabular-nums">× {Number(lot.unitPrice).toLocaleString("ru-RU")} so&apos;m</span>
+                    <span className="ml-auto font-medium tabular-nums">
+                      {Math.round(Number(lot.unitPrice) * Number(lot.quantity)).toLocaleString("ru-RU")} so&apos;m
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Input
+                      value={lotPrices[lot.id] ?? ""}
+                      onChange={(e) => setLotPrices((prev) => ({ ...prev, [lot.id]: e.target.value }))}
+                      inputMode="decimal"
+                      placeholder={`1 ${unit} narxi`}
+                      className="h-9 min-w-0 flex-1 tabular-nums"
+                      aria-label="Partiya narxi"
+                    />
+                    <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => saveLotPrice(lot.id)}>
+                      Narxni saqlash
+                    </Button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
     </Modal>
   );

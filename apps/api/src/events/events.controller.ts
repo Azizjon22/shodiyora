@@ -39,6 +39,8 @@ function hideFinancials(
     expenses: _expenses,
     totalExpenses: _totalExpenses,
     netProfit: _netProfit,
+    // Carries costs; the store's prices are the super admin's alone.
+    stockUsages: _stockUsages,
     shoppingLists,
     ...rest
   } = event;

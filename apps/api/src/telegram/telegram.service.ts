@@ -858,4 +858,84 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       );
     });
   }
+
+  // ------------------------------------------------------ Taken from the store
+
+  /** A chef took products from the store for a wedding: list them for the super admins. */
+  notifyStockUsage(id: string) {
+    return this.safely('Ombor xabari yuborilmadi', async () => {
+      const usage = await this.prisma.stockUsage.findUnique({
+        where: { id },
+        include: {
+          items: { orderBy: { name: 'asc' } },
+          worker: { select: { fullName: true } },
+          event: {
+            select: {
+              id: true,
+              clientName: true,
+              eventDate: true,
+              guestCount: true,
+            },
+          },
+        },
+      });
+      if (!usage) return;
+      const date = usage.event.eventDate.toLocaleDateString('uz-UZ', {
+        timeZone: this.timeZone,
+        day: 'numeric',
+        month: 'long',
+      });
+      const rows = usage.items.map(
+        (i) =>
+          `• ${i.name} — ${fmtQty(i.quantity)} ${UNIT_UZ[i.unit] ?? i.unit}`,
+      );
+      // Only super admins get this message, so the cost may be shown.
+      const unpriced = usage.items.filter((i) => i.totalCost === null).length;
+      const total = usage.items.reduce(
+        (sum, i) => sum + Number(i.totalCost ?? 0),
+        0,
+      );
+      const cost =
+        unpriced === usage.items.length
+          ? 'Narxi: omborda bu mahsulotlarga narx kiritilmagan'
+          : `Jami: ${fmtSom(total)}` +
+            (unpriced > 0 ? ` (${unpriced} ta mahsulot narxsiz)` : '');
+      const refs = await this.toStaff(
+        'SUPER_ADMIN',
+        `📦 Ombordan shu to'yga olingan mahsulotlar\n\n` +
+          `${usage.event.clientName} — ${date}, ${usage.event.guestCount} mehmon\n` +
+          `Oshpaz: ${usage.worker.fullName}\n\n${rows.join('\n')}\n\n${cost}`,
+        [
+          {
+            text: "To'y kartasi",
+            url: `${this.webUrl}/dashboard/events/${usage.event.id}`,
+          },
+          { text: 'Ombor', url: `${this.webUrl}/dashboard/inventory` },
+        ],
+      );
+      await this.prisma.stockUsage.update({
+        where: { id },
+        data: { telegramMessages: refs as object },
+      });
+    });
+  }
+
+  /** The products went back to the store: say so under the original message. */
+  notifyStockReturned(stored: unknown, byName: string) {
+    return this.safely('Qaytarish xabari yuborilmadi', async () => {
+      const refs = (Array.isArray(stored) ? stored : []) as MessageRef[];
+      for (const ref of refs) {
+        await this.call('sendMessage', {
+          chat_id: ref.chatId,
+          text: `↩️ Bu mahsulotlar omborga qaytarildi (${byName}).`,
+          reply_parameters: {
+            message_id: ref.messageId,
+            allow_sending_without_reply: true,
+          },
+        }).catch((err: Error) =>
+          this.logger.warn(`Qaytarish xabari: ${err.message}`),
+        );
+      }
+    });
+  }
 }

@@ -6,6 +6,7 @@ import { CreateEventExpenseDto } from './dto/create-event-expense.dto';
 
 const CATEGORY_LABEL_UZ: Record<string, string> = {
   SHOPPING: 'Bozorlik',
+  STOCK: 'Ombor mahsulotlari',
   CAMERAMAN: 'Kamerachi',
   ARTIST: "San'atkor",
   KORTEJ: 'Kortej',

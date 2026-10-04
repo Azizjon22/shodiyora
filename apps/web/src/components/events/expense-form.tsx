@@ -51,7 +51,7 @@ function ExpenseRow({
       <Input
         name="note"
         placeholder={t("events.notesOptional")}
-        defaultValue={suggestedAmount ? t("events.fromShoppingLists") : undefined}
+        defaultValue={suggestedAmount ? t(category === "STOCK" ? "events.fromStock" : "events.fromShoppingLists") : undefined}
         className="h-9 min-w-28 flex-1"
       />
       <SubmitButton pendingText={t("events.addingPending")} size="sm" variant="outline" className="shrink-0">
