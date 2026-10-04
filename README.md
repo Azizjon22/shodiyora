@@ -70,3 +70,13 @@ brauzerdan bevosita R2'ga (presigned URL orqali) yuklanadi.
 pnpm --filter @shodiyora/api prisma:studio   # ma'lumotlar bazasini ko'rish
 pnpm build                                    # barcha paketlarni build qilish
 ```
+
+## Production
+
+Serverga qo'yish, zaxira nusxa va yangilash tartibi: [DEPLOY.md](DEPLOY.md).
+
+## Testlar
+
+```bash
+pnpm --filter @shodiyora/api test
+```

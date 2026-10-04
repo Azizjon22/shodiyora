@@ -14,7 +14,44 @@ function daysAgo(days: number, hour = 18) {
   return daysFromNow(-days, hour);
 }
 
+/**
+ * Production seed: one super admin and nothing else — no demo accounts with
+ * known passwords, no demo weddings. The password comes from the environment
+ * and must be replaced at first login.
+ */
+async function seedProduction() {
+  const phone = process.env.SEED_SUPER_ADMIN_PHONE;
+  const password = process.env.SEED_SUPER_ADMIN_PASSWORD;
+  if (!phone || !password || password.length < 8) {
+    throw new Error(
+      'Productionda SEED_SUPER_ADMIN_PHONE va kamida 8 belgili SEED_SUPER_ADMIN_PASSWORD berilishi shart',
+    );
+  }
+  const existing = await prisma.staffUser.findUnique({ where: { phone } });
+  if (existing) {
+    console.log(`Super admin allaqachon mavjud: ${phone}`);
+    return;
+  }
+  await prisma.staffUser.create({
+    data: {
+      fullName: 'Bosh Administrator',
+      phone,
+      passwordHash: await bcrypt.hash(password, 10),
+      role: 'SUPER_ADMIN',
+      mustChangePassword: true,
+    },
+  });
+  console.log(
+    `Super admin yaratildi: ${phone}. Birinchi kirishda parolni almashtirish so'raladi.`,
+  );
+}
+
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    await seedProduction();
+    return;
+  }
+
   const superAdminPhone = process.env.SEED_SUPER_ADMIN_PHONE ?? '+998900000000';
   const superAdminPassword =
     process.env.SEED_SUPER_ADMIN_PASSWORD ?? 'Shodiyora2024!';
