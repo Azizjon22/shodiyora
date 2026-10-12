@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Portal } from "@/components/ui/portal";
 import { useT } from "@/components/i18n/locale-provider";
@@ -25,10 +25,14 @@ export function Lightbox({
   const t = useT();
   const item = items[index];
   const many = items.length > 1;
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
   const lock = useRef(false);
   const jumped = useRef(false);
   const settle = useRef<number | undefined>(undefined);
+  const indexRef = useRef(index);
+  useLayoutEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   function scrollToIndex(next: number, behavior: ScrollBehavior) {
     const scroller = scrollerRef.current;
@@ -39,6 +43,20 @@ export function Lightbox({
       lock.current = false;
     }, behavior === "smooth" ? 480 : 40);
   }
+
+  // The scroller lives inside <Portal>, which only attaches to document.body
+  // on a second pass (its own effect runs one tick after this component's
+  // first layout effect) — so that first effect's scrollToIndex below can
+  // fire while scrollerRef is still null and silently no-op, leaving the
+  // view on slide 0 no matter which thumbnail was clicked. A ref callback
+  // fires exactly when the node actually lands in the DOM, whenever that
+  // is, so it reliably jumps to the right slide on that first mount too.
+  const attachScroller = useCallback((node: HTMLDivElement | null) => {
+    scrollerRef.current = node;
+    if (node && node.clientWidth > 0) {
+      node.scrollLeft = indexRef.current * node.clientWidth;
+    }
+  }, []);
 
   const go = (delta: number) => {
     const next = (index + delta + items.length) % items.length;
@@ -105,7 +123,7 @@ export function Lightbox({
         </div>
 
         <div
-          ref={scrollerRef}
+          ref={attachScroller}
           onScroll={onScroll}
           className="no-scrollbar flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
         >
