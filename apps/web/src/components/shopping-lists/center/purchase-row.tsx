@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Pencil, ShoppingBag, UtensilsCrossed, X } from "lucide-react";
-import { UNIT_LABELS_UZ } from "@shodiyora/shared";
+import { UNIT_LABELS_UZ, formatQuantity } from "@shodiyora/shared";
 import type { ProductCatalogItem, ShoppingListItem } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { ItemQuantity } from "@/components/shopping-lists/item-quantity";
@@ -35,12 +35,17 @@ export function PurchaseRow({
   const [fixing, setFixing] = useState(false);
   const [mode, setMode] = useState<PriceMode>("total");
   const [price, setPrice] = useState("");
-  const [bought, setBought] = useState(String(Number(item.quantity)));
+  // A kg item written in grams (zira 200 g) is bought and typed in grams too.
+  const inGrams = item.unit === "KG" && !Number.isInteger(Number(item.quantity));
+  const [bought, setBought] = useState(
+    inGrams ? String(Math.round(Number(item.quantity) * 1000)) : String(Number(item.quantity)),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
   const unit = UNIT_LABELS_UZ[item.unit];
-  const qtyNum = parseNumber(bought);
+  // Always kg (or litr / dona) for the API and the price maths.
+  const qtyNum = inGrams ? Math.round(parseNumber(bought)) / 1000 : parseNumber(bought);
   const priceNum = parseNumber(price);
   const validQty = qtyNum > 0;
   const validPrice = price.trim() !== "" && priceNum >= 0;
@@ -181,11 +186,13 @@ export function PurchaseRow({
                 <Input
                   value={bought}
                   onChange={(e) => setBought(e.target.value)}
-                  inputMode="decimal"
+                  inputMode={inGrams ? "numeric" : "decimal"}
                   className="h-11 w-full pr-12 tabular-nums min-[420px]:w-32"
                   aria-label="Olingan miqdor"
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{unit}</span>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {inGrams ? "g" : unit}
+                </span>
               </label>
             )}
           </div>
@@ -196,7 +203,7 @@ export function PurchaseRow({
                   ? `1 ${unit} = ${formatSom(Math.round(derived))}`
                   : `Jami = ${formatSom(Math.round(derived))}`
                 : !fixing && validQty && qtyNum !== Number(item.quantity)
-                  ? `Rejada ${Number(item.quantity)} ${unit}, olindi ${qtyNum} ${unit}`
+                  ? `Rejada ${formatQuantity(item.quantity, item.unit)}, olindi ${formatQuantity(qtyNum, item.unit)}`
                   : "Narxni kiriting"}
             </p>
             <div className="flex gap-1.5">

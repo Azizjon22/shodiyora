@@ -14,6 +14,7 @@ import { StockCountDto } from './dto/stock-count.dto';
 import { TakeStockDto } from './dto/take-stock.dto';
 import { TelegramService } from '../telegram/telegram.service';
 import { localMidnight } from '../common/time/tashkent';
+import { formatQuantity } from '../common/quantity/format-quantity';
 import { AuthPayload } from '../common/types/auth-payload';
 
 /** One lot's share of a movement: how much was drawn and at what price. */
@@ -502,7 +503,7 @@ export class InventoryService {
         const quantity = wanted.get(itemId)!;
         if (item.quantity.lessThan(quantity)) {
           throw new BadRequestException(
-            `"${item.name}" omborda yetarli emas — bor: ${item.quantity.toString()} ${UNIT_UZ[item.unit]}`,
+            `"${item.name}" omborda yetarli emas — bor: ${formatQuantity(item.quantity, item.unit)}`,
           );
         }
         const { allocations } = await this.moveIn(

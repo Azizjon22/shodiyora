@@ -8,6 +8,7 @@ import {
   PRODUCT_CATEGORY_LABELS_UZ,
   UNITS,
   UNIT_LABELS_UZ,
+  formatQuantity,
   type ProductCategory,
   type Unit,
 } from "@shodiyora/shared";
@@ -18,6 +19,8 @@ import { Input, Select } from "@/components/ui/input";
 import { ProductCategoryIcon } from "@/components/inventory/product-category-icon";
 import { formatDate, cn } from "@/lib/utils";
 import { WEEKDAYS_SHORT, whenLabel, type ChefEvent } from "./types";
+import { GRAM_STEP, defaultKgMode, fitsMode, fromInput, stepSize, toInput, type KgMode } from "./quantity";
+import { KgModeSwitch } from "./kg-mode-switch";
 
 /**
  * The chef writes the list dish by dish so nothing is forgotten. That split
@@ -57,14 +60,11 @@ const categoryCover = (c: ProductCategory) => `/categories/${c.toLowerCase()}.jp
 
 const key = (name: string) => name.trim().toLowerCase();
 
-/** Kg/litr round to half-units, pieces round up to whole ones. */
+/** A scaled copy stays writable: whole kilos (or 50 g steps under a kilo), half litres, whole pieces. */
 function roundFor(unit: Unit, n: number) {
   if (unit === "DONA") return Math.max(1, Math.ceil(n));
+  if (unit === "KG") return n < 1 ? Math.max(GRAM_STEP, Math.round(n / GRAM_STEP) * GRAM_STEP) : Math.round(n);
   return Math.max(0.5, Math.round(n * 2) / 2);
-}
-
-function fmt(n: number) {
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 /** The dishes of one stage: the couple's pick when there is one, else the menu's options. */
@@ -93,8 +93,10 @@ export function ListBuilder({
   const [cart, setCart] = useState<Map<string, CartLine>>(() => new Map());
   const [section, setSection] = useState<ProductCategory | "ALL">("ALL");
   const [stage, setStage] = useState<Stage>("SALAD");
+  // kg or g per kg product, as the chef last chose (spices start in grams).
+  const [kgModes, setKgModes] = useState<Map<string, KgMode>>(() => new Map());
   const [query, setQuery] = useState("");
-  const [custom, setCustom] = useState({ name: "", quantity: "", unit: "KG" as Unit });
+  const [custom, setCustom] = useState({ name: "", quantity: "", unit: "KG" as Unit | "G" });
   const [reviewing, setReviewing] = useState(false);
   const [copying, setCopying] = useState(false);
   const [scaledNote, setScaledNote] = useState<string | undefined>();
@@ -145,20 +147,33 @@ export function ListBuilder({
     });
   }
 
+  const modeOf = (name: string, category?: ProductCategory | null): KgMode => kgModes.get(key(name)) ?? defaultKgMode(category);
+
+  function switchMode(p: ProductCatalogItem, mode: KgMode) {
+    setKgModes((prev) => new Map(prev).set(key(p.name), mode));
+    // 200 g can't be written in whole kilos: start that dish's amount over.
+    if (!fitsMode(partOf(p.name), mode)) {
+      setQty({ name: p.name, unit: p.unit, photoUrl: p.photoUrl, category: p.productCategory }, 0);
+    }
+  }
+
   function step(p: ProductCatalogItem, dir: 1 | -1) {
     const current = partOf(p.name);
-    const inc = p.unit === "DONA" ? 1 : current < 1 && dir === -1 ? 0.5 : 1;
+    const inc = stepSize(p.unit, modeOf(p.name, p.productCategory), current, dir);
     setQty({ name: p.name, unit: p.unit, photoUrl: p.photoUrl, category: p.productCategory }, Math.max(0, +(current + dir * inc).toFixed(3)));
   }
 
   function addCustom() {
-    const qty = Number(custom.quantity.replace(",", "."));
-    if (custom.name.trim().length < 2 || !(qty > 0)) return;
+    if (custom.name.trim().length < 2) return;
     const known = byName.get(key(custom.name));
-    setQty(
-      { name: known?.name ?? custom.name.trim(), unit: known?.unit ?? custom.unit, photoUrl: known?.photoUrl, category: known?.productCategory },
-      qty,
-    );
+    // "g" in the unit picker is grams of a kg product.
+    const unit: Unit = known?.unit ?? (custom.unit === "G" ? "KG" : custom.unit);
+    const mode: KgMode = custom.unit === "G" ? "g" : "kg";
+    const qty = fromInput(custom.quantity, unit, mode);
+    if (!(qty > 0)) return;
+    const name = known?.name ?? custom.name.trim();
+    if (unit === "KG") setKgModes((prev) => new Map(prev).set(key(name), mode));
+    setQty({ name, unit, photoUrl: known?.photoUrl, category: known?.productCategory }, qty);
     setCustom({ name: "", quantity: "", unit: custom.unit });
   }
 
@@ -497,7 +512,7 @@ export function ListBuilder({
                       {/* Already in the basket for another dish. */}
                       {total > qty && (
                         <span className="absolute left-1.5 top-1.5 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
-                          jami {fmt(total)} {UNIT_LABELS_UZ[p.unit]}
+                          jami {formatQuantity(total, p.unit)}
                         </span>
                       )}
                       <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1.5 p-2">
@@ -518,12 +533,14 @@ export function ListBuilder({
                         <Minus className="h-4 w-4" />
                       </button>
                       <input
-                        value={on ? fmt(qty) : ""}
+                        value={on ? toInput(qty, p.unit, modeOf(p.name, p.productCategory)) : ""}
                         onChange={(e) => {
-                          const n = Number(e.target.value.replace(",", "."));
-                          setQty({ name: p.name, unit: p.unit, photoUrl: p.photoUrl, category: p.productCategory }, Number.isFinite(n) ? n : 0);
+                          setQty(
+                            { name: p.name, unit: p.unit, photoUrl: p.photoUrl, category: p.productCategory },
+                            fromInput(e.target.value, p.unit, modeOf(p.name, p.productCategory)),
+                          );
                         }}
-                        inputMode="decimal"
+                        inputMode={p.unit === "LITER" ? "decimal" : "numeric"}
                         placeholder="0"
                         className="h-10 w-full min-w-0 rounded-lg border border-input bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus:ring-2 focus:ring-primary/30"
                         aria-label={`${p.name} miqdori`}
@@ -537,6 +554,9 @@ export function ListBuilder({
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
+                    {p.unit === "KG" && (
+                      <KgModeSwitch mode={modeOf(p.name, p.productCategory)} onChange={(m) => switchMode(p, m)} />
+                    )}
                   </div>
                 );
               })}
@@ -555,12 +575,13 @@ export function ListBuilder({
               placeholder="0"
               className="h-10 text-center"
             />
-            <Select value={custom.unit} onChange={(e) => setCustom({ ...custom, unit: e.target.value as Unit })} className="h-10 px-2">
+            <Select value={custom.unit} onChange={(e) => setCustom({ ...custom, unit: e.target.value as Unit | "G" })} className="h-10 px-2">
               {UNITS.map((u) => (
                 <option key={u} value={u}>
                   {UNIT_LABELS_UZ[u]}
                 </option>
               ))}
+              <option value="G">gram</option>
             </Select>
             <button type="button" onClick={addCustom} className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted hover:bg-border" aria-label="Qo'shish">
               <Plus className="h-4 w-4" />
@@ -572,7 +593,7 @@ export function ListBuilder({
                 .filter((l) => !byName.has(key(l.name)))
                 .map((l) => (
                   <span key={l.name} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
-                    {l.name} · {fmt(l.quantity)} {UNIT_LABELS_UZ[l.unit]}
+                    {l.name} · {formatQuantity(l.quantity, l.unit)}
                     <button type="button" onClick={() => removeLine(l.name)} aria-label="O'chirish">
                       <X className="h-3 w-3" />
                     </button>
@@ -667,7 +688,7 @@ export function ListBuilder({
               <div className="flex items-center gap-2">
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{l.name}</span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums">
-                  {fmt(l.quantity)} <span className="text-xs font-normal text-muted-foreground">{UNIT_LABELS_UZ[l.unit]}</span>
+                  {formatQuantity(l.quantity, l.unit)}
                 </span>
                 <button
                   type="button"
@@ -684,16 +705,14 @@ export function ListBuilder({
                   <label key={part} className="flex items-center gap-1.5 rounded-lg bg-muted/60 py-1 pl-2 pr-1 text-xs text-muted-foreground">
                     {PART_LABELS[part]}
                     <input
-                      defaultValue={fmt(l.parts[part] ?? 0)}
+                      defaultValue={toInput(l.parts[part] ?? 0, l.unit, modeOf(l.name, l.category))}
                       key={l.parts[part]}
-                      onBlur={(e) => {
-                        const n = Number(e.target.value.replace(",", "."));
-                        if (Number.isFinite(n)) setQty(l, n, part);
-                      }}
-                      inputMode="decimal"
+                      onBlur={(e) => setQty(l, fromInput(e.target.value, l.unit, modeOf(l.name, l.category)), part)}
+                      inputMode={l.unit === "LITER" ? "decimal" : "numeric"}
                       className="h-7 w-14 rounded-md border border-input bg-background text-center text-xs font-semibold tabular-nums text-foreground"
                       aria-label={`${l.name}: ${PART_LABELS[part]} miqdori`}
                     />
+                    <span>{l.unit === "KG" ? modeOf(l.name, l.category) : UNIT_LABELS_UZ[l.unit]}</span>
                   </label>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { UNIT_LABELS_UZ } from "@shodiyora/shared";
+import { formatQuantity } from "@shodiyora/shared";
 import type { InventoryItem } from "@/lib/types";
 
 export type StockLevel = "out" | "low" | "ok";
@@ -18,11 +18,9 @@ export function stockRatio(item: InventoryItem) {
   return Math.max(0, Math.min(qty / (min * 2), 1));
 }
 
-/** "12.5 kg" — trims trailing zeros from the API's 3-decimal strings. */
+/** "12 kg", "200 g", "3 litr" — the same reading as everywhere else. */
 export function qty(value: string | number, unit: InventoryItem["unit"]) {
-  const n = Number(value);
-  const text = Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, "");
-  return `${text.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} ${UNIT_LABELS_UZ[unit]}`;
+  return formatQuantity(value, unit);
 }
 
 export async function inventoryApi<T = unknown>(path: string, method = "GET", body?: unknown): Promise<T> {

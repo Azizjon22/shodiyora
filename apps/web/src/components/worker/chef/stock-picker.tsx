@@ -6,7 +6,7 @@ import { ArrowRight, Check, Minus, PackageOpen, Plus, Search, Undo2, Warehouse, 
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_LABELS_UZ,
-  UNIT_LABELS_UZ,
+  formatQuantity,
   type ProductCategory,
 } from "@shodiyora/shared";
 import type { ChefStockItem, ChefStockUsage } from "@/lib/types";
@@ -17,10 +17,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ProductCategoryIcon } from "@/components/inventory/product-category-icon";
 import { formatDate, formatTime, cn } from "@/lib/utils";
 import { WEEKDAYS_SHORT, daysUntil, whenLabel, type ChefEvent } from "./types";
-
-function fmt(n: number) {
-  return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/\.?0+$/, "");
-}
+import { defaultKgMode, fitsMode, fromInput, stepSize, toInput, type KgMode } from "./quantity";
+import { KgModeSwitch } from "./kg-mode-switch";
 
 async function api(path: string, method: string, body?: unknown) {
   const res = await fetch(`/api/proxy/inventory${path}`, {
@@ -50,6 +48,9 @@ export function StockPicker({
   const router = useRouter();
   const [eventId, setEventId] = useState(events.length === 1 ? events[0].id : "");
   const [taking, setTaking] = useState<Map<string, number>>(() => new Map());
+  // kg or g per kg product (spices start in grams).
+  const [kgModes, setKgModes] = useState<Map<string, KgMode>>(() => new Map());
+  const modeOf = (item: ChefStockItem): KgMode => kgModes.get(item.id) ?? defaultKgMode(item.productCategory);
   const [query, setQuery] = useState("");
   const [section, setSection] = useState<ProductCategory | "ALL">("ALL");
   const [reviewing, setReviewing] = useState(false);
@@ -225,21 +226,21 @@ export function StockPicker({
                 {rows.map((item) => {
                   const have = Number(item.quantity);
                   const take = taking.get(item.id) ?? 0;
-                  const stepBy = item.unit === "DONA" ? 1 : 0.5;
+                  const mode = modeOf(item);
                   const empty = have <= 0;
                   return (
-                    <li key={item.id} className={cn("flex items-center gap-3 px-3 py-2.5 transition", take > 0 && "bg-primary/5")}>
+                    <li key={item.id} className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 transition", take > 0 && "bg-primary/5")}>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{item.name}</p>
                         <p className={cn("text-xs", empty ? "text-destructive" : "text-muted-foreground")}>
-                          {empty ? "Omborda tugagan" : `Omborda: ${fmt(have)} ${UNIT_LABELS_UZ[item.unit]}`}
-                          {take > 0 && <span className="text-accent"> → {fmt(+(have - take).toFixed(3))} qoladi</span>}
+                          {empty ? "Omborda tugagan" : `Omborda: ${formatQuantity(have, item.unit)}`}
+                          {take > 0 && <span className="text-accent"> → {formatQuantity(+(have - take).toFixed(3), item.unit)} qoladi</span>}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => setQty(item, take - stepBy)}
+                          onClick={() => setQty(item, +(take - stepSize(item.unit, mode, take, -1)).toFixed(3))}
                           disabled={take <= 0}
                           className="flex h-10 w-10 items-center justify-center rounded-lg border border-border transition active:scale-95 disabled:opacity-30"
                           aria-label="Kamaytirish"
@@ -247,20 +248,17 @@ export function StockPicker({
                           <Minus className="h-4 w-4" />
                         </button>
                         <input
-                          value={take > 0 ? fmt(take) : ""}
-                          onChange={(e) => {
-                            const n = Number(e.target.value.replace(",", "."));
-                            setQty(item, Number.isFinite(n) ? n : 0);
-                          }}
+                          value={take > 0 ? toInput(take, item.unit, mode) : ""}
+                          onChange={(e) => setQty(item, fromInput(e.target.value, item.unit, mode))}
                           disabled={empty}
-                          inputMode="decimal"
+                          inputMode={item.unit === "LITER" ? "decimal" : "numeric"}
                           placeholder="0"
                           className="h-10 w-16 rounded-lg border border-input bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-40"
                           aria-label={`${item.name} miqdori`}
                         />
                         <button
                           type="button"
-                          onClick={() => setQty(item, take + stepBy)}
+                          onClick={() => setQty(item, +(take + stepSize(item.unit, mode, take, 1)).toFixed(3))}
                           disabled={empty || take >= have}
                           className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-30"
                           aria-label="Ko'paytirish"
@@ -268,6 +266,17 @@ export function StockPicker({
                           <Plus className="h-4 w-4" />
                         </button>
                       </div>
+                      {item.unit === "KG" && !empty && (
+                        <div className="basis-full sm:basis-auto">
+                          <KgModeSwitch
+                            mode={mode}
+                            onChange={(m) => {
+                              setKgModes((prev) => new Map(prev).set(item.id, m));
+                              if (!fitsMode(take, m)) setQty(item, 0);
+                            }}
+                          />
+                        </div>
+                      )}
                     </li>
                   );
                 })}
@@ -301,7 +310,7 @@ export function StockPicker({
                 )}
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                {u.items.map((i) => `${i.name} ${fmt(Number(i.quantity))} ${UNIT_LABELS_UZ[i.unit]}`).join(" · ")}
+                {u.items.map((i) => `${i.name} ${formatQuantity(i.quantity, i.unit)}`).join(" · ")}
               </p>
             </div>
           ))}
@@ -355,7 +364,7 @@ export function StockPicker({
             <li key={i.id} className="flex items-center gap-2 py-2.5">
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{i.name}</span>
               <span className="shrink-0 text-sm font-semibold tabular-nums">
-                {fmt(taking.get(i.id) ?? 0)} <span className="text-xs font-normal text-muted-foreground">{UNIT_LABELS_UZ[i.unit]}</span>
+                {formatQuantity(taking.get(i.id) ?? 0, i.unit)}
               </span>
               <button
                 type="button"
@@ -377,7 +386,7 @@ export function StockPicker({
         title="Omborga qaytarilsinmi?"
         message={
           returning
-            ? `${returning.items.map((i) => `${i.name} ${fmt(Number(i.quantity))} ${UNIT_LABELS_UZ[i.unit]}`).join(", ")} — hammasi omborga qaytariladi.`
+            ? `${returning.items.map((i) => `${i.name} ${formatQuantity(i.quantity, i.unit)}`).join(", ")} — hammasi omborga qaytariladi.`
             : ""
         }
         confirmLabel="Qaytarish"
