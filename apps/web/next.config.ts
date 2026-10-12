@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Phone and other LAN devices load dev scripts from these hosts.
   // 192.168.*.* covers Wi-Fi (192.168.0.146) and Ethernet (192.168.18.204);
   // 172.20.10.* is a phone hotspot.
-  allowedDevOrigins: ["192.168.*.*", "172.20.10.*"],
+  allowedDevOrigins: ["192.168.*.*", "172.20.10.*", "*.loca.lt", "*.trycloudflare.com"],
   transpilePackages: ["@shodiyora/shared"],
   async rewrites() {
     const api = process.env.API_URL ?? "http://localhost:3001/api";

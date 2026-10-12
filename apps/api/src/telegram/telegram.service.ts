@@ -5,8 +5,11 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
+import { DashboardService } from '../dashboard/dashboard.service';
+import { localMidnight } from '../common/time/tashkent';
 
 interface TgMessage {
   message_id: number;
@@ -19,6 +22,8 @@ interface TgMessage {
 interface LinkButton {
   text: string;
   url: string;
+  /** Opens inside Telegram as a Mini App instead of an external browser — Telegram requires https for this. */
+  webApp?: boolean;
 }
 
 /** A sent message, kept so it can be edited when the list changes. */
@@ -97,6 +102,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private auth: AuthService,
+    private dashboard: DashboardService,
     config: ConfigService,
   ) {
     this.token = config.get<string>('TELEGRAM_BOT_TOKEN', '').trim();
@@ -135,6 +141,48 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     this.running = false;
     this.abort?.abort();
     if (this.timer) clearInterval(this.timer);
+  }
+
+  // ---------------------------------------------------------- Mini App auth
+  /**
+   * Verifies initData from a Telegram Mini App per Telegram's documented
+   * check (https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app):
+   * a double-HMAC-SHA256 over the sorted fields, keyed off the bot token —
+   * only Telegram, holding the token, could have produced a matching hash.
+   * Returns the chat id (== the Telegram user id, for a private chat) once
+   * verified, or null if the signature is missing, wrong, or stale.
+   */
+  verifyInitData(initData: string): string | null {
+    if (!this.enabled) return null;
+    const params = new URLSearchParams(initData);
+    const hash = params.get('hash');
+    if (!hash) return null;
+    params.delete('hash');
+
+    const authDate = Number(params.get('auth_date') ?? 0);
+    if (!authDate || Date.now() / 1000 - authDate > 24 * 60 * 60) return null;
+
+    const dataCheckString = [...params.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('\n');
+    const secretKey = createHmac('sha256', 'WebAppData')
+      .update(this.token)
+      .digest();
+    const computedHash = createHmac('sha256', secretKey)
+      .update(dataCheckString)
+      .digest('hex');
+
+    const a = Buffer.from(computedHash, 'hex');
+    const b = Buffer.from(hash, 'hex');
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+
+    try {
+      const user = JSON.parse(params.get('user') ?? '{}') as { id?: number };
+      return user.id ? String(user.id) : null;
+    } catch {
+      return null;
+    }
   }
 
   // ---------------------------------------------------------------- Bot API
@@ -180,7 +228,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           const sent = await this.call<{ message_id: number }>(method, {
             ...target,
             text,
-            reply_markup: { inline_keyboard: buttons.map((b) => [b]) },
+            reply_markup: {
+              inline_keyboard: buttons.map((b) => [
+                b.webApp
+                  ? { text: b.text, web_app: { url: b.url } }
+                  : { text: b.text, url: b.url },
+              ]),
+            },
           });
           return sent.message_id;
         } catch (err) {
@@ -272,9 +326,11 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     if (text === '/start' || text === '/ulash') {
       const linked = await this.linkedAccount(chatId);
       if (linked && text === '/start') {
+        await this.registerCommands(chatId, linked);
+        await this.registerMenuButton(chatId, linked);
         await this.send(
           chatId,
-          `${linked.fullName}, siz allaqachon ulangansiz.\n\n/tekshir — eslatmalarni hozir tekshirish\n/chiqish — botdan uzish`,
+          `${linked.fullName}, siz allaqachon ulangansiz.\n\n${this.commandsHint(linked)}`,
           this.homeButton(linked.kind),
         );
         return;
@@ -321,6 +377,40 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         nothing = "Ko'rilmagan bozorlik ro'yxati yo'q.";
       }
       if (sent === 0) await this.send(chatId, nothing);
+      return;
+    }
+
+    if (text === '/toylar') {
+      const linked = await this.linkedAccount(chatId);
+      if (!linked) {
+        await this.send(chatId, 'Avval /start orqali ulaning.');
+        return;
+      }
+      await this.send(chatId, await this.upcomingEventsText());
+      return;
+    }
+
+    if (text === '/ombor') {
+      const linked = await this.linkedAccount(chatId);
+      if (
+        !linked ||
+        linked.kind !== 'STAFF' ||
+        (linked.role !== 'ADMIN' && linked.role !== 'SUPER_ADMIN')
+      ) {
+        await this.send(chatId, 'Bu buyruq faqat admin uchun.');
+        return;
+      }
+      await this.send(chatId, await this.lowStockText());
+      return;
+    }
+
+    if (text === '/hisobot') {
+      const linked = await this.linkedAccount(chatId);
+      if (!linked || linked.kind !== 'STAFF' || linked.role !== 'SUPER_ADMIN') {
+        await this.send(chatId, 'Bu buyruq faqat super admin uchun.');
+        return;
+      }
+      await this.send(chatId, await this.monthlyFinancialsText());
       return;
     }
 
@@ -426,13 +516,19 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         });
       }
       this.pending.delete(chatId);
-      await this.send(
-        chatId,
+      const role = (user as { role?: string }).role;
+      const linked = { kind: state.kind, role };
+      await this.registerCommands(chatId, linked);
+      await this.registerMenuButton(chatId, linked);
+      const intro =
         state.kind === 'WORKER'
           ? `✅ ${user.fullName}, bot ulandi.\n\nErtangi to'ylar uchun bozorlik yozilmagan bo'lsa, soat ${this.reminderTimes.join(' va ')} da eslatma keladi.`
-          : (user as { role?: string }).role === 'ADMIN'
+          : role === 'ADMIN'
             ? `✅ ${user.fullName}, bot ulandi.\n\nSuper admin bozorlik ro'yxatini tasdiqlasa, shu yerga xabar keladi.`
-            : `✅ ${user.fullName}, bot ulandi.\n\nOshpaz bozorlik yuborsa, shu yerga xabar keladi. Ko'rilmagan ro'yxatlar soat ${this.reminderTimes.join(' va ')} da eslatiladi.`,
+            : `✅ ${user.fullName}, bot ulandi.\n\nOshpaz bozorlik yuborsa, shu yerga xabar keladi. Ko'rilmagan ro'yxatlar soat ${this.reminderTimes.join(' va ')} da eslatiladi.`;
+      await this.send(
+        chatId,
+        `${intro}\n\n${this.commandsHint(linked)}`,
         this.homeButton(state.kind),
       );
     } catch (err) {
@@ -443,13 +539,84 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Over https this opens as a Mini App (inside Telegram, auto-signed-in via
+   * initData); over http (local dev with no tunnel) it's a normal link the
+   * person has to log into themselves, same as before this existed.
+   */
   private homeButton(kind: 'WORKER' | 'STAFF'): LinkButton {
-    return kind === 'WORKER'
-      ? { text: 'Oshpaz sahifasi', url: `${this.webUrl}/worker` }
-      : {
-          text: "Bozorlik bo'limi",
-          url: `${this.webUrl}/dashboard/shopping-lists`,
-        };
+    const next = kind === 'WORKER' ? '/worker' : '/dashboard/shopping-lists';
+    const text = kind === 'WORKER' ? 'Oshpaz sahifasi' : "Bozorlik bo'limi";
+    if (this.webUrl.startsWith('https://')) {
+      return {
+        text,
+        url: `${this.webUrl}/tg?next=${encodeURIComponent(next)}`,
+        webApp: true,
+      };
+    }
+    return { text, url: `${this.webUrl}${next}` };
+  }
+
+  /** The command list a given account is allowed to use, for the help text and the native "/" menu. */
+  private commandsFor(linked: {
+    kind: 'WORKER' | 'STAFF';
+    role?: string;
+  }): { command: string; description: string }[] {
+    const base = [
+      { command: 'toylar', description: "Yaqin kunlardagi to'ylar" },
+      { command: 'tekshir', description: 'Eslatmalarni hozir tekshirish' },
+    ];
+    const ombor = {
+      command: 'ombor',
+      description: 'Kam qolgan mahsulotlar',
+    };
+    const hisobot = {
+      command: 'hisobot',
+      description: 'Shu oy daromad va foyda',
+    };
+    const chiqish = { command: 'chiqish', description: 'Botdan uzish' };
+    if (linked.kind === 'WORKER') return [...base, chiqish];
+    if (linked.role === 'SUPER_ADMIN')
+      return [...base, ombor, hisobot, chiqish];
+    if (linked.role === 'ADMIN') return [...base, ombor, chiqish];
+    return [...base, chiqish];
+  }
+
+  private commandsHint(linked: { kind: 'WORKER' | 'STAFF'; role?: string }) {
+    return this.commandsFor(linked)
+      .map((c) => `/${c.command} — ${c.description}`)
+      .join('\n');
+  }
+
+  /** Scopes Telegram's native "/" command menu to what this one chat is allowed to use. */
+  private async registerCommands(
+    chatId: number,
+    linked: { kind: 'WORKER' | 'STAFF'; role?: string },
+  ) {
+    await this.call('setMyCommands', {
+      commands: this.commandsFor(linked),
+      scope: { type: 'chat', chat_id: chatId },
+    }).catch(() => undefined);
+  }
+
+  /**
+   * The persistent button next to the message box (left of "Write a
+   * message..."). Over https it opens the Mini App directly, one tap, no
+   * need to resend /start to get an inline button; over http it falls back
+   * to the native commands list, same as before this existed.
+   */
+  private async registerMenuButton(
+    chatId: number,
+    linked: { kind: 'WORKER' | 'STAFF' },
+  ) {
+    const home = this.homeButton(linked.kind);
+    const menuButton = home.webApp
+      ? { type: 'web_app', text: home.text, web_app: { url: home.url } }
+      : { type: 'commands' };
+    await this.call('setChatMenuButton', {
+      chat_id: chatId,
+      menu_button: menuButton,
+    }).catch(() => undefined);
   }
 
   private async linkedAccount(chatId: number) {
@@ -679,6 +846,76 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       this.listsButton(),
     );
     return 1;
+  }
+
+  // -------------------------------------------------------------- /toylar
+  /** Next 10 weddings from today, for chefs and staff alike. */
+  private async upcomingEventsText() {
+    const events = await this.prisma.event.findMany({
+      where: {
+        eventDate: { gte: localMidnight(new Date()) },
+        status: { not: 'CANCELLED' },
+      },
+      orderBy: { eventDate: 'asc' },
+      take: 10,
+      select: {
+        clientName: true,
+        eventDate: true,
+        guestCount: true,
+        status: true,
+      },
+    });
+    if (events.length === 0) return "Yaqin kunlarda rejadagi to'y yo'q.";
+    const rows = events.map((e) => {
+      const date = e.eventDate.toLocaleDateString('uz-UZ', {
+        timeZone: this.timeZone,
+        day: 'numeric',
+        month: 'long',
+      });
+      const mark = e.status === 'PENDING' ? ' (kutilmoqda)' : '';
+      return `• ${date} — ${e.clientName}, ${e.guestCount} mehmon${mark}`;
+    });
+    return `📅 Yaqin to'ylar:\n\n${rows.join('\n')}`;
+  }
+
+  // --------------------------------------------------------------- /ombor
+  private async lowStockText() {
+    const overview = await this.dashboard.overview('ADMIN');
+    const lowStockItems =
+      'lowStockItems' in overview ? overview.lowStockItems : [];
+    if (lowStockItems.length === 0) return "Omborda kam qolgan mahsulot yo'q.";
+    const rows = lowStockItems.map(
+      (i: {
+        name: string;
+        quantity: unknown;
+        unit: string;
+        minThreshold: unknown;
+      }) =>
+        `• ${i.name} — ${fmtQty(i.quantity)} ${UNIT_UZ[i.unit] ?? i.unit} qoldi (chegara: ${fmtQty(i.minThreshold)})`,
+    );
+    return `📦 Kam qolgan mahsulotlar:\n\n${rows.join('\n')}`;
+  }
+
+  // ------------------------------------------------------------- /hisobot
+  private async monthlyFinancialsText() {
+    const overview = await this.dashboard.overview('SUPER_ADMIN');
+    const f =
+      'monthlyFinancials' in overview ? overview.monthlyFinancials : undefined;
+    if (!f) return 'Hisobot tayyor emas.';
+    const z = this.zoned(new Date());
+    const monthName = new Date(z.year, z.month - 1, 1).toLocaleDateString(
+      'uz-UZ',
+      { month: 'long', year: 'numeric' },
+    );
+    return (
+      `💰 ${monthName} oyi:\n\n` +
+      `To'ylar: ${f.eventCount} ta\n` +
+      `Kutilayotgan tushum: ${fmtSom(f.totalExpected)}\n` +
+      `Yig'ilgan: ${fmtSom(f.totalCollected)}\n` +
+      `Qarzdorlik: ${fmtSom(f.totalOutstanding)}\n` +
+      `Xarajatlar: ${fmtSom(f.totalExpenses)}\n` +
+      `Sof foyda: ${fmtSom(f.netProfit)}`
+    );
   }
 
   // ------------------------------------------------------ List announcements

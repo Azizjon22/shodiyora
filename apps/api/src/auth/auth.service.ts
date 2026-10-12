@@ -173,6 +173,65 @@ export class AuthService {
     };
   }
 
+  /**
+   * Issues the same session a password/PIN login would, for a Telegram
+   * chat that's already linked (via /start in the bot) — no password or
+   * PIN needed, since Telegram's own signed initData is the credential.
+   */
+  async loginViaTelegram(telegramChatId: string) {
+    const [worker, staff] = await Promise.all([
+      this.prisma.worker.findUnique({ where: { telegramChatId } }),
+      this.prisma.staffUser.findUnique({ where: { telegramChatId } }),
+    ]);
+
+    if (worker && worker.position === 'CHEF' && worker.status === 'APPROVED') {
+      const payload: AuthPayload = {
+        sub: worker.id,
+        kind: 'WORKER',
+        fullName: worker.fullName,
+        mustChangePin: worker.mustChangePin,
+        tokenVersion: worker.tokenVersion,
+      };
+      const tokens = this.signTokens(payload);
+      return {
+        ...tokens,
+        user: {
+          id: worker.id,
+          fullName: worker.fullName,
+          phone: worker.phone,
+          position: worker.position,
+          mustChangePin: worker.mustChangePin,
+          kind: 'WORKER' as const,
+        },
+      };
+    }
+
+    if (staff && staff.isActive) {
+      const payload: AuthPayload = {
+        sub: staff.id,
+        kind: 'STAFF',
+        role: staff.role,
+        fullName: staff.fullName,
+        mustChangePassword: staff.mustChangePassword,
+        tokenVersion: staff.tokenVersion,
+      };
+      const tokens = this.signTokens(payload);
+      return {
+        ...tokens,
+        user: {
+          id: staff.id,
+          fullName: staff.fullName,
+          phone: staff.phone,
+          role: staff.role,
+          mustChangePassword: staff.mustChangePassword,
+          kind: 'STAFF' as const,
+        },
+      };
+    }
+
+    throw new UnauthorizedException('Bu Telegram hisobi botga ulanmagan.');
+  }
+
   async refresh(refreshToken: string): Promise<TokenPair> {
     let payload: AuthPayload;
     try {

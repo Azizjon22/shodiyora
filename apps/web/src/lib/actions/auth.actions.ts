@@ -68,6 +68,40 @@ export async function loginWorkerAction(
   redirect(data.user.mustChangePin ? "/change-pin" : "/worker");
 }
 
+/**
+ * Signs in a visitor arriving via the Telegram Mini App: Telegram's signed
+ * initData (from a chat already linked with /start in the bot) replaces the
+ * password/PIN. Returns where to send them next rather than redirecting
+ * itself, so the /tg page controls its own loading/error UI.
+ */
+export async function loginTelegramAction(
+  initData: string,
+): Promise<{ ok: true; next: string } | { ok: false; error: string }> {
+  const res = await fetch(publicApiUrl("/auth/telegram"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ initData }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    return { ok: false, error: body?.message ?? "Kirishda xatolik" };
+  }
+
+  const data = (await res.json()) as AuthTokenResponse;
+  await setSession({ accessToken: data.accessToken, refreshToken: data.refreshToken, user: data.user });
+  const next =
+    data.user.kind === "WORKER"
+      ? data.user.mustChangePin
+        ? "/change-pin"
+        : "/worker"
+      : data.user.mustChangePassword
+        ? "/change-password"
+        : "/dashboard";
+  return { ok: true, next };
+}
+
 export async function logoutAction() {
   await clearSession();
   redirect("/login");
