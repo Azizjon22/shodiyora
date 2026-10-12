@@ -97,6 +97,15 @@ export class InventoryController {
     return this.inventory.recentTransactions(limit ? Number(limit) : undefined);
   }
 
+  // Who took what from the store, for which wedding — kept apart from the
+  // bozorlik (shopping list) flow, which never touches warehouse stock.
+  @UseGuards(RolesGuard)
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Get('usages/recent')
+  recentUsages(@CurrentUser() user: AuthPayload) {
+    return this.inventory.recentUsages(user.role === 'SUPER_ADMIN');
+  }
+
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'ADMIN')
   @Get(':id')

@@ -174,6 +174,15 @@ export interface EventStockUsage {
   items: { id: string; name: string; unit: Unit; quantity: string; totalCost: string | null }[];
 }
 
+/** The Ombor page's admin-wide feed: who took what, for which wedding. */
+export interface RecentStockUsage {
+  id: string;
+  createdAt: string;
+  worker: { id: string; fullName: string };
+  event: { id: string; clientName: string; eventDate: string };
+  items: { id: string; name: string; unit: Unit; quantity: string; totalCost?: string | null }[];
+}
+
 export interface InventoryTxn {
   id: string;
   itemId: string;

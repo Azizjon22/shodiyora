@@ -460,6 +460,34 @@ export class InventoryService {
   }
 
   /**
+   * Admin-side view of who took what from the store, and for which
+   * wedding — separate from the bozorlik (shopping list) flow, which never
+   * touches warehouse stock. Costs included for SUPER_ADMIN only.
+   */
+  recentUsages(includeCosts: boolean) {
+    return this.prisma.stockUsage.findMany({
+      select: {
+        id: true,
+        createdAt: true,
+        worker: { select: { id: true, fullName: true } },
+        event: { select: { id: true, clientName: true, eventDate: true } },
+        items: {
+          select: {
+            id: true,
+            name: true,
+            unit: true,
+            quantity: true,
+            totalCost: includeCosts,
+          },
+          orderBy: { name: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  /**
    * A chef takes products from the store for today's or tomorrow's wedding.
    * Stock goes down, oldest lot first, and what it cost is kept with the
    * wedding for the super admin.

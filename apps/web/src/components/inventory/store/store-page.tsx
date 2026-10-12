@@ -22,7 +22,7 @@ import {
   type ProductCategory,
   type StaffRole,
 } from "@shodiyora/shared";
-import type { InventoryItem, InventoryTxn, UpcomingEvent } from "@/lib/types";
+import type { InventoryItem, InventoryTxn, RecentStockUsage, UpcomingEvent } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -33,6 +33,7 @@ import { inventoryApi, qty, stockLevel, stockRatio } from "./helpers";
 import { StockModal, type StockMode } from "./stock-modal";
 import { ItemModal } from "./item-modal";
 import { HistoryModal, TxnRow } from "./history-modal";
+import { UsagesPanel } from "./usages-panel";
 
 type Tab = "PRODUCT" | "DISHWARE";
 type Dialog =
@@ -70,11 +71,13 @@ function ItemThumb({ item }: { item: InventoryItem }) {
 export function StorePage({
   items,
   recent,
+  usages,
   events,
   role,
 }: {
   items: InventoryItem[];
   recent: InventoryTxn[];
+  usages: RecentStockUsage[];
   events: UpcomingEvent[];
   role: StaffRole;
 }) {
@@ -553,7 +556,7 @@ export function StorePage({
         </div>
 
         {/* ---------- Recent activity ---------- */}
-        <aside className="xl:sticky xl:top-20 xl:self-start">
+        <aside className="space-y-4 xl:sticky xl:top-20 xl:self-start">
           <section className="rounded-2xl border border-border bg-card p-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <History className="h-4 w-4 text-muted-foreground" /> So&apos;nggi
@@ -576,6 +579,7 @@ export function StorePage({
               </ul>
             )}
           </section>
+          <UsagesPanel usages={usages} canSeeCosts={role === "SUPER_ADMIN"} canReturn={role === "SUPER_ADMIN"} />
         </aside>
       </div>
 
