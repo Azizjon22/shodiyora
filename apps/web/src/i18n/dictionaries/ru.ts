@@ -242,6 +242,8 @@ export const ru: Dictionary = {
     fromShoppingLists: "По спискам покупок",
     fromStock: "Продукты, взятые со склада",
     addingPending: "Добавление...",
+    addExpense: "Добавить расход",
+    category: "Категория",
     refundAmount: "Сумма возврата",
     amountSom: "Сумма (сум)",
     method: "Способ",

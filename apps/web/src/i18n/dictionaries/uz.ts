@@ -240,6 +240,8 @@ export const uz = {
     fromShoppingLists: "Bozorlik ro'yxatlari bo'yicha",
     fromStock: "Ombordan olingan mahsulotlar",
     addingPending: "Qo'shilmoqda...",
+    addExpense: "Xarajat qo'shish",
+    category: "Turkum",
     refundAmount: "Qaytariladigan summa",
     amountSom: "Summa (so'm)",
     method: "Usul",

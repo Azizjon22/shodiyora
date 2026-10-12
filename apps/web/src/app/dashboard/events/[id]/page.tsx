@@ -373,10 +373,14 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
 
       {canSeeFinancials && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex-row items-center justify-between gap-3">
             <CardTitle>{t("events.expenses")}</CardTitle>
+            <ExpenseForm
+              eventId={event.id}
+              suggestedAmounts={Object.keys(suggestedAmounts).length > 0 ? suggestedAmounts : undefined}
+            />
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="space-y-2">
               {(event.expenses ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground">{t("events.noExpenses")}</p>
@@ -400,10 +404,6 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
                 </div>
               ))}
             </div>
-            <ExpenseForm
-              eventId={event.id}
-              suggestedAmounts={Object.keys(suggestedAmounts).length > 0 ? suggestedAmounts : undefined}
-            />
           </CardContent>
         </Card>
       )}
