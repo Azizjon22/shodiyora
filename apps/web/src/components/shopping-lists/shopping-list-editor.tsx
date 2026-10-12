@@ -3,17 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Send, Trash2, X } from "lucide-react";
-import { UNIT_LABELS_UZ, UNITS, type Unit } from "@shodiyora/shared";
+import { UNIT_LABELS_UZ, UNITS, formatQuantity, type Unit } from "@shodiyora/shared";
 import type { ShoppingList } from "@/lib/types";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { isShoppingListSent } from "@/lib/shopping-list-status";
 
+/** "G" is grams of a kg item — how the chef wrote it, shown back the same way. */
+type RowUnit = Unit | "G";
+
 interface Row {
   id?: string;
   name: string;
   quantity: string;
-  unit: Unit;
+  unit: RowUnit;
   note: string | null;
   /** Chef's figure, for the "8 → 5" hint while editing. */
   original: string | null;
@@ -22,14 +25,17 @@ interface Row {
 function rowsFrom(list: ShoppingList): Row[] {
   return list.items
     .filter((item) => !item.isPurchased)
-    .map((item) => ({
-      id: item.id,
-      name: item.name,
-      quantity: String(Number(item.quantity)),
-      unit: item.unit,
-      note: item.note,
-      original: item.originalQuantity ?? String(Number(item.quantity)),
-    }));
+    .map((item) => {
+      const inGrams = item.unit === "KG" && !Number.isInteger(Number(item.quantity));
+      return {
+        id: item.id,
+        name: item.name,
+        quantity: inGrams ? String(Math.round(Number(item.quantity) * 1000)) : String(Number(item.quantity)),
+        unit: inGrams ? ("G" as const) : item.unit,
+        note: item.note,
+        original: item.originalQuantity ?? String(Number(item.quantity)),
+      };
+    });
 }
 
 async function send(path: string, method: string, body?: unknown) {
@@ -81,8 +87,9 @@ export function ShoppingListEditor({ list }: { list: ShoppingList }) {
     return cleaned.map((r) => ({
       id: r.id,
       name: r.name,
-      quantity: Number(r.quantity),
-      unit: r.unit,
+      // Grams travel as kg; the API keeps one unit per product.
+      quantity: r.unit === "G" ? Math.round(Number(r.quantity)) / 1000 : Number(r.quantity),
+      unit: r.unit === "G" ? ("KG" as const) : r.unit,
       note: r.note ?? undefined,
     }));
   }
@@ -130,7 +137,8 @@ export function ShoppingListEditor({ list }: { list: ShoppingList }) {
       <div className="space-y-2">
         {rows.map((row, index) => {
           const chefQuantity = row.id && row.original !== null ? Number(row.original) : 0;
-          const changed = chefQuantity > 0 && chefQuantity !== Number(row.quantity);
+          const typedKg = row.unit === "G" ? Number(row.quantity) / 1000 : Number(row.quantity);
+          const changed = chefQuantity > 0 && Math.abs(chefQuantity - typedKg) > 0.0005;
           return (
             <div key={row.id ?? `new-${index}`} className="flex flex-wrap items-center gap-2">
               {row.id ? (
@@ -145,7 +153,7 @@ export function ShoppingListEditor({ list }: { list: ShoppingList }) {
               )}
               {changed && (
                 <span className="text-xs text-muted-foreground">
-                  oshpaz: <span className="line-through">{chefQuantity}</span>
+                  oshpaz: <span className="line-through">{formatQuantity(chefQuantity, row.unit === "G" ? "KG" : row.unit)}</span>
                 </span>
               )}
               <Input
@@ -160,7 +168,7 @@ export function ShoppingListEditor({ list }: { list: ShoppingList }) {
               />
               <Select
                 value={row.unit}
-                onChange={(e) => update(index, { unit: e.target.value as Unit })}
+                onChange={(e) => update(index, { unit: e.target.value as RowUnit })}
                 className="h-8 w-24"
                 aria-label="O'lchov birligi"
               >
@@ -169,6 +177,7 @@ export function ShoppingListEditor({ list }: { list: ShoppingList }) {
                     {UNIT_LABELS_UZ[u]}
                   </option>
                 ))}
+                <option value="G">gram</option>
               </Select>
               <button
                 type="button"

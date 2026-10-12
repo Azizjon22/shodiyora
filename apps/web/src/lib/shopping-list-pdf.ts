@@ -1,7 +1,7 @@
 "use client";
 
 import { jsPDF } from "jspdf";
-import { UNIT_LABELS_UZ } from "@shodiyora/shared";
+import { formatQuantity } from "@shodiyora/shared";
 import type { ShoppingList } from "@/lib/types";
 import { formatDate, formatDateTime, formatSom } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ export function downloadShoppingListPdf(list: ShoppingList) {
     total += itemTotal;
 
     doc.text(item.name, left, y, { maxWidth: 88 });
-    doc.text(`${item.quantity} ${UNIT_LABELS_UZ[item.unit]}`, 105, y);
+    doc.text(formatQuantity(item.quantity, item.unit), 105, y);
     doc.text(item.unitPrice ? formatSom(item.unitPrice) : "-", 140, y);
     doc.text(item.isPurchased ? "Olindi" : "Kutilmoqda", 175, y);
     y += 7;

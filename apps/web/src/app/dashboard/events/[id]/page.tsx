@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/button";
 import { DeleteIconButton } from "@/components/ui/delete-icon-button";
 import { formatDateTime, formatSom } from "@/lib/utils";
-import { UNIT_LABELS_UZ } from "@shodiyora/shared";
+import { formatQuantity } from "@shodiyora/shared";
 import { StatusSelect } from "@/components/events/status-select";
 import { UnassignButton } from "@/components/events/unassign-button";
 import { PaymentForm } from "@/components/events/payment-form";
@@ -344,7 +344,7 @@ export default async function EventDetailPage({ params }: PageProps<"/dashboard/
                       <span className="min-w-0 truncate">
                         {item.name}{" "}
                         <span className="text-muted-foreground">
-                          — {Number(item.quantity)} {UNIT_LABELS_UZ[item.unit]}
+                          — {formatQuantity(item.quantity, item.unit)}
                         </span>
                       </span>
                       <span className={item.totalCost === null ? "shrink-0 text-xs text-muted-foreground" : "shrink-0 font-medium tabular-nums"}>

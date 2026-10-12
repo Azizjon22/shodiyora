@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { DashboardService } from '../dashboard/dashboard.service';
 import { localMidnight } from '../common/time/tashkent';
+import { formatQuantity } from '../common/quantity/format-quantity';
 
 interface TgMessage {
   message_id: number;
@@ -59,11 +60,6 @@ const UNIT_UZ: Record<string, string> = {
   LITER: 'litr',
   DONA: 'dona',
 };
-
-function fmtQty(value: unknown) {
-  const n = Number(value);
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
-}
 
 /** "901234567" / "998901234567" / "+998 90 123 45 67" -> "+998901234567". */
 function normalizePhone(raw: string): string | null {
@@ -891,7 +887,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         unit: string;
         minThreshold: unknown;
       }) =>
-        `• ${i.name} — ${fmtQty(i.quantity)} ${UNIT_UZ[i.unit] ?? i.unit} qoldi (chegara: ${fmtQty(i.minThreshold)})`,
+        `• ${i.name} — ${formatQuantity(i.quantity, i.unit)} qoldi (chegara: ${formatQuantity(i.minThreshold, i.unit)})`,
     );
     return `📦 Kam qolgan mahsulotlar:\n\n${rows.join('\n')}`;
   }
@@ -948,14 +944,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     list: NonNullable<Awaited<ReturnType<TelegramService['loadList']>>>,
   ) {
     const rows = list.items.slice(0, 40).map((i) => {
-      const unit = UNIT_UZ[i.unit] ?? i.unit;
       let mark = '';
       if (i.originalQuantity && !i.originalQuantity.equals(i.quantity)) {
         mark = i.originalQuantity.isZero()
           ? " (qo'shildi)"
-          : ` (oshpaz: ${fmtQty(i.originalQuantity)})`;
+          : ` (oshpaz: ${formatQuantity(i.originalQuantity, i.unit)})`;
       }
-      return `• ${i.name} — ${fmtQty(i.quantity)} ${unit}${mark}`;
+      return `• ${i.name} — ${formatQuantity(i.quantity, i.unit)}${mark}`;
     });
     if (list.items.length > rows.length) {
       rows.push(`… va yana ${list.items.length - rows.length} ta`);
@@ -978,9 +973,11 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     list: NonNullable<Awaited<ReturnType<TelegramService['loadList']>>>,
   ) {
     const rows = list.items.slice(0, 40).map((i) => {
-      const unit = UNIT_UZ[i.unit] ?? i.unit;
-      const price = i.unitPrice ? ` × ${fmtSom(i.unitPrice)}` : '';
-      return `• ${i.name} — ${fmtQty(i.quantity)} ${unit}${price} = ${fmtSom(i.totalCost)}`;
+      // The price is per kg / litr / dona, however small the amount bought.
+      const price = i.unitPrice
+        ? ` (1 ${UNIT_UZ[i.unit] ?? i.unit} — ${fmtSom(i.unitPrice)})`
+        : '';
+      return `• ${i.name} — ${formatQuantity(i.quantity, i.unit)} = ${fmtSom(i.totalCost)}${price}`;
     });
     const total = list.items.reduce(
       (sum, i) => sum + Number(i.totalCost ?? 0),
@@ -1123,8 +1120,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         month: 'long',
       });
       const rows = usage.items.map(
-        (i) =>
-          `• ${i.name} — ${fmtQty(i.quantity)} ${UNIT_UZ[i.unit] ?? i.unit}`,
+        (i) => `• ${i.name} — ${formatQuantity(i.quantity, i.unit)}`,
       );
       // Only super admins get this message, so the cost may be shown.
       const unpriced = usage.items.filter((i) => i.totalCost === null).length;
