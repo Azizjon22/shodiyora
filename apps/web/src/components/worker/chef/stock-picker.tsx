@@ -77,8 +77,13 @@ export function StockPicker({
   // A chef may take back only what they took today.
   const today = usages.filter((u) => daysUntil(u.createdAt) === 0);
 
-  function setQty(item: ChefStockItem, value: number) {
-    const max = Number(item.quantity);
+  function setQty(item: ChefStockItem, value: number, mode: KgMode = "g") {
+    const have = Number(item.quantity);
+    // Whole-kilogram mode can't show a fraction, so a non-whole remainder
+    // (e.g. 3.5 kg left) is capped at the clean 3 kg here — the chef
+    // switches to "gram" mode for the rest, instead of the input silently
+    // rounding up to a number larger than what actually gets taken.
+    const max = item.unit === "KG" && mode === "kg" ? Math.floor(have) : have;
     const next = Math.max(0, Math.min(value, max));
     setTaking((prev) => {
       const map = new Map(prev);
@@ -240,7 +245,7 @@ export function StockPicker({
                       <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => setQty(item, +(take - stepSize(item.unit, mode, take, -1)).toFixed(3))}
+                          onClick={() => setQty(item, +(take - stepSize(item.unit, mode, take, -1)).toFixed(3), mode)}
                           disabled={take <= 0}
                           className="flex h-10 w-10 items-center justify-center rounded-lg border border-border transition active:scale-95 disabled:opacity-30"
                           aria-label="Kamaytirish"
@@ -249,7 +254,7 @@ export function StockPicker({
                         </button>
                         <input
                           value={take > 0 ? toInput(take, item.unit, mode) : ""}
-                          onChange={(e) => setQty(item, fromInput(e.target.value, item.unit, mode))}
+                          onChange={(e) => setQty(item, fromInput(e.target.value, item.unit, mode), mode)}
                           disabled={empty}
                           inputMode={item.unit === "LITER" ? "decimal" : "numeric"}
                           placeholder="0"
@@ -258,8 +263,8 @@ export function StockPicker({
                         />
                         <button
                           type="button"
-                          onClick={() => setQty(item, +(take + stepSize(item.unit, mode, take, 1)).toFixed(3))}
-                          disabled={empty || take >= have}
+                          onClick={() => setQty(item, +(take + stepSize(item.unit, mode, take, 1)).toFixed(3), mode)}
+                          disabled={empty || take >= (item.unit === "KG" && mode === "kg" ? Math.floor(have) : have)}
                           className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground transition active:scale-95 disabled:opacity-30"
                           aria-label="Ko'paytirish"
                         >
