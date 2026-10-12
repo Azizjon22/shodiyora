@@ -371,12 +371,14 @@ export class ShoppingListsService {
       );
     }
 
-    if (role !== 'ADMIN') {
+    if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
       throw new ForbiddenException(
-        'Mahsulotni faqat admin xarid qilgan deb belgilashi mumkin',
+        'Mahsulotni faqat admin yoki super admin xarid qilgan deb belgilashi mumkin',
       );
     }
-    if (list.status !== 'APPROVED') {
+    // ADMIN only ever works a list SUPER_ADMIN has sent them; SUPER_ADMIN can
+    // buy directly off a fresh chef's list without that hand-off at all.
+    if (role === 'ADMIN' && list.status !== 'APPROVED') {
       throw new BadRequestException(
         "Xarid faqat super admin yuborgan ro'yxatda qilinadi",
       );

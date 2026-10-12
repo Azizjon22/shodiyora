@@ -40,8 +40,12 @@ export function ListDetail({
   const { total, bought, spent, complete } = listProgress(list);
   const current = STEPS.findIndex((s) => s.key === list.status);
   const sent = current >= 2;
-  const canBuy = !isSuperAdmin && list.status === "APPROVED";
-  const canFixPrice = !isSuperAdmin && (list.status === "APPROVED" || list.status === "PURCHASED");
+  // ADMIN only ever works a list SUPER_ADMIN has sent them ("Adminga
+  // yuborish"); SUPER_ADMIN can buy and fix prices directly off a fresh
+  // chef's list, with no hand-off required.
+  const notYetDone = list.status !== "PURCHASED" && list.status !== "CLOSED";
+  const canBuy = isSuperAdmin ? notYetDone : list.status === "APPROVED";
+  const canFixPrice = isSuperAdmin ? list.status !== "CLOSED" : list.status === "APPROVED" || list.status === "PURCHASED";
   const groups = groupBySection(list.items, lookup);
   const stepTime: Partial<Record<(typeof STEPS)[number]["key"], string | null>> = {
     SUBMITTED: list.createdAt,
@@ -124,7 +128,17 @@ export function ListDetail({
           <div className="col-span-2 rounded-xl bg-muted/60 px-3 py-2.5 sm:col-span-1">
             <p className="text-xs text-muted-foreground">Holat</p>
             <p className="font-semibold leading-tight [overflow-wrap:anywhere]">
-              {!sent ? "Tekshirilmoqda" : list.status === "APPROVED" ? (complete ? "Hammasi olindi" : `${total - bought} ta qoldi`) : STEPS[current]?.label}
+              {!sent && isSuperAdmin && bought > 0
+                ? complete
+                  ? "Hammasi olindi"
+                  : `${total - bought} ta qoldi`
+                : !sent
+                  ? "Tekshirilmoqda"
+                  : list.status === "APPROVED"
+                    ? complete
+                      ? "Hammasi olindi"
+                      : `${total - bought} ta qoldi`
+                    : STEPS[current]?.label}
             </p>
           </div>
         </div>
@@ -134,7 +148,7 @@ export function ListDetail({
           {isSuperAdmin && isShoppingListEditable(list.status) && <ShoppingListEditor list={list} />}
           {!sent && !isSuperAdmin && <p className="text-sm text-muted-foreground">Super admin tekshirib yuborgach xarid qilinadi.</p>}
           <div className="flex flex-wrap gap-2">
-            {list.status === "APPROVED" && complete && !isSuperAdmin && (
+            {complete && notYetDone && (isSuperAdmin || list.status === "APPROVED") && (
               <button
                 type="button"
                 onClick={() => setStatus("PURCHASED")}

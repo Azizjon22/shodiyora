@@ -141,7 +141,7 @@ export class ShoppingListsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   @Patch(':id/items/:itemId/purchase')
   markPurchased(
     @Param('id') id: string,
