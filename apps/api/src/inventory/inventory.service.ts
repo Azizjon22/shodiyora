@@ -16,6 +16,8 @@ import { TelegramService } from '../telegram/telegram.service';
 import { localMidnight } from '../common/time/tashkent';
 import { formatQuantity } from '../common/quantity/format-quantity';
 import { AuthPayload } from '../common/types/auth-payload';
+import { defaultPhoto, defaultProduct, productKey } from './default-catalog';
+import { DEFAULT_PRODUCTS } from './default-products';
 
 /** One lot's share of a movement: how much was drawn and at what price. */
 interface Allocation {
@@ -119,9 +121,12 @@ export class InventoryService {
   /**
    * Read-only product catalog for building shopping lists — reachable by
    * chefs (WORKER kind) as well as staff, unlike the rest of this module.
+   * The 95 standard products fill in anything not already in the warehouse
+   * (matched by name, so "Bodring" in the warehouse isn't listed twice), so
+   * a chef can pick something never stocked yet instead of typing it by hand.
    */
-  productCatalog() {
-    return this.prisma.inventoryItem.findMany({
+  async productCatalog() {
+    const items = await this.prisma.inventoryItem.findMany({
       where: { category: 'PRODUCT' },
       select: {
         id: true,
@@ -132,6 +137,25 @@ export class InventoryService {
       },
       orderBy: { name: 'asc' },
     });
+    const withPhotos = items.map((i) => ({
+      ...i,
+      productCategory:
+        i.productCategory ?? defaultProduct(i.name)?.productCategory ?? null,
+      photoUrl: i.photoUrl ?? defaultPhoto(i.name),
+    }));
+    const stocked = new Set(items.map((i) => productKey(i.name)));
+    const extras = DEFAULT_PRODUCTS.filter(
+      (p) => !stocked.has(productKey(p.name)),
+    ).map((p) => ({
+      id: `default:${productKey(p.name).replace(/\s+/g, '-')}`,
+      name: p.name,
+      productCategory: p.productCategory,
+      unit: p.unit,
+      photoUrl: p.image ? `/products/${p.image}.webp` : null,
+    }));
+    return [...withPhotos, ...extras].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }
 
   async update(
@@ -426,9 +450,14 @@ export class InventoryService {
 
   // ------------------------------------------------- Taken for a wedding
 
-  /** What is on the shelves, for the chef: quantities only, never prices. */
-  stockForChef() {
-    return this.prisma.inventoryItem.findMany({
+  /**
+   * What is on the shelves, for the chef: quantities only, never prices.
+   * Unlike productCatalog(), nothing is added here — a chef can only take
+   * what is actually in stock — but a product without its own photo still
+   * gets the matching standard one instead of showing blank.
+   */
+  async stockForChef() {
+    const items = await this.prisma.inventoryItem.findMany({
       where: { category: 'PRODUCT' },
       select: {
         id: true,
@@ -440,6 +469,12 @@ export class InventoryService {
       },
       orderBy: { name: 'asc' },
     });
+    return items.map((i) => ({
+      ...i,
+      productCategory:
+        i.productCategory ?? defaultProduct(i.name)?.productCategory ?? null,
+      photoUrl: i.photoUrl ?? defaultPhoto(i.name),
+    }));
   }
 
   /** The chef's own recent withdrawals — no costs. */

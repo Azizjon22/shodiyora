@@ -20,6 +20,8 @@ import { WEEKDAYS_SHORT, daysUntil, whenLabel, type ChefEvent } from "./types";
 import { defaultKgMode, fitsMode, fromInput, stepSize, toInput, type KgMode } from "./quantity";
 import { KgModeSwitch } from "./kg-mode-switch";
 
+const categoryCover = (c: ProductCategory) => `/categories/${c.toLowerCase()}.jpg`;
+
 async function api(path: string, method: string, body?: unknown) {
   const res = await fetch(`/api/proxy/inventory${path}`, {
     method,
@@ -235,6 +237,13 @@ export function StockPicker({
                   const empty = have <= 0;
                   return (
                     <li key={item.id} className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 transition", take > 0 && "bg-primary/5")}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.photoUrl ?? categoryCover(item.productCategory ?? "OTHER")}
+                        alt=""
+                        loading="lazy"
+                        className="h-11 w-11 shrink-0 rounded-lg object-cover"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{item.name}</p>
                         <p className={cn("text-xs", empty ? "text-destructive" : "text-muted-foreground")}>
